@@ -1,6 +1,6 @@
 //
 //  GrammarEngine.Option.swift
-//  PastaParser
+//  GrammarKit
 //
 //  Created by MORGAN, THOMAS B on 2/21/19.
 //

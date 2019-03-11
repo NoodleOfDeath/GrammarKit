@@ -1,5 +1,5 @@
 //
-//  PastaParser
+//  GrammarKit
 //
 //  Copyright © 2019 NoodleOfDeath. All rights reserved.
 //
