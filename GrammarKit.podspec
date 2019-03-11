@@ -44,4 +44,5 @@ Support to import and convert ANTLR4 grammar files to GrammarKit grammar file fo
   # s.frameworks = 'UIKit', 'Foundation'
   s.dependency 'SwiftyXMLParser', '4.0'
   s.dependency 'SwiftyUTType'
+  
 end
