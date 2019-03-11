@@ -1,0 +1,6 @@
+framework module SwiftyUTType {
+  umbrella header "SwiftyUTType-umbrella.h"
+
+  export *
+  module * { export * }
+}

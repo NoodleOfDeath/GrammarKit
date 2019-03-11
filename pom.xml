@@ -1,0 +1,88 @@
+<!--
+ ~ Copyright (c) 2018 The PastaParser Project. All rights reserved.
+ ~ Use of this file is governed by the MIT license that
+ ~ can be found in the LICENSE file in the project root.
+ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>1.0.0</modelVersion>
+    <groupId>com.noodleofdeath</groupId>
+    <artifactId>pastaparser-master</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    
+    <name>PastaParser</name>
+    <description>PastaParser Master Build POM</description>
+    <url>http://github.com/NoodleOfDeath/PastaParser</url>
+    <inceptionYear>2018</inceptionYear>
+    <organization>
+        <name>PastaParser</name>
+        <url>http://github.com/NoodleOfDeath/PastaParser</url>
+    </organization>
+    
+    <licenses>
+        <license>
+            <name>The MIT License</name>
+            <url>https://github.com/NoodleOfDeath/PastaParser/edit/master/LICENSE</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <developers>
+        <developer>
+            <name>NoodleOfDeath</name>
+            <url>http://noodleofdeath.com</url>
+            <roles>
+                <role>Project lead - PastaParser</role>
+            </roles>
+        </developer>
+    </developers>
+    
+    <modules>
+        <module>runtime/java</module>
+        <!--<module>tool</module>
+         <module>pastaparser-maven-plugin</module>
+         <module>tool-testsuite</module>
+         <module>runtime-testsuite/annotations</module>
+         <module>runtime-testsuite/processors</module>
+         <module>runtime-testsuite</module>-->
+    </modules>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <NoodleOfDeath.testinprocess>true</NoodleOfDeath.testinprocess>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+    </properties>
+    
+    <mailingLists>
+        
+    </mailingLists>
+    
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/NoodleOfDeath/pastaparser/issues</url>
+    </issueManagement>
+    
+    <scm>
+        <url>https://github.com/NoodleOfDeath/pastaparser/tree/master</url>
+        <connection>scm:git:git://github.com/NoodleOfDeath/pastaparser.git</connection>
+        <developerConnection>scm:git:git@github.com:NoodleOfDeath/pastaparser.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+    
+    <build>
+        <resources>
+            <resource>
+                <directory>resources</directory>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>test</directory>
+            </testResource>
+        </testResources>
+    </build>
+    
+</project>

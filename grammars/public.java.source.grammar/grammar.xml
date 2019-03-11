@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<grammar grammar-structure="1.0" grammar-type="compound" version="1.0" extends="public.source-code">
+
+	<rules>
+	
+		<rule id="NAMESPACE" order="5000" options="">
+			<definition>(ID '\.')+ ID</definition>
+			<meta>
+				<category>namespace</category>
+			</meta>
+		</rule>
+		<rule id="ANNOTATION" order="5000" options="">
+			<definition>'@[\p{L}]+' (LEFT_PARENTHESIS (STRING COMMA)* STRING
+				RIGHT_PARENTHESIS)?
+			</definition>
+			<meta>
+				<category>annotation</category>
+			</meta>
+		</rule>
+		
+		<rule id="KEYWORD" order="6000" options="">
+			<definition>
+				<word>abstract</word>
+				<word>assert</word>
+				<word>boolean</word>
+				<word>break</word>
+				<word>byte</word>
+				<word>case</word>
+				<word>catch</word>
+				<word>char</word>
+				<word>class</word>
+				<word>const</word>
+				<word>continue</word>
+				<word>default</word>
+				<word>double</word>
+				<word>do</word>
+				<word>else</word>
+				<word>enum</word>
+				<word>extends</word>
+				<word>final</word>
+				<word>finally</word>
+				<word>float</word>
+				<word>for</word>
+				<word>goto</word>
+				<word>if</word>
+				<word>implements</word>
+				<word>import</word>
+				<word>instanceof</word>
+				<word>interface</word>
+				<word>int</word>
+				<word>long</word>
+				<word>native</word>
+				<word>new</word>
+				<word>null</word>
+				<word>package</word>
+				<word>private</word>
+				<word>protected</word>
+				<word>public</word>
+				<word>return</word>
+				<word>short</word>
+				<word>static</word>
+				<word>strictfp</word>
+				<word>super</word>
+				<word>switch</word>
+				<word>synchronized</word>
+				<word>this</word>
+				<word>throws</word>
+				<word>throw</word>
+				<word>transient</word>
+				<word>try</word>
+				<word>void</word>
+				<word>volatile</word>
+				<word>while</word>
+			</definition>
+			<meta>
+				<category>keyword</category>
+			</meta>
+		</rule>
+		
+		<rule id="NON_GENERIC_ID" order="9000" options="">
+			<definition>'[\p{L}_$][\p{L}_$0-9]*'</definition>
+			<meta>
+				<category>identifier</category>
+			</meta>
+		</rule>
+		<rule id="GENERIC_ID" order="9000" options="">
+			<definition>NON_GENERIC_ID LT_OPERATOR NON_GENERIC_ID GT_OPERATOR
+			</definition>
+			<meta>
+				<category>identifier</category>
+			</meta>
+		</rule>
+		
+		<rule id="ONE_LINE_COMMENT" order="10000" options="">
+			<definition>'\/\/.*'</definition>
+			<meta>
+				<category>comment</category>
+			</meta>
+		</rule>
+		<rule id="JAVADOC_COMMENT" order="10000" options="">
+			<definition>'\/\*(?s:.*?)(\*\/|\Z)'</definition>
+			<meta>
+				<category>comment</category>
+			</meta>
+		</rule>
+		<rule id="BLOCK_COMMENT" order="10000" options="">
+			<definition>'\/\*(?s:.*?)(\*\/|\Z)'</definition>
+			<meta>
+				<category>comment</category>
+			</meta>
+		</rule>
+		
+		<rule id="package_declaration" order="6000" options="">
+			<definition>'package' NAMESPACE ';'</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		<rule id="import_statement" order="6000" options="">
+			<definition>'import' NAMESPACE ';'</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		<rule id="class_declaration" order="7000" options="">
+			<definition>ANNOTATION* access_modifier* 'class' ID ('extends' (ID COMMA)*
+				ID)? ('implements' (ID COMMA)* ID)?
+			</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		<rule id="constructor_declaration" order="8000" options="">
+			<definition>ANNOTATION* access_modifier* ID LEFT_PARENTHESIS ((ID ID COMMA)*
+				ID ID)? RIGHT_PARENTHESIS
+			</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		<rule id="method_declaration" order="8000" options="">
+			<definition>ANNOTATION* access_modifier* (builtin_datatype | ID) ID
+				LEFT_PARENTHESIS ((ID ID COMMA)* ID ID)? RIGHT_PARENTHESIS
+			</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		<rule id="variable_declaration" order="15000" options="">
+			<definition>ANNOTATION* access_modifier* (builtin_datatype | ID) ID
+				(EQ_ASSIGNMENT_OPERATOR (builtin_value | ID | LITERAL_STRING | NUMBER |
+				STRING))? ';'
+			</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		<rule id="builtin_datatype" order="25000" options="">
+			<definition>'boolean' | 'double' | 'float' | 'int' | 'void'</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		<rule id="builtin_value" order="25000" options="">
+			<definition>'false' | 'null' | 'true'</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		<rule id="access_modifier" order="25000" options="">
+			<definition>'abstract' | 'final' | 'package' | 'private' | 'protected' |
+				'public' | 'static'
+			</definition>
+			<meta>
+				<category></category>
+			</meta>
+		</rule>
+		
+	</rules>
+
+</grammar>

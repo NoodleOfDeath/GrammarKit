@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>PastaParser.swift</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+	</buildSpec>
+	<natures>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>grammars</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/grammars</locationURI>
+		</link>
+		<link>
+			<name>samples</name>
+			<type>2</type>
+			<locationURI>PARENT-2-PROJECT_LOC/samples</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<grammar id="public.source-code" format-version="1.0" version="1.0">
+	
+	<rules>
+	
+		<rule id="WHITESPACE" order="1" options="skip">
+			<definition>'[ \t]+'</definition>
+		</rule>
+		<rule id="NEWLINE" order="1" options="skip">
+			<definition>'\r?\n'</definition>
+		</rule>
+
+		<rule id="BLOCK" order="1" options="multipass">
+			<definition>L_BRACE (BLOCK | ~R_BRACE)* (R_BRACE | '\Z')</definition>
+		</rule>
+
+		<rule id="L_BRACE" order="1000" options="">
+			<definition>'\{'</definition>
+		</rule>
+		<rule id="R_BRACE" order="1000" options="">
+			<definition>'\}'</definition>
+		</rule>
+		<rule id="L_BRACKET" order="1000" options="">
+			<definition>'\['</definition>
+		</rule>
+		<rule id="R_BRACKET" order="1000" options="">
+			<definition>'\]'</definition>
+		</rule>
+		<rule id="L_PAREN" order="1000" options="">
+			<definition>'\('</definition>
+		</rule>
+		<rule id="R_PAREN" order="1000" options="">
+			<definition>'\)'</definition>
+		</rule>
+
+		<rule id="LOGIC_OPERATOR" order="2000" options="">
+			<definition>'&amp;&amp;' | '\|\|'</definition>
+		</rule>
+		<rule id="BITWISE_OPERATOR" order="2100" options="">
+			<definition>'&lt;&lt;' | '&gt;&gt;' | '~' | '&amp;' | '\|'</definition>
+		</rule>
+		<rule id="RETURN_OPERATOR" order="2200" options="">
+			<definition>'\-&gt;'</definition>
+		</rule>
+		<rule id="LT_OPERATOR" order="2200" options="">
+			<definition>'&lt;'</definition>
+		</rule>
+		<rule id="GT_OPERATOR" order="2200" options="">
+			<definition>'&gt;'</definition>
+		</rule>
+		<rule id="EQ_OPERATOR" order="2200" options="">
+			<definition>'=='</definition>
+		</rule>
+		<rule id="EQ_ASSIGN_OP" order="2300" options="">
+			<definition>'='</definition>
+		</rule>
+		<rule id="ASSIGNMENT_OPERATOR" order="2300" options="">
+			<definition>'\+=' | '\-='</definition>
+		</rule>
+		<rule id="NIL_COALESCING_OPERATOR" order="2300" options="">
+			<definition>'\?\?'</definition>
+		</rule>
+		<rule id="NIL_WRAPPER_POSTFIX" order="2300" options="">
+			<definition>OPTIONAL_WRAPPER | STRICT_WRAPPER</definition>
+		</rule>
+
+		<rule id="COMMA" order="3000" options="">
+			<definition>','</definition>
+		</rule>
+		<rule id="LINE_DELIMETER" order="3000" options="">
+			<definition>';'</definition>
+		</rule>
+
+		<rule id="NUMBER" order="7000" options="">
+			<definition>'0x[0-9a-fA-F][0-9a-fA-F]+' | ('[0-9]+' ('\.[0-9]+')?)
+			</definition>
+		</rule>
+		<rule id="ID" order="9000" options="">
+			<definition>'[\p{L}\_\$][\p{L}\_\$0-9]*'</definition>
+		</rule>
+
+		<rule id="LITERAL_STRING" order="10000" options="">
+			<definition>'\'(?s:.*?)(\'|\Z)'</definition>
+		</rule>
+		<rule id="STRING" order="10000" options="">
+			<definition>'\"(?s:.*?)(\"|\Z)'</definition>
+		</rule>
+		
+	</rules>
+
+</grammar>

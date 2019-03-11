@@ -1,0 +1,27 @@
+PODS:
+  - GrammarKit (1.0.0):
+    - SwiftyUTType
+    - SwiftyXMLParser (= 4.0)
+  - SwiftyUTType (1.0.0)
+  - SwiftyXMLParser (4.0.0)
+
+DEPENDENCIES:
+  - GrammarKit (from `../../../`)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - SwiftyUTType
+    - SwiftyXMLParser
+
+EXTERNAL SOURCES:
+  GrammarKit:
+    :path: "../../../"
+
+SPEC CHECKSUMS:
+  GrammarKit: 196c4c03e5991ebde5b1c3e95747d4944b4e7a42
+  SwiftyUTType: ee9c7b80276bedc5f170b1149199befb411a6186
+  SwiftyXMLParser: 8065da2e715e86aeba677a34fad8c252db5128bb
+
+PODFILE CHECKSUM: d65f2b9b9b64c6569d1a33314561b4523267314c
+
+COCOAPODS: 1.5.3

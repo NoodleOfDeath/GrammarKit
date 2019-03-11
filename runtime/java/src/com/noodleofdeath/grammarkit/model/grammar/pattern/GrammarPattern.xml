@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<patterns>
+	<pattern id="Empty">
+		<expr>(?:\s*;\s*)</expr>
+	</pattern>
+	<pattern id="Literal">
+		<expr>(?&lt;\\)'(?:\\'|[^'])*'(?:\s*(?:\.\.)(?&lt;\\)'(?:\\'|[^'])*')?</expr>
+	</pattern>
+	<pattern id="Expression">
+		<expr>(?:\\s*\\^?(?:\\[.*?\\]|\\(\\?\\!.*\\)|\\.)\\$?)</expr>
+	</pattern>
+	<pattern id="Word">
+		<expr>(?:[_$\p{L}]+)</expr>
+	</pattern>
+	<pattern id="Group">
+		<expr>(?:\(.*)</expr>
+	</pattern>
+	<pattern id="Atom">
+		<expr>(?:{{Empty}}|{{Literal}}|{{Expression}}|{{Word}}|{{Group}})</expr>
+	</pattern>
+	<pattern id="Quantifier">
+		<expr>(?:(?:[\*\+\?]|\{\s*\d?(?:\s*,\s*\d?)?\s*\})\??)</expr>
+	</pattern>
+	<pattern id="CGFragment">
+		<expr>(?:fragment\s+(\w+))</expr>
+	</pattern>
+	<pattern id="CGDefinition">
+		<expr>(.*?)(?:\s*-&gt;\s*([^']*))?(?:\s*\{(.*?)\})?$</expr>
+	</pattern>
+	<pattern id="CGCommand">
+		<expr>(\w+)\s*(?:\((.*?)\))?</expr>
+	</pattern>
+	<pattern id="CGParserAction">
+		<expr>(\w+)\s*(?:\((.*?)\))?</expr>
+	</pattern>
+	<pattern id="CGAlt">
+		<expr>((?:(~)?{{Atom}}\s*{{Quantifier}}?\s*){1,})</expr>
+	</pattern>
+	<pattern id="CGGroup">
+		<expr>\s*(\(.*)\s*</expr>
+	</pattern>
+	<pattern id="CGGreedyGroup">
+		<expr>\((.*)\)</expr>
+	</pattern>
+	<pattern id="CGLiteral">
+		<expr>(?&lt;\\)'((?:\\'|[^'])*)'(?:\s*(?:\.\.)(?&lt;\\)'((?:\\'|[^'])*)')?
+		</expr>
+	</pattern>
+	<pattern id="CGExpression">
+		<expr>(?:\s*({{Expression}}))</expr>
+	</pattern>
+	<pattern id="CGAtom">
+		<expr>(~)?\s*({{Atom}})\s*({{Quantifier}}?)</expr>
+	</pattern>
+</patterns>

@@ -1,0 +1,13 @@
+use_frameworks!
+platform :ios, '10.0'
+
+target 'GrammarKit_Example' do
+    
+    pod 'GrammarKit', :path => '../../../'
+
+    target 'GrammarKit_Tests' do
+        inherit! :search_paths
+        
+    end
+
+end
