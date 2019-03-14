@@ -49,32 +49,32 @@ open class Lexer: GrammarEngine {
         var streamRange = streamRange ?? characterStream.range
         let tokenStream = TokenStream(characterStream: characterStream)
         while streamRange.location < characterStream.length {
-            var syntaxScope = GrammarSyntaxScope(scopeClass: .lexerScope)
+            var scope = GrammarSyntaxScope(scopeClass: .lexerScope)
             for rule in grammar.lexerRules {
-                syntaxScope = tokenize(characterStream, rule: rule, within: streamRange, parentScope: parentScope)
-                if syntaxScope.matches || rule == grammar.unmatchedRule {
-                    syntaxScope.rule = rule
+                scope = tokenize(characterStream, rule: rule, within: streamRange, parentScope: parentScope)
+                if scope.matches || rule == grammar.unmatchedRule {
+                    scope.rule = rule
                     break
                 }
             }
-            if syntaxScope.matches && syntaxScope.rule?.has(option: .skip) == false {
-                let token = syntaxScope.generatedToken
-                token.rule = syntaxScope.rule
+            if scope.matches && scope.rule?.has(option: .skip) == false {
+                let token = scope.generatedToken
+                token.rule = scope.rule
                 tokenStream.add(token: token)
-                if syntaxScope.rule == grammar.unmatchedRule {
+                if scope.rule == grammar.unmatchedRule {
                     delegate?.grammarEngine?(self,
                                              didSkip: token,
                                              characterStream: characterStream,
                                              parentScope: parentScope)
                 } else {
                     delegate?.grammarEngine?(self,
-                                             didGenerate: syntaxScope,
+                                             didGenerate: scope,
                                              characterStream: characterStream,
                                              tokenStream: nil,
                                              parentScope: parentScope)
                 }
             }
-            streamRange.shiftLocation(by: (syntaxScope.matches ? syntaxScope.length : 1))
+            streamRange.shiftLocation(by: (scope.matches ? scope.length : 1))
         }
         delegate?.grammarEngine?(self,
                                  didFinishProcessing: characterStream,
@@ -86,18 +86,18 @@ open class Lexer: GrammarEngine {
     /// - parameter characterStream:
     /// - parameter rule:
     /// - parameter offset:
-    /// - parameter syntaxScope:
+    /// - parameter scope:
     /// - Returns:
-    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, syntaxScope: GrammarSyntaxScope? = nil, parentScope: GrammarSyntaxScope? = nil, metadata: Grammar.Metadata? = nil) -> GrammarSyntaxScope {
+    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, scope: GrammarSyntaxScope? = nil, parentScope: GrammarSyntaxScope? = nil, metadata: Grammar.Metadata? = nil) -> GrammarSyntaxScope {
         
-        let syntaxScope = syntaxScope ?? GrammarSyntaxScope(scopeClass: .lexerScope)
+        let scope = scope ?? GrammarSyntaxScope(scopeClass: .lexerScope)
         
-        syntaxScope.rule = rule
+        scope.rule = rule
         
-        guard rule.isComponent, streamRange.length > 0, streamRange.location < characterStream.length else { return syntaxScope }
+        guard rule.isComponent, streamRange.length > 0, streamRange.location < characterStream.length else { return scope }
         let stream = characterStream[streamRange]
         
-        var subtree = GrammarSyntaxScope(scopeClass: .lexerScope)
+        var subscope = GrammarSyntaxScope(scopeClass: .lexerScope)
         var matchCount = 0
         var dx = 0
         
@@ -107,31 +107,31 @@ open class Lexer: GrammarEngine {
             
             guard let ruleRef = grammar[rule.value]  else {
                 print(String(format: "No lexer rule was defined for id \"%@\"", rule.value))
-                return syntaxScope
+                return scope
             }
 
-            subtree = tokenize(characterStream,
-                               rule: ruleRef,
-                               within: streamRange,
-                               metadata: rule.metadata)
-            while rule.inverted != subtree.absoluteMatch {
+            subscope = tokenize(characterStream,
+                                rule: ruleRef,
+                                within: streamRange,
+                                metadata: rule.metadata)
+            while rule.inverted != subscope.absoluteMatch {
                 if rule.inverted {
                     let token = Token(rule: rule,
                                       value: stream.firstCharacter,
                                       start: streamRange.location + dx,
                                       length: 1)
                     token.metadata = metadata ?? rule.metadata
-                    subtree = GrammarSyntaxScope(scopeClass: .lexerScope)
-                    subtree.add(token: token)
+                    subscope = GrammarSyntaxScope(scopeClass: .lexerScope)
+                    subscope.add(token: token)
                 }
-                syntaxScope.add(tokens: subtree.tokens)
+                scope.add(tokens: subscope.tokens)
                 matchCount += 1
-                dx += subtree.length
+                dx += subscope.length
                 if !rule.quantifier.greedy { break }
-                subtree = tokenize(characterStream,
-                                   rule: ruleRef,
-                                   within: streamRange.shiftingLocation(by: dx),
-                                   metadata: rule.metadata)
+                subscope = tokenize(characterStream,
+                                    rule: ruleRef,
+                                    within: streamRange.shiftingLocation(by: dx),
+                                    metadata: rule.metadata)
             }
             
             break
@@ -141,33 +141,33 @@ open class Lexer: GrammarEngine {
             if rule.subrules.count > 0 {
                 
                 for subrule in rule.subrules {
-                    subtree = tokenize(characterStream,
-                                       rule: subrule,
-                                       within: streamRange,
-                                       metadata: metadata)
-                    if rule.inverted != subtree.absoluteMatch { break }
+                    subscope = tokenize(characterStream,
+                                        rule: subrule,
+                                        within: streamRange,
+                                        metadata: metadata)
+                    if rule.inverted != subscope.absoluteMatch { break }
                 }
                 
-                while rule.inverted != subtree.absoluteMatch {
+                while rule.inverted != subscope.absoluteMatch {
                     if rule.inverted {
                         let token = Token(rule: rule,
                                           value: stream.firstCharacter,
                                           start: streamRange.location + dx,
                                           length: 1)
                         token.metadata = metadata ?? rule.metadata
-                        subtree = GrammarSyntaxScope(scopeClass: .lexerScope)
-                        subtree.add(token: token)
+                        subscope = GrammarSyntaxScope(scopeClass: .lexerScope)
+                        subscope.add(token: token)
                     }
-                    syntaxScope.add(tokens: subtree.tokens)
+                    scope.add(tokens: subscope.tokens)
                     matchCount += 1
-                    dx += subtree.length
+                    dx += subscope.length
                     if !rule.quantifier.greedy { break }
                     for subrule in rule.subrules {
-                        subtree = tokenize(characterStream,
-                                           rule: subrule,
-                                           within: streamRange.shiftingLocation(by: dx),
-                                           metadata: metadata)
-                        if rule.inverted != subtree.absoluteMatch { break }
+                        subscope = tokenize(characterStream,
+                                            rule: subrule,
+                                            within: streamRange.shiftingLocation(by: dx),
+                                            metadata: metadata)
+                        if rule.inverted != subscope.absoluteMatch { break }
                     }
                 }
                 
@@ -201,7 +201,7 @@ open class Lexer: GrammarEngine {
                                   length: 1)
                 }
                 token.metadata = metadata ?? rule.metadata
-                syntaxScope.add(token: token)
+                scope.add(token: token)
                 matchCount += 1
                 dx += token.value.length
                 if !rule.quantifier.greedy { break }
@@ -220,14 +220,14 @@ open class Lexer: GrammarEngine {
                 return tokenize(characterStream,
                                 rule: next,
                                 within: streamRange.shiftingLocation(by: dx),
-                                syntaxScope: syntaxScope,
+                                scope: scope,
                                 parentScope: parentScope)
             }
-            syntaxScope.matches = true
-            parentScope?.add(child: syntaxScope)
+            scope.matches = true
+            parentScope?.add(child: scope)
         }
         
-        return syntaxScope
+        return scope
     }
     
 }

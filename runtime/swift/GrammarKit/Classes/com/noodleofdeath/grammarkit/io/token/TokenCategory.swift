@@ -27,8 +27,8 @@ import Foundation
 public enum TokenCategory: String, RawRepresentable, Codable {
     
     case comment
+    case `class`
     case constructor
-    case datatype
     case declaration
     case documentation
     case identifier = "id"

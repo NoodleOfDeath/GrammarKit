@@ -29,10 +29,6 @@ import UIKit
 
 infix operator +/ : AdditionPrecedence
 
-// MARK: - Optional Addition Infix Operator
-
-infix operator ?+ : AdditionPrecedence
-
 // MARK: - Optional Assignment Operator
 
 infix operator ?= : AssignmentPrecedence
@@ -100,30 +96,6 @@ func + <NumericType: Numeric>(lhs: NumericType, rhs: Bool) -> NumericType {
 /// - Returns:
 func + <NumericType: Numeric>(lhs: Bool, rhs: NumericType) -> NumericType {
     return (lhs ? 1 : 0) + rhs
-}
-
-// MARK: - Optional Math Operator Methods
-
-///
-///
-/// - Parameters:
-///     - lhs:
-///     - rhs:
-/// - Returns:
-func ?+ <NumericType: Numeric>(lhs: NumericType, rhs: NumericType?) -> NumericType {
-    guard let rhs = rhs else { return lhs }
-    return lhs + rhs
-}
-
-///
-///
-/// - Parameters:
-///     - lhs:
-///     - rhs:
-/// - Returns:
-func ?+ <NumericType: Numeric>(lhs: NumericType?, rhs: NumericType) -> NumericType {
-    guard let lhs = lhs else { return rhs }
-    return lhs + rhs
 }
 
 // MARK: - CGFloat Extensions
@@ -278,8 +250,8 @@ extension NSAttributedStringKey {
         = NSAttributedStringKey("NSIconTintColor")
     
     /// Attribute name key for icon alpha.
-    static let iconOpacity
-        = NSAttributedStringKey("NSIconOpacity")
+    static let iconAlpha
+        = NSAttributedStringKey("NSIconAlpha")
     
     /// Attribute name key for icon shadow.
     static let iconShadow
@@ -1564,6 +1536,20 @@ extension UIViewController {
     
 }
 
+// MARK: - URL Path Concatenation
+extension URL {
+    
+    static func +/ (lhs: URL, rhs: String) -> URL {
+        return lhs.appendingPathComponent(rhs)
+    }
+    
+    static func +/ (lhs: URL, rhs: String?) -> URL? {
+        guard let rhs = rhs else { return nil }
+        return lhs.appendingPathComponent(rhs)
+    }
+    
+}
+
 // MARK: - URL Property Extensions
 extension URL {
     
@@ -1575,20 +1561,6 @@ extension URL {
     @available(OSX 10.11, iOS 9.0, *)
     func relativeTo(baseURL: URL) -> URL {
         return URL(fileURLWithPath: resolvingSymlinksInPath().path, relativeTo: baseURL)
-    }
-    
-}
-
-// MARK: - URL Path Concatenation
-extension URL {
-    
-    static func +/ (lhs: URL, rhs: String) -> URL {
-        return lhs.appendingPathComponent(rhs)
-    }
-    
-    static func +/ (lhs: URL, rhs: String?) -> URL? {
-        guard let rhs = rhs else { return nil }
-        return lhs.appendingPathComponent(rhs)
     }
     
 }

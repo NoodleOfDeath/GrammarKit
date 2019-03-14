@@ -102,17 +102,17 @@ open class GrammarRule: NSObject, TreeChain, Quantified, Codable {
     }
     
     /// Mininum length of this rule in terms of node depth.
-    open var length: Int {
+    open var minLength: Int {
         var length = 0
         if !quantifier.optional {
             for subrule in subrules {
-                if length < subrule.length {
-                    length = subrule.length
+                if length < subrule.minLength {
+                    length = subrule.minLength
                 }
             }
             length -= 1
         }
-        return length ?+ next?.length + !quantifier.optional
+        return length + (next?.minLength ?? 0) + !quantifier.optional
     }
     
     open var quantifier: Quantifier = .once
@@ -129,8 +129,8 @@ open class GrammarRule: NSObject, TreeChain, Quantified, Codable {
     /// Component type of this grammar rule.
     open var componentType: ComponentType
     
-    /// Returns `true` if, and only if, `componentType == .composite || childCount > 0`.
-    open var isComposite: Bool { return componentType == .composite || childCount > 0 }
+    /// Returns `true` if, and only if, `componentType == .composite || count > 0`.
+    open var isComposite: Bool { return componentType == .composite || count > 0 }
     
     /// Returns `true` if, and only if, `componentType != .unknown`.
     open var isComponent: Bool {
@@ -290,7 +290,7 @@ open class GrammarRule: NSObject, TreeChain, Quantified, Codable {
     }
     
     open func processMetadata() {
-        for i in 0 ..< min(subrules.count, metadata.children.count) {
+        for i in 0 ..< Swift.min(subrules.count, metadata.children.count) {
             var rule: GrammarRule? = subrules[i]
             var metadata: Metadata? = self.metadata[i]
             while rule != nil, metadata != nil {

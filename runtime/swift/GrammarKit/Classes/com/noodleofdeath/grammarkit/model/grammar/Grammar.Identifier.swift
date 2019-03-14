@@ -29,7 +29,7 @@ extension Grammar {
     /// Data structure that represents an identifier found in a grammar
     /// that can be indexed.
     @objc(GrammarIdentifier)
-    open class Identifier: URLTextRange {
+    open class Identifier: URLResourceRange {
         
         public typealias This = Identifier
         
@@ -59,8 +59,8 @@ extension Grammar {
         // MARK: - Constructor Methods
         
         /// Constructs a new identifer.
-        public convenience init(url: URL? = nil, start: Int? = nil, string: String, type: String? = nil, detailedDescription: String? = nil, metadata: Metadata? = nil) {
-            self.init(start: start ?? 0, length: string.length, string: string)
+        public convenience init(url: URL? = nil, start: Int = 0, lineNumber: Int = 0, string: String, type: String? = nil, detailedDescription: String? = nil, metadata: Metadata? = nil) {
+            self.init(start: start, lineNumber: lineNumber, length: string.length, string: string)
             self.url = url
             self.type = type
             self.detailedDescription = detailedDescription

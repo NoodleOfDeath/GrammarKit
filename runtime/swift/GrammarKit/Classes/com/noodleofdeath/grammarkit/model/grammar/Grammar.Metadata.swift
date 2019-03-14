@@ -30,6 +30,8 @@ extension Grammar {
     @objc(Metadata)
     open class Metadata: NSObject, TreeChain, Codable {
         
+        public typealias NodeType = Metadata
+        
         enum CodingKeys: String, CodingKey {
             case next
             case children
@@ -41,7 +43,7 @@ extension Grammar {
         
         override open var description: String {
             var description = String(format: "%@: %@, %@", id, options.debugDescription, categories.debugDescription)
-            if children.count > 0 {
+            if count > 0 {
                 var strings = [String]()
                 children.forEach { strings.append($0.description) }
                 description += String(format: " (%@)", strings.joined(separator: " | "))
@@ -49,8 +51,6 @@ extension Grammar {
             if let next = next { description += String(format: " -> %@", next) }
             return description.trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        
-        public typealias NodeType = Metadata
         
         open var parent: NodeType?
         

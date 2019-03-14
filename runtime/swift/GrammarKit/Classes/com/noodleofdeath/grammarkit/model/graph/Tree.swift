@@ -34,13 +34,14 @@ public protocol Tree: Node where NodeType: Tree {
 
 extension Tree {
     
+    /// Subscript indexed get/set access to the children of this tree.
     public subscript (index: Int) -> NodeType {
         get { return children[index] }
         set { children[index] = newValue }
     }
     
     /// Number of children this tree has.
-    public var childCount: Int {
+    public var count: Int {
         return children.count
     }
     
@@ -49,24 +50,33 @@ extension Tree {
         return children.count == 0
     }
     
+    // MARK: - Instance Methods
+    
     /// Appends a child to the children of this tree.
-    /// - parameter child: to append to the children of this tree.
+    ///
+    /// - Parameters:
+    ///     - child: to append to the children of this tree.
     public func add(child: NodeType) {
         child.parent = self as? NodeType.NodeType
         children.append(child)
     }
     
     /// Inserts a child into the children of this tree at a specified index.
-    /// - parameter child: to insert into the children of this tree.
-    /// - parameter index: at which to insert the child node.
+    ///
+    /// - Parameters:
+    ///     - child: to insert into the children of this tree.
+    ///     - index: at which to insert the child node.
     public func insert(child: NodeType, at index: Int) {
         child.parent = self as? NodeType.NodeType
         children.insert(child, at: index)
     }
     
-    /// Removes a child from the children of this tree at the specified index.
-    /// - parameter index: of the child to remove from the children of this
-    /// tree.
+    /// Removes and returns the child of this tree at the specified index.
+    ///
+    /// - Parameters:
+    ///     - index: of the child to remove from this tree.
+    /// - Returns: the child of this tree at the specified index.
+    @discardableResult
     public func removeChild(at index: Int) -> NodeType {
         let e = children.remove(at: index)
         e.parent = nil
@@ -74,6 +84,7 @@ extension Tree {
     }
     
     /// Associates this node as the parent node for each of its child nodes.
+    /// This method should be invoked anytime `children` has been directly set.
     public func updateChildren() {
         children.forEach {
             $0.parent = self as? NodeType.NodeType
@@ -83,14 +94,13 @@ extension Tree {
     
 }
 
-///
-public protocol TreeChain: NodeChain, Tree where NodeType: TreeChain {
-    
-}
+/// Specifications for a chain of tree nodes.
+public protocol TreeChain: NodeChain, Tree where NodeType: TreeChain {}
 
 extension TreeChain {
     
     /// Associates this node as the previous sibling of its next sibling.
+    /// This method should be invoked anytime `next` has been set.
     public func updateNext() {
         next?.previous = self as? NodeType.NodeType
         next?.updateNext()

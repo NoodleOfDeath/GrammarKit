@@ -26,7 +26,7 @@ import UIKit
 
 /// Data structure representing a grammar rule match tree.
 @objc
-open class GrammarSyntaxScope: CountableTextRange, TreeChain {
+open class GrammarSyntaxScope: BaseStringRange, TreeChain {
     
     public typealias This = GrammarSyntaxScope
     public typealias NodeType = GrammarSyntaxScope
@@ -36,22 +36,26 @@ open class GrammarSyntaxScope: CountableTextRange, TreeChain {
                       rule?.id ?? "No Match",
                       scopeClass.isLexerScope ? string.format(using: .escaped) :
                         (scopeClass.isParserScope ? tokens.description : string),
-                      count, start.location, start.location + length, length)
+                      count, start, start + length, length)
     }
     
     open var treeDescription: String {
         return description
     }
-    
-    open var rootAncestor: NodeType?
+
+    // MARK: Node Properties
     
     open var parent: NodeType?
+
+    // MARK: - Tree Properties
     
     open var previous: NodeType?
     
     open var next: NodeType?
     
     open var children = [NodeType]()
+    
+    // MARK: - Instance Properties
     
     /// Grammar rule associated with this syntax tree.
     open var rule: GrammarRule?
@@ -71,13 +75,13 @@ open class GrammarSyntaxScope: CountableTextRange, TreeChain {
     /// Max range of this syntax tree.
     /// Shorthand for `location + length` or `range.max`.
     open var maxRange: Int {
-        return start.location + length
+        return start + length
     }
     
     /// Returns the range of this syntax tree after omitting its first and
     /// last tokens.
     open var innerRange: NSRange {
-        return NSMakeRange(start.location + 1, length - 2)
+        return NSMakeRange(start + 1, length - 2)
     }
     
     /// Tokens collected by this syntax tree.
@@ -113,9 +117,9 @@ open class GrammarSyntaxScope: CountableTextRange, TreeChain {
     ///     - token: to add to this syntax tree.
     open func add(token: Token) {
         string += token.value
-        if count == 0 { set(start: token.range.location) }
+        if count == 0 { start = token.range.location }
         tokens.append(token)
-        set(length: string.length)
+        end = start + string.length
     }
     
     /// Adds a collection of tokens to this syntax tree.

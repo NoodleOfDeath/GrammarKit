@@ -28,40 +28,37 @@ import Foundation
 public protocol Node: NSObjectProtocol {
     
     /// Type used of the ancestor nodes of this node.
+    /// This type must implement `Node` to inherit all Node protocol extensions.
     associatedtype NodeType: Any
-    
-    /// Returns `true` if, and only if, this node has no parent node; `false`,
-    /// otherwise.
-    var isRoot: Bool { get }
-    
-    /// Root ancestor of this node, if one exists.
-    var rootAncestor: NodeType? { get }
     
     /// Direct parent ancestor of this node, if one exists.
     var parent: NodeType? { get set }
-    
-    /// Depth of this node. A value of `1` indicates that this is a root node.
-    var depth: Int { get }
     
 }
 
 extension Node where NodeType: Node, NodeType == NodeType.NodeType {
     
+    /// Returns `true` if, and only if, this node has no parent node; `false`,
+    /// otherwise.
     public var isRoot: Bool {
         return parent == nil
     }
     
+    /// Root ancestor of this node, if one exists. Recursively returns the
+    /// root ancestor of the parent node of this node.
     public var rootAncestor: NodeType? {
         return parent?.rootAncestor ?? parent
     }
     
+    /// Depth of this node. A value of `1` indicates that this node has no
+    /// parent node.
     public var depth: Int {
         return (parent?.depth ?? 0) + 1
     }
     
 }
 
-/// Specification of a node chain.
+/// Specification of a chain of sibling nodes.
 public protocol NodeChain: Node where NodeType: NodeChain {
     
     /// Sibling node that precedes this node, if one exists. Also called an
@@ -71,5 +68,15 @@ public protocol NodeChain: Node where NodeType: NodeChain {
     /// Sibling node that follows this node, if one exists. Also called a
     /// younger sibling.
     var next: NodeType? { get set }
+    
+}
+
+extension NodeChain {
+    
+    /// Length of this node chain with this node as the start offset. A value
+    /// of `0` indicates this node chain has no younger siblings.
+    var chainLength: Int {
+        return (next?.chainLength ?? 0) + 1
+    }
     
 }

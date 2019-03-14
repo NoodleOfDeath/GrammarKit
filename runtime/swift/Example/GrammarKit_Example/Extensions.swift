@@ -25,13 +25,13 @@
 import CoreImage
 import UIKit
 
+// This file contains usefult local extensions accessible only to this module.
+// You may modify this file and the scope of various extensions as needed
+// for personal projects, but not when committing to the repository.
+
 // MARK: - Path Component Concatentation Infix Operator
 
 infix operator +/ : AdditionPrecedence
-
-// MARK: - Optional Addition Infix Operator
-
-infix operator ?+ : AdditionPrecedence
 
 // MARK: - Optional Assignment Operator
 
@@ -102,30 +102,6 @@ func + <NumericType: Numeric>(lhs: Bool, rhs: NumericType) -> NumericType {
     return (lhs ? 1 : 0) + rhs
 }
 
-// MARK: - Optional Math Operator Methods
-
-///
-///
-/// - Parameters:
-///     - lhs:
-///     - rhs:
-/// - Returns:
-func ?+ <NumericType: Numeric>(lhs: NumericType, rhs: NumericType?) -> NumericType {
-    guard let rhs = rhs else { return lhs }
-    return lhs + rhs
-}
-
-///
-///
-/// - Parameters:
-///     - lhs:
-///     - rhs:
-/// - Returns:
-func ?+ <NumericType: Numeric>(lhs: NumericType?, rhs: NumericType) -> NumericType {
-    guard let lhs = lhs else { return rhs }
-    return lhs + rhs
-}
-
 // MARK: - CGFloat Extensions
 extension CGFloat {
     
@@ -164,6 +140,16 @@ extension CGRect {
         set { size.width = newValue }
     }
     
+    /// Offset width of this view. Returns `x + width`.
+    var offsetWidth: CGFloat {
+        return x + width
+    }
+    
+    /// Offset height of this view. Returns `y + height`.
+    var offsetHeight: CGFloat {
+        return y + height
+    }
+    
 }
 
 // MARK: - CGSize Extensions
@@ -192,16 +178,6 @@ extension CGSize {
             self.rawValue = rawValue
         }
         
-    }
-    
-    ///
-    init?(dict: [String: Any]?) {
-        guard
-            let dict = dict,
-            let width = dict[Key.width.rawValue] as? CGFloat,
-            let height = dict[Key.height.rawValue] as? CGFloat
-            else { return nil }
-        self.init(width: width, height: height)
     }
     
     ///
@@ -255,47 +231,6 @@ extension NSAttributedString {
     /// Range of this attributed string.
     /// Shorthand for `string.range`.
     var range: NSRange { return string.range }
-    
-}
-
-// MARK: - NSAttributedStringKey Class Extensions
-extension NSAttributedStringKey {
-    
-    /// Attribute name key for tint color.
-    static let tintColor
-        = NSAttributedStringKey("NSTintColor")
-    
-    /// Attribute name key for alpha.
-    static let alpha
-        = NSAttributedStringKey("NSAlpha")
-    
-    /// Attribute name key for point size.
-    static let pointSize
-        = NSAttributedStringKey("NSPointSize")
-    
-    /// Attribute name key for icon tint color.
-    static let iconTintColor
-        = NSAttributedStringKey("NSIconTintColor")
-    
-    /// Attribute name key for icon alpha.
-    static let iconOpacity
-        = NSAttributedStringKey("NSIconOpacity")
-    
-    /// Attribute name key for icon shadow.
-    static let iconShadow
-        = NSAttributedStringKey("NSIconShadow")
-    
-    /// Attribute name key for shadow color.
-    static let shadowColor
-        = NSAttributedStringKey("NSShadowColor")
-    
-    /// Attribute name key for shadow blur radius.
-    static let shadowBlurRadius
-        = NSAttributedStringKey("NSShadowBlurRadius")
-    
-    /// Attribute name key for shadow offset.
-    static let shadowOffset
-        = NSAttributedStringKey("NSShadowOffset")
     
 }
 
@@ -420,20 +355,19 @@ extension NSRange {
 // MARK: - NSShadow Extensions
 extension NSShadow {
     
+    /// UI type casted color of this shadow.
     var color: UIColor? {
-        return shadowColor as? UIColor
+        get { return shadowColor as? UIColor }
+        set { shadowColor = newValue }
     }
     
+    /// CG type casted color of this shadow.
     var cgColor: CGColor? {
-        return color?.cgColor
-    }
-    
-    convenience init?(dict: [NSAttributedStringKey: Any]?) {
-        guard let dict = dict else { return nil }
-        self.init()
-        shadowColor = UIColor(dict: dict[.shadowColor] as? [NSAttributedStringKey: Any])
-        shadowBlurRadius = dict[.shadowBlurRadius] as? CGFloat ?? 0
-        shadowOffset = CGSize(dict: dict[.shadowOffset] as? [String: Any]) ?? .zero
+        get { return color?.cgColor }
+        set {
+            guard let cgColor = newValue else { color = nil; return }
+            color = UIColor(cgColor: cgColor)
+        }
     }
     
 }
@@ -448,8 +382,6 @@ extension Range where Bound == Int {
     var bridgedRange: NSRange { return NSMakeRange(lowerBound, length) }
     
 }
-
-// MARK: - StringFormattingOption OptionSet
 
 ///
 struct StringFormattingOption: BaseOptionSet {
@@ -933,6 +865,23 @@ extension String {
                             context: context).height
     }
     
+    func row(forOffset offset: Int) -> Int {
+        var length = 0
+        var n = 0
+        for line in components(separatedBy: .newlines) {
+            if offset >= length && offset < length + line.length + 1 {
+                return n
+            }
+            n += 1
+            length += line.length + 1
+        }
+        return -1
+    }
+    
+    func column(forOffset offset: Int) -> Int {
+        return offset - ns.paragraphRange(for: NSMakeRange(offset, 0)).location
+    }
+    
 }
 
 // MARK: - String Path Concatenation
@@ -1149,17 +1098,6 @@ extension UIColor {
                   alpha: alpha ?? (hex > 0xFFFFFF ? (CGFloat((hex & 0xFF000000) >> 24) / 255.0) : 1.0))
     }
     
-    /// Creates a new `UIColor` instance from a specified dictionary
-    /// with `NSAttributedStringKey` keys.
-    ///
-    /// - Parameters:
-    ///     - dict: to initialize this color from.
-    convenience init?(dict: [NSAttributedStringKey: Any]?) {
-        guard let dict = dict else { return nil }
-        guard let hex = dict[.foregroundColor] as? UInt else { return nil }
-        self.init(hex, alpha: dict[.alpha] as? CGFloat)
-    }
-    
 }
 
 // MARK: - UIColor Operator Extensions
@@ -1178,6 +1116,19 @@ extension UIColor {
         return color.withAlphaComponent(alpha)
     }
     
+}
+
+/// Creates a new `UIColor` instance from a specified color and with
+/// a specified alpha component.
+/// Shorthand for `color.widthAlphaComponent(alpha)`.
+///
+/// - Parameters:
+///   - color: to generate a new color from.
+///   - alpha: component to use for the new color.
+/// - Returns: a new `UIColor` instance of `color` with an alpha component
+/// of `alpha`.
+func * (color: UIColor?, alpha: CGFloat) -> UIColor? {
+    return color?.withAlphaComponent(alpha)
 }
 
 // MARK: - UIDevice Platform Extension
@@ -1342,13 +1293,6 @@ extension UIDevice {
 
 // MARK: - UIFont Constructor Extensions
 extension UIFont {
-    
-    convenience init?(dict: [NSAttributedStringKey: Any]?) {
-        guard let dict = dict else { return nil }
-        guard let font = dict[.font] as? String else { return nil }
-        let pointSize = dict[.pointSize] as? CGFloat ?? UIFont.systemFontSize
-        self.init(name: font, size: pointSize)
-    }
     
     /// Returns a system font instance with point size set to
     /// `UIFont.systemFontSize`.
@@ -1518,6 +1462,16 @@ extension UIView {
         set { size.height = newValue }
     }
     
+    /// Offset width of this view. Returns `x + width`.
+    var offsetWidth: CGFloat {
+        return x + width
+    }
+    
+    /// Offset height of this view. Returns `y + height`.
+    var offsetHeight: CGFloat {
+        return y + height
+    }
+    
 }
 
 extension UIView {
@@ -1598,14 +1552,6 @@ extension URL {
 func +/ (lhs: URL?, rhs: String) -> URL? {
     guard let lhs = lhs else { return nil }
     return lhs.appendingPathComponent(rhs)
-}
-
-// MARK: - URLFileResourceType Class Property Extensions
-extension URLFileResourceType {
-    
-    /// Resource type for hidden files.
-    static let hidden = URLFileResourceType(rawValue: "NSURLFileResourceTypeHidden")
-    
 }
 
 // MARK: - UserDefaults Subscript Extensions
@@ -1779,7 +1725,7 @@ protocol BaseRawRepresentable: Hashable, RawRepresentable where RawValue: Hashab
 
 extension BaseRawRepresentable {
     
-    var hashValue: Int { return rawValue.hashValue }
+    public var hashValue: Int { return rawValue.hashValue }
     
     init(_ rawValue: RawValue) {
         self.init(rawValue: rawValue)
@@ -1872,5 +1818,4 @@ extension Serializable {
     }
     
 }
-
 
