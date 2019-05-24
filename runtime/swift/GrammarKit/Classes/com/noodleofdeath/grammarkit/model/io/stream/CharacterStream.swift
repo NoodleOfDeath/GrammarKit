@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 
 /// Data structure for a character stream.
-@objc(CharacterStream)
+@objc
 open class CharacterStream: NSObject, Stream {
     
     public typealias Atom = String

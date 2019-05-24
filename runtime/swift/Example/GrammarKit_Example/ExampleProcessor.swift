@@ -9,7 +9,7 @@ import Foundation
 import GrammarKit
 
 ///
-class ExampleGrammarEngine: CompositeGrammarEngine {
+class ExampleProcessor: CompoundGrammaticalProcessor {
     
     lazy var nestedRanges: [NSRange] = [NSRange]()
     
@@ -38,19 +38,19 @@ class ExampleGrammarEngine: CompositeGrammarEngine {
         tokenize(characterStream, within: streamRange, parentScope: parentScope)
     }
     
-    override func grammarEngine(_ grammarEngine: GrammarEngine, didGenerate syntaxScope: GrammarSyntaxScope, characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope? = nil) {
-        super.grammarEngine(grammarEngine, didGenerate: syntaxScope, characterStream: characterStream, tokenStream: tokenStream, parentScope: parentScope)
+    override func processor(_ processor: GrammaticalProcessor, didGenerate syntaxScope: GrammarSyntaxScope, characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope? = nil) {
+        super.processor(processor, didGenerate: syntaxScope, characterStream: characterStream, tokenStream: tokenStream, parentScope: parentScope)
         if options.contains(.verbose) { print(syntaxScope) }
         if syntaxScope.rule?.has(option: .nested) == true && syntaxScope.maxRange < characterStream.length {
             nestedRanges.append(syntaxScope.innerRange)
         }
     }
     
-    override func grammarEngine(_ grammarEngine: GrammarEngine, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope? = nil) {
+    override func processor(_ processor: GrammaticalProcessor, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope? = nil) {
 
-        super.grammarEngine(grammarEngine, didFinishProcessing: characterStream, tokenStream: tokenStream, parentScope: parentScope)
+        super.processor(processor, didFinishProcessing: characterStream, tokenStream: tokenStream, parentScope: parentScope)
         
-        switch grammarEngine {
+        switch processor {
             
         case is Lexer:
             guard let tokenStream = tokenStream else { return }

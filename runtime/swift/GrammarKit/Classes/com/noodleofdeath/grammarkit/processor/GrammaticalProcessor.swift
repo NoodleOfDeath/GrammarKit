@@ -24,49 +24,52 @@
 
 /// Specifications for a grammar engine delegate.
 @objc
-public protocol GrammarEngineDelegate: class {
+public protocol GrammaticalProcessorDelegate: class {
     
     /// Called when a grammar engine skips a token.
     ///
     /// - Parameters:
-    ///     - grammarEngine: that called this method.
+    ///     - processor: that called this method.
     ///     - token: that was skipped.
-    ///     - characterStream: `grammarEngine` is processing.
-    ///     - parentScope: containing all tokenzied/parses information.
+    ///     - characterStream: `processor` is processing.
+    ///     - parentTree: containing all tokenzied/parses information.
     @objc optional
-    func grammarEngine(_ grammarEngine: GrammarEngine, didSkip token: Token, characterStream: CharacterStream, parentScope: GrammarSyntaxScope?)
+    func processor(_ processor: GrammaticalProcessor, didSkip token: Token, characterStream: CharacterStream, parentTree: Grammar.SyntaxTree?)
     
-    /// Called when a grammar engine generates a syntax tree.
+    /// Called when a grammar engine generates a syntax.
     /// Overload for `engine(_:didGenerate:characterStream:tokenStream:)`.
     ///
     /// - Parameters:
-    ///     - grammarEngine: that called this method.
-    ///     - syntaxScope: that was generated.
-    ///     - characterStream: `grammarEngine` is processing.
-    ///     - tokenStream: generated, or being parsed, by `grammarEngine`.
-    ///     - parentScope: containing all tokenzied/parses information.
+    ///     - processor: that called this method.
+    ///     - syntaxTree: that was generated.
+    ///     - characterStream: `processor` is processing.
+    ///     - tokenStream: generated, or being parsed, by `processor`.
+    ///     - parentTree: containing all tokenzied/parses information.
     @objc optional
-    func grammarEngine(_ grammarEngine: GrammarEngine, didGenerate syntaxScope: GrammarSyntaxScope, characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope?)
+    func processor(_ processor: GrammaticalProcessor, didGenerate syntaxTree: Grammar.SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
     
     /// Called when a grammar engine finishes a job.
     /// Overload for `engine(_:didFinishProcessing:tokenStream:)`.
     ///
     /// - Parameters:
-    ///     - grammarEngine: that called this method.
-    ///     - characterStream: `grammarEngine` is processing.
-    ///     - tokenStream: generated, or parsed, by `grammarEngine`.
-    ///     - parentScope: containing all tokenzied/parses information.
+    ///     - processor: that called this method.
+    ///     - characterStream: `processor` is processing.
+    ///     - tokenStream: generated, or parsed, by `processor`.
+    ///     - parentTree: containing all tokenzied/parses information.
     @objc optional
-    func grammarEngine(_ grammarEngine: GrammarEngine, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope?)
+    func processor(_ processor: GrammaticalProcessor, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
     
 }
 
 /// Base abstract class for a grammar processing engine.
 @objc
-open class GrammarEngine: NSObject {
+open class GrammaticalProcessor: NSObject {
+    
+    public typealias Metadata = Grammar.Metadata
+    public typealias SyntaxTree = Grammar.SyntaxTree
 
     /// Delegate of this grammar engine.
-    open weak var delegate: GrammarEngineDelegate?
+    open weak var delegate: GrammaticalProcessorDelegate?
     
     /// Grammar of this engine.
     public let grammar: Grammar

@@ -25,18 +25,6 @@
 import Foundation
 import SwiftyXMLParser
 
-extension XML.Accessor {
-    
-    subscript <RawRepresentableType: RawRepresentable>(key: RawRepresentableType) -> XML.Accessor where RawRepresentableType.RawValue == String {
-        return self[key.rawValue]
-    }
-    
-    subscript <RawRepresentableType: RawRepresentable>(keys: [RawRepresentableType]) -> XML.Accessor where RawRepresentableType.RawValue == String {
-        return self[keys.map { $0.rawValue}]
-    }
-    
-}
-
 /// Data structure designed to index and load grammar packages found in
 /// specified search paths.
 open class GrammarLoader: NSObject {

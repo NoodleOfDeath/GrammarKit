@@ -22,52 +22,62 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-///
-open class Parser: GrammarEngine {
+/// Grammatical processor for processing token streams.
+open class Parser: GrammaticalProcessor {
     
-    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentScope: GrammarSyntaxScope? = nil) {
+    /// Parses a token stream.
+    ///
+    /// - Parameters:
+    ///     - tokenStream:
+    ///     - offset:
+    ///     - length:
+    ///     - parentTree:
+    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil) {
         if let length = length {
-            parse(tokenStream, within: NSMakeRange(offset, length), parentScope: parentScope)
+            parse(tokenStream, within: NSMakeRange(offset, length), parentTree: parentTree)
         } else {
-            parse(tokenStream, within: tokenStream?.range.shiftingLocation(by: offset), parentScope: parentScope)
+            parse(tokenStream, within: tokenStream?.range.shiftingLocation(by: offset), parentTree: parentTree)
         }
     }
     
+    /// Parses a token stream.
     ///
-    /// - parameter tokenStream:
-    /// - parameter offset:
-    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentScope: GrammarSyntaxScope? = nil) {
+    /// - Parameters:
+    ///     - tokenStream:
+    ///     - streamRange:
+    ///     - parentTree:
+    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
         guard let tokenStream = tokenStream else { return }
         let characterStream = tokenStream.characterStream
         var streamRange = streamRange ?? tokenStream.range
         while streamRange.location < tokenStream.length {
-            var scope = GrammarSyntaxScope(scopeClass: .parserScope)
+            var syntaxTree = SyntaxTree(treeClass: .parserTree)
             for rule in grammar.parserRules {
-                scope = parse(tokenStream, rule: rule, within: streamRange, parentScope: parentScope)
-                if scope.matches {
-                    scope.rule = rule
+                syntaxTree = parse(tokenStream, rule: rule, within: streamRange, parentTree: parentTree)
+                if syntaxTree.matches {
+                    syntaxTree.rule = rule
                     break
                 }
             }
-            if scope.matches && scope.rule?.has(option: .skip) == false {
-                delegate?.grammarEngine?(self,
-                                         didGenerate: scope,
-                                         characterStream: characterStream,
-                                         tokenStream: tokenStream,
-                                         parentScope: parentScope)
+            if syntaxTree.matches && syntaxTree.rule?.has(option: .skip) == false {
+                delegate?.processor?(self,
+                                     didGenerate: syntaxTree,
+                                     characterStream: characterStream,
+                                     tokenStream: tokenStream,
+                                     parentTree: parentTree)
             } else {
                 let token = tokenStream[streamRange.location]
-                delegate?.grammarEngine?(self,
-                                         didSkip: token,
-                                         characterStream: characterStream,
-                                         parentScope: parentScope)
+                delegate?.processor?(self,
+                                     didSkip: token,
+                                     characterStream: characterStream,
+                                     parentTree: parentTree)
             }
-            streamRange.shiftLocation(by: scope.matches ? scope.count : 1)
+            streamRange.shiftLocation(by: syntaxTree.matches ? syntaxTree.count : 1)
         }
-        delegate?.grammarEngine?(self,
-                                 didFinishProcessing: characterStream,
-                                 tokenStream: tokenStream,
-                                 parentScope: parentScope)
+        delegate?.processor?(self,
+                             didFinishProcessing: characterStream,
+                             tokenStream: tokenStream,
+                             parentTree: parentTree)
     }
     
     ///
@@ -75,18 +85,20 @@ open class Parser: GrammarEngine {
     /// - Parameters:
     ///     - tokenStream:
     ///     - rule:
-    ///     - offset:
-    ///     - parent:
+    ///     - streamRange:
+    ///     - syntaxTree:
+    ///     - parentTree:
+    ///     - metadata:
     /// - Returns:
-    public func parse(_ tokenStream: TokenStream, rule: GrammarRule, within streamRange: NSRange, scope: GrammarSyntaxScope? = nil, parentScope: GrammarSyntaxScope? = nil, metadata: Grammar.Metadata? = nil) -> GrammarSyntaxScope {
+    public func parse(_ tokenStream: TokenStream, rule: GrammarRule, within streamRange: NSRange, syntaxTree: SyntaxTree? = nil, parentTree: SyntaxTree? = nil, metadata: Metadata? = nil) -> SyntaxTree {
         
-        let scope = scope ?? GrammarSyntaxScope(scopeClass: .parserScope)
+        let syntaxTree = syntaxTree ?? SyntaxTree(treeClass: .parserTree)
         
-        scope.rule = rule
+        syntaxTree.rule = rule
         
-        guard rule.isComponent, streamRange.length > 0, streamRange.location < tokenStream.length else { return scope }
+        guard rule.isComponent, streamRange.length > 0, streamRange.location < tokenStream.length else { return syntaxTree }
         
-        var subscope = GrammarSyntaxScope(scopeClass: .parserScope)
+        var subscope = SyntaxTree(treeClass: .parserTree)
         var matchCount = 0
         var dx = 0
         
@@ -96,7 +108,7 @@ open class Parser: GrammarEngine {
             
             guard let ruleRef = grammar[rule.value] else {
                 print(String(format: "No parser rule was defined for id \"%@\"", rule.value))
-                return scope
+                return syntaxTree
             }
             
             subscope = parse(tokenStream,
@@ -105,12 +117,12 @@ open class Parser: GrammarEngine {
                             metadata: rule.metadata)
             while rule.inverted != subscope.absoluteMatch {
                 if rule.inverted {
-                    subscope = GrammarSyntaxScope(scopeClass: .parserScope)
+                    subscope = SyntaxTree(treeClass: .parserTree)
                     let token = tokenStream[streamRange.location + dx]
                     token.metadata = metadata ?? rule.metadata
                     subscope.add(token: token)
                 }
-                scope.add(tokens: subscope.tokens)
+                syntaxTree.add(tokens: subscope.tokens)
                 matchCount += 1
                 dx += subscope.count
                 if !rule.quantifier.greedy { break }
@@ -136,12 +148,12 @@ open class Parser: GrammarEngine {
                 
                 while rule.inverted != subscope.absoluteMatch {
                     if rule.inverted {
-                        subscope = GrammarSyntaxScope(scopeClass: .parserScope)
+                        subscope = SyntaxTree(treeClass: .parserTree)
                         let token = tokenStream[streamRange.location + dx]
                         token.metadata = metadata ?? rule.metadata
                         subscope.add(token: token)
                     }
-                    scope.add(tokens: subscope.tokens)
+                    syntaxTree.add(tokens: subscope.tokens)
                     matchCount += 1
                     dx += subscope.count
                     if !rule.quantifier.greedy { break }
@@ -165,7 +177,7 @@ open class Parser: GrammarEngine {
             var matches = rule.value == token.rule?.id
             while rule.inverted != matches {
                 token.metadata = metadata ?? rule.metadata
-                scope.add(token: token)
+                syntaxTree.add(token: token)
                 matchCount += 1
                 dx += 1
                 if !rule.quantifier.greedy || streamRange.location + dx >= tokenStream.length { break }
@@ -187,7 +199,7 @@ open class Parser: GrammarEngine {
             var matches = pattern.doesMatch(token.value, options: .anchored)
             while rule.inverted != matches {
                 token.metadata = metadata ?? rule.metadata
-                scope.add(token: token)
+                syntaxTree.add(token: token)
                 matchCount += 1
                 dx += 1
                 if !rule.quantifier.greedy || streamRange.location + dx >= tokenStream.length { break }
@@ -204,14 +216,14 @@ open class Parser: GrammarEngine {
                 return parse(tokenStream,
                              rule: next,
                              within: streamRange.shiftingLocation(by: dx),
-                             scope: scope,
-                             parentScope: parentScope)
+                             syntaxTree: syntaxTree,
+                             parentTree: parentTree)
             }
-            scope.matches = true
-            parentScope?.add(child: scope)
+            syntaxTree.matches = true
+            parentTree?.add(child: syntaxTree)
         }
         
-        return scope
+        return syntaxTree
     }
     
 }

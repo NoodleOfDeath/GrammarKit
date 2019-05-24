@@ -26,9 +26,9 @@ import UIKit
 
 extension Grammar {
 
-    /// Data structure that represents an identifier found in a grammar
+    /// Data structure that represents a grammatical range found in a grammar
     /// that can be indexed.
-    @objc(GrammarIdentifier)
+    @objc(GrammaticalIdentifier)
     open class Identifier: URLResourceRange {
         
         public typealias This = Identifier
@@ -71,7 +71,7 @@ extension Grammar {
 
 }
 
-extension Grammar.Identifier: Comparable {
+extension Grammar.Identifier {
     
     public static func < (lhs: This, rhs: This) -> Bool {
         return lhs.string < rhs.string

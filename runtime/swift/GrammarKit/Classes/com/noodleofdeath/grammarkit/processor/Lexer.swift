@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 
 /// Grammar engine used to tokenize character streams.
-open class Lexer: GrammarEngine {
+open class Lexer: GrammaticalProcessor {
     
     ///
     ///
@@ -31,11 +31,11 @@ open class Lexer: GrammarEngine {
     ///     - characterStream:
     ///     - offset:
     ///     - length:
-    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentScope: GrammarSyntaxScope? = nil) {
+    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil) {
         if let length = length {
-            tokenize(characterStream, within: NSMakeRange(offset, length), parentScope: parentScope)
+            tokenize(characterStream, within: NSMakeRange(offset, length), parentTree: parentTree)
         } else {
-            tokenize(characterStream, within: characterStream?.range.shiftingLocation(by: offset), parentScope: parentScope)
+            tokenize(characterStream, within: characterStream?.range.shiftingLocation(by: offset), parentTree: parentTree)
         }
     }
     
@@ -44,60 +44,60 @@ open class Lexer: GrammarEngine {
     /// - Parameters:
     ///     - characterStream:
     ///     - streamRange:
-    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentScope: GrammarSyntaxScope? = nil) {
+    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
         guard let characterStream = characterStream else { return }
         var streamRange = streamRange ?? characterStream.range
         let tokenStream = TokenStream(characterStream: characterStream)
         while streamRange.location < characterStream.length {
-            var scope = GrammarSyntaxScope(scopeClass: .lexerScope)
+            var syntaxTree = SyntaxTree(treeClass: .lexerTree)
             for rule in grammar.lexerRules {
-                scope = tokenize(characterStream, rule: rule, within: streamRange, parentScope: parentScope)
-                if scope.matches || rule == grammar.unmatchedRule {
-                    scope.rule = rule
+                syntaxTree = tokenize(characterStream, rule: rule, within: streamRange, parentTree: parentTree)
+                if syntaxTree.matches || rule == grammar.unmatchedRule {
+                    syntaxTree.rule = rule
                     break
                 }
             }
-            if scope.matches && scope.rule?.has(option: .skip) == false {
-                let token = scope.generatedToken
-                token.rule = scope.rule
+            if syntaxTree.matches && syntaxTree.rule?.has(option: .skip) == false {
+                let token = syntaxTree.generatedToken
+                token.rule = syntaxTree.rule
                 tokenStream.add(token: token)
-                if scope.rule == grammar.unmatchedRule {
-                    delegate?.grammarEngine?(self,
-                                             didSkip: token,
-                                             characterStream: characterStream,
-                                             parentScope: parentScope)
+                if syntaxTree.rule == grammar.unmatchedRule {
+                    delegate?.processor?(self,
+                                         didSkip: token,
+                                         characterStream: characterStream,
+                                         parentTree: parentTree)
                 } else {
-                    delegate?.grammarEngine?(self,
-                                             didGenerate: scope,
-                                             characterStream: characterStream,
-                                             tokenStream: nil,
-                                             parentScope: parentScope)
+                    delegate?.processor?(self,
+                                         didGenerate: syntaxTree,
+                                         characterStream: characterStream,
+                                         tokenStream: nil,
+                                         parentTree: parentTree)
                 }
             }
-            streamRange.shiftLocation(by: (scope.matches ? scope.length : 1))
+            streamRange.shiftLocation(by: (syntaxTree.matches ? syntaxTree.length : 1))
         }
-        delegate?.grammarEngine?(self,
-                                 didFinishProcessing: characterStream,
-                                 tokenStream: tokenStream,
-                                 parentScope: parentScope)
+        delegate?.processor?(self,
+                             didFinishProcessing: characterStream,
+                             tokenStream: tokenStream,
+                             parentTree: parentTree)
     }
     
     ///
     /// - parameter characterStream:
     /// - parameter rule:
     /// - parameter offset:
-    /// - parameter scope:
+    /// - parameter syntaxTree:
     /// - Returns:
-    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, scope: GrammarSyntaxScope? = nil, parentScope: GrammarSyntaxScope? = nil, metadata: Grammar.Metadata? = nil) -> GrammarSyntaxScope {
+    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, syntaxTree: SyntaxTree? = nil, parentTree: SyntaxTree? = nil, metadata: Metadata? = nil) -> SyntaxTree {
         
-        let scope = scope ?? GrammarSyntaxScope(scopeClass: .lexerScope)
+        let syntaxTree = syntaxTree ?? SyntaxTree(treeClass: .lexerTree)
         
-        scope.rule = rule
+        syntaxTree.rule = rule
         
-        guard rule.isComponent, streamRange.length > 0, streamRange.location < characterStream.length else { return scope }
+        guard rule.isComponent, streamRange.length > 0, streamRange.location < characterStream.length else { return syntaxTree }
         let stream = characterStream[streamRange]
         
-        var subscope = GrammarSyntaxScope(scopeClass: .lexerScope)
+        var subscope = SyntaxTree(treeClass: .lexerTree)
         var matchCount = 0
         var dx = 0
         
@@ -107,7 +107,7 @@ open class Lexer: GrammarEngine {
             
             guard let ruleRef = grammar[rule.value]  else {
                 print(String(format: "No lexer rule was defined for id \"%@\"", rule.value))
-                return scope
+                return syntaxTree
             }
 
             subscope = tokenize(characterStream,
@@ -121,10 +121,10 @@ open class Lexer: GrammarEngine {
                                       start: streamRange.location + dx,
                                       length: 1)
                     token.metadata = metadata ?? rule.metadata
-                    subscope = GrammarSyntaxScope(scopeClass: .lexerScope)
+                    subscope = SyntaxTree(treeClass: .lexerTree)
                     subscope.add(token: token)
                 }
-                scope.add(tokens: subscope.tokens)
+                syntaxTree.add(tokens: subscope.tokens)
                 matchCount += 1
                 dx += subscope.length
                 if !rule.quantifier.greedy { break }
@@ -155,10 +155,10 @@ open class Lexer: GrammarEngine {
                                           start: streamRange.location + dx,
                                           length: 1)
                         token.metadata = metadata ?? rule.metadata
-                        subscope = GrammarSyntaxScope(scopeClass: .lexerScope)
+                        subscope = SyntaxTree(treeClass: .lexerTree)
                         subscope.add(token: token)
                     }
-                    scope.add(tokens: subscope.tokens)
+                    syntaxTree.add(tokens: subscope.tokens)
                     matchCount += 1
                     dx += subscope.length
                     if !rule.quantifier.greedy { break }
@@ -201,7 +201,7 @@ open class Lexer: GrammarEngine {
                                   length: 1)
                 }
                 token.metadata = metadata ?? rule.metadata
-                scope.add(token: token)
+                syntaxTree.add(token: token)
                 matchCount += 1
                 dx += token.value.length
                 if !rule.quantifier.greedy { break }
@@ -220,14 +220,14 @@ open class Lexer: GrammarEngine {
                 return tokenize(characterStream,
                                 rule: next,
                                 within: streamRange.shiftingLocation(by: dx),
-                                scope: scope,
-                                parentScope: parentScope)
+                                syntaxTree: syntaxTree,
+                                parentTree: parentTree)
             }
-            scope.matches = true
-            parentScope?.add(child: scope)
+            syntaxTree.matches = true
+            parentTree?.add(child: syntaxTree)
         }
         
-        return scope
+        return syntaxTree
     }
     
 }

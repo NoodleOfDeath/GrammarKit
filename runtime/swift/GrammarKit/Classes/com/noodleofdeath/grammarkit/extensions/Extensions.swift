@@ -1145,7 +1145,7 @@ extension UIColor {
     /// - Returns: a new `UIColor` instance of `color` with an alpha component
     /// of `alpha`.
     static func * (color: UIColor, alpha: CGFloat) -> UIColor {
-        return color.withAlphaComponent(alpha)
+        return color * alpha
     }
     
 }

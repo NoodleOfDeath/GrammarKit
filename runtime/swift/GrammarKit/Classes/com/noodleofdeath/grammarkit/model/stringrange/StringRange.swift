@@ -24,22 +24,6 @@
 
 import UIKit
 
-/// Simple base representation of a scope.
-open class Scope: NSObject, Codable {
-    
-    /// Parent scope of this scope.
-    open var parent: Scope?
-    
-    /// Sibling scope the precedes this scope.
-    open var previous: Scope?
-    
-    /// Sibling scope the follows this scope.
-    open var next: Scope? {
-        didSet { next?.previous = self }
-    }
-    
-}
-
 /// Specifications for a string range.
 @objc
 public protocol StringRange: NSObjectProtocol {
@@ -62,6 +46,16 @@ extension StringRange {
     
     /// Range of this text range determined from its location index and length.
     public var range: NSRange { return NSMakeRange(start, length) }
+    
+    public static func < (lhs: Self, rhs: Self) -> Bool {
+        return lhs.start < rhs.start
+    }
+    
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        return
+            (lhs.string, lhs.start, lhs.end) ==
+            (rhs.string, rhs.start, rhs.end)
+    }
     
 }
 
@@ -105,20 +99,39 @@ open class BaseStringRange: NSObject, StringRange, Codable {
     
 }
 
+@objc
+public protocol URLResourceRangeProtocol: StringRange {
+
+    /// URL of this resource.
+    var url: URL? { get set }
+    
+    /// URL indexed subscopeMap of this scope.
+    var urlMap: [URL: URLResourceRangeProtocol] { get }
+    
+    // MARK: - Instance Properties
+    
+    /// Mapped subscopes of this text range.
+    var stringMap: [Int: URLResourceRangeProtocol] { get }
+    
+}
+
+extension URLResourceRangeProtocol {
+    
+    public static func < (lhs: Self, rhs: Self) -> Bool {
+        if lhs.url != rhs.url { return false }
+        return lhs.start < rhs.start
+    }
+    
+}
+
 /// Base implementation of a scope for a particular resource located within
 /// a given url.
 @objc
-open class URLResourceRange: NSObject, StringRange, Codable {
+open class URLResourceRange: BaseStringRange, URLResourceRangeProtocol, Comparable {
     
     // MARK: - StringRange Properties
     
-    open var start: Int = 0
-    
     open var lineNumber: Int = 0
-    
-    open var end: Int = 0
-    
-    open var string: String = ""
     
     // MARK: - Instance Properties
     
@@ -126,12 +139,12 @@ open class URLResourceRange: NSObject, StringRange, Codable {
     open var url: URL?
     
     /// URL indexed subscopeMap of this scope.
-    open lazy var urlMap = [URL: URLResourceRange]()
+    open lazy var urlMap = [URL: URLResourceRangeProtocol]()
     
     // MARK: - Instance Properties
     
     /// Mapped subscopes of this text range.
-    open lazy var stringMap = [Int: URLResourceRange]()
+    open lazy var stringMap = [Int: URLResourceRangeProtocol]()
     
     /// Cache containing the text contents of this resource.
     open var cachedTextStorage: String?
@@ -151,7 +164,7 @@ open class URLResourceRange: NSObject, StringRange, Codable {
     ///     - start: of the new text range.
     ///     - end: of the new text range.
     ///     - string: value of the new text range.
-    public convenience init(url: URL? = nil, start: Int = 0, lineNumber: Int = 0, end: Int = 0, string: String? = nil, urlMap: [URL: URLResourceRange]? = nil) {
+    public convenience init(url: URL? = nil, start: Int = 0, lineNumber: Int = 0, end: Int = 0, string: String? = nil, urlMap: [URL: URLResourceRangeProtocol]? = nil) {
         self.init()
         self.url = url
         self.start = start
@@ -169,7 +182,7 @@ open class URLResourceRange: NSObject, StringRange, Codable {
     ///     - start: of the new scope.
     ///     - length: of the new scope.
     ///     - string: value of the new scope.
-    public convenience init(url: URL? = nil, start: Int = 0, lineNumber: Int = 0, length: Int, string: String? = nil, urlMap: [URL: URLResourceRange]? = nil) {
+    public convenience init(url: URL? = nil, start: Int = 0, lineNumber: Int = 0, length: Int, string: String? = nil, urlMap: [URL: URLResourceRangeProtocol]? = nil) {
         self.init()
         self.url = url
         self.start = start
@@ -181,12 +194,12 @@ open class URLResourceRange: NSObject, StringRange, Codable {
     
     // MARK: - Instance Methods
     
-    open subscript (key: URL) -> URLResourceRange? {
+    open subscript (key: URL) -> URLResourceRangeProtocol? {
         get { return urlMap[key] }
         set { urlMap[key] = newValue }
     }
     
-    open subscript (index: Int) -> URLResourceRange {
+    open subscript (index: Int) -> URLResourceRangeProtocol {
         get { return self }
         set {
             
@@ -203,6 +216,5 @@ open class URLResourceRange: NSObject, StringRange, Codable {
     }
     
 }
-
 
 

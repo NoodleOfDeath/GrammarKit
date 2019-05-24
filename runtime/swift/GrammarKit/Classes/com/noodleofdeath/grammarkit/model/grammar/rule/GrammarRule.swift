@@ -25,7 +25,7 @@
 import Foundation
 
 /// Data structure for a grammar rule.
-@objc(GrammarRule)
+@objc
 open class GrammarRule: NSObject, TreeChain, Quantified, Codable {
     
     enum CodingKeys: String, CodingKey {

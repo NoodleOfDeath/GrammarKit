@@ -140,6 +140,11 @@ extension CGRect {
         set { size.width = newValue }
     }
     
+    var center: CGPoint {
+        get { return CGPoint(x: midX, y: midY) }
+        set { (x, y) = (newValue.x - width / 2, newValue.y - height / 2) }
+    }
+    
     /// Offset width of this view. Returns `x + width`.
     var offsetWidth: CGFloat {
         return x + width
@@ -868,12 +873,12 @@ extension String {
     func row(forOffset offset: Int) -> Int {
         var length = 0
         var n = 0
-        for line in components(separatedBy: .newlines) {
-            if offset >= length && offset < length + line.length + 1 {
+        for match in ".*\r?\n".matches(in: self) {
+            if offset >= length && offset < length + match.range.length {
                 return n
             }
             n += 1
-            length += line.length + 1
+            length += match.range.length
         }
         return -1
     }
@@ -1048,6 +1053,11 @@ extension UIBarButtonItem {
         return UIBarButtonItem(barButtonSystemItem: .fixedSpace, target: nil, action: nil)
     }
     
+    ///
+    convenience init(title: String?, style: UIBarButtonItem.Style = .plain) {
+        self.init(title: title, style: style, target: nil, action: nil)
+    }
+    
 }
 
 // MARK: - UIColor Constructor Extensions
@@ -1069,6 +1079,20 @@ extension UIColor {
         return nil
     }
     
+    var rgbValue: UInt? {
+        var fRed: CGFloat = 0
+        var fGreen: CGFloat = 0
+        var fBlue: CGFloat = 0
+        if getRed(&fRed, green: &fGreen, blue: &fBlue, alpha: nil) {
+            let iRed = UInt(fRed * 255.0)
+            let iGreen = UInt(fGreen * 255.0)
+            let iBlue = UInt(fBlue * 255.0)
+            let rgb = (iRed << 16) + (iGreen << 8) + iBlue
+            return rgb
+        }
+        return nil
+    }
+    
     var rgbaValues: (UInt, CGFloat)? {
         var fRed: CGFloat = 0
         var fGreen: CGFloat = 0
@@ -1083,6 +1107,18 @@ extension UIColor {
             return (rgb, CGFloat(iAlpha))
         }
         return nil
+    }
+    
+    /// Creates a new `UIColor` instance from a specified unsigned integer
+    /// and alpha float.
+    ///
+    /// Overload for `init(_: UInt, alpha: CGFloat?)`
+    ///
+    /// - Parameters:
+    ///   - hex: that represents the RGB saturations of this color.
+    ///   - alpha: of this color.
+    convenience init(_ hex: Int, alpha: CGFloat? = nil) {
+        self.init(UInt(hex), alpha: alpha)
     }
     
     /// Creates a new `UIColor` instance from a specified unsigned integer
@@ -1114,6 +1150,31 @@ extension UIColor {
     /// of `alpha`.
     static func * (color: UIColor, alpha: CGFloat) -> UIColor {
         return color.withAlphaComponent(alpha)
+    }
+    
+    /// Creates a new `UIColor` instance from a specified color and with
+    /// a specified alpha component.
+    /// Shorthand for `color.widthAlphaComponent(alpha)`.
+    ///
+    /// - Parameters:
+    ///   - color: to generate a new color from.
+    ///   - factor: component to use for the new color.
+    /// - Returns: a new `UIColor` instance of `color` with an alpha component
+    /// of `alpha`.
+    static func ** (color: UIColor, factor: CGFloat) -> UIColor {
+        var fRed: CGFloat = 0
+        var fGreen: CGFloat = 0
+        var fBlue: CGFloat = 0
+        var fAlpha: CGFloat = 0
+        if color.getRed(&fRed, green: &fGreen, blue: &fBlue, alpha: &fAlpha) {
+            let iRed = UInt(fRed * factor * 255.0)
+            let iGreen = UInt(fGreen * factor * 255.0)
+            let iBlue = UInt(fBlue * factor * 255.0)
+            let iAlpha = UInt(fAlpha * 255.0)
+            let rgb = (iRed << 16) + (iGreen << 8) + iBlue
+            return UIColor(rgb, alpha: CGFloat(iAlpha))
+        }
+        return color
     }
     
 }

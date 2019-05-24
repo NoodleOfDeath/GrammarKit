@@ -25,8 +25,8 @@
 import Foundation
 
 /// Grammar engine wrapper class that acts as both a lexer and parser.
-@objc(CompositeGrammarEngine)
-open class CompositeGrammarEngine: GrammarEngine {
+@objc
+open class CompoundGrammaticalProcessor: GrammaticalProcessor {
     
     /// Lexer of this compound grammar endine.
     open var lexer: Lexer? {
@@ -52,8 +52,8 @@ open class CompositeGrammarEngine: GrammarEngine {
     ///     - characterStream:
     ///     - offset:
     ///     - length:
-    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentScope: GrammarSyntaxScope? = nil) {
-        lexer?.tokenize(characterStream, from: offset, length: length, parentScope: parentScope)
+    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil) {
+        lexer?.tokenize(characterStream, from: offset, length: length, parentTree: parentTree)
     }
     
     ///
@@ -61,8 +61,8 @@ open class CompositeGrammarEngine: GrammarEngine {
     /// - Parameters:
     ///     - characterStream:
     ///     - streamRange:
-    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentScope: GrammarSyntaxScope? = nil) {
-        lexer?.tokenize(characterStream, within: streamRange, parentScope: parentScope)
+    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
+        lexer?.tokenize(characterStream, within: streamRange, parentTree: parentTree)
     }
     
     ///
@@ -71,8 +71,8 @@ open class CompositeGrammarEngine: GrammarEngine {
     ///     - tokenStream:
     ///     - offset:
     ///     - length:
-    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentScope: GrammarSyntaxScope? = nil) {
-        parser?.parse(tokenStream, from: offset, length: length, parentScope: parentScope)
+    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil) {
+        parser?.parse(tokenStream, from: offset, length: length, parentTree: parentTree)
     }
     
     ///
@@ -80,28 +80,28 @@ open class CompositeGrammarEngine: GrammarEngine {
     /// - Parameters:
     ///     - tokenStream:
     ///     - streamRange:
-    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentScope: GrammarSyntaxScope? = nil) {
-        parser?.parse(tokenStream, within: streamRange, parentScope: parentScope)
+    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
+        parser?.parse(tokenStream, within: streamRange, parentTree: parentTree)
     }
     
 }
 
-// MARK: - GrammarEngineDelegate Methods
-extension CompositeGrammarEngine: GrammarEngineDelegate {
+// MARK: - GrammaticalProcessorDelegate Methods
+extension CompoundGrammaticalProcessor: GrammaticalProcessorDelegate {
     
     @objc
-    open func grammarEngine(_ grammarEngine: GrammarEngine, didSkip token: Token, characterStream: CharacterStream, parentScope: GrammarSyntaxScope?) {
-        delegate?.grammarEngine?(grammarEngine, didSkip: token, characterStream: characterStream, parentScope: parentScope)
+    open func processor(_ processor: GrammaticalProcessor, didSkip token: Token, characterStream: CharacterStream, parentTree: SyntaxTree?) {
+        delegate?.processor?(processor, didSkip: token, characterStream: characterStream, parentTree: parentTree)
     }
     
     @objc
-    open func grammarEngine(_ grammarEngine: GrammarEngine, didGenerate syntaxScope: GrammarSyntaxScope, characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope?) {
-        delegate?.grammarEngine?(grammarEngine, didGenerate: syntaxScope, characterStream: characterStream, tokenStream: tokenStream, parentScope: parentScope)
+    open func processor(_ processor: GrammaticalProcessor, didGenerate syntaxTree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?) {
+        delegate?.processor?(processor, didGenerate: syntaxTree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
     }
     
     @objc
-    open func grammarEngine(_ grammarEngine: GrammarEngine, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope?) {
-        delegate?.grammarEngine?(grammarEngine, didFinishProcessing: characterStream, tokenStream: tokenStream, parentScope: parentScope)
+    open func processor(_ processor: GrammaticalProcessor, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?) {
+        delegate?.processor?(processor, didFinishProcessing: characterStream, tokenStream: tokenStream, parentTree: parentTree)
     }
     
 }

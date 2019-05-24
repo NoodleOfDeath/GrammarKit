@@ -27,7 +27,7 @@ import Foundation
 extension Grammar {
     
     ///
-    @objc(Metadata)
+    @objc
     open class Metadata: NSObject, TreeChain, Codable {
         
         public typealias NodeType = Metadata

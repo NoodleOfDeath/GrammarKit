@@ -24,18 +24,23 @@
 
 import Foundation
 
-public enum TokenCategory: String, RawRepresentable, Codable {
+extension GrammaticalProcessor {
     
-    case comment
-    case `class`
-    case constructor
-    case declaration
-    case documentation
-    case identifier = "id"
-    case keyword
-    case method
-    case number
-    case string
-    case type
+    ///
+    public struct Option: BaseOptionSet {
+        
+        public typealias This = Option
+        public typealias RawValue = Int
+        
+        public let rawValue: RawValue
+        
+        ///
+        public static let verbose = This(1 << 0)
+        
+        public init(rawValue: RawValue) {
+            self.rawValue = rawValue
+        }
+        
+    }
     
 }

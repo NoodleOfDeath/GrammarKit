@@ -20,7 +20,7 @@ class Tests: XCTestCase {
         do {
             guard let grammar = loader.loadGrammar(for: sampleFile.fileURL.uttype.rawValue) else { XCTFail(); return }
             let text = try String(contentsOfFile: sampleFile)
-            let engine = ExampleGrammarEngine(grammar: grammar, options: .verbose)
+            let engine = ExampleProcessor(grammar: grammar, options: .verbose)
             engine.tokenize(CharacterStream(text))
         } catch {
             print(error)

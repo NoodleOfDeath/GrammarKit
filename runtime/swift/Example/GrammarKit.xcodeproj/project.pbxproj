@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		040330B7221F0EF3008E9C99 /* ExampleGrammarEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleGrammarEngine.swift */; };
+		040330B7221F0EF3008E9C99 /* ExampleProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleProcessor.swift */; };
 		040330BB221F20A4008E9C99 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330BA221F20A4008E9C99 /* Extensions.swift */; };
-		040330BC221F4F2A008E9C99 /* ExampleGrammarEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleGrammarEngine.swift */; };
+		040330BC221F4F2A008E9C99 /* ExampleProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleProcessor.swift */; };
 		040330BD221F5016008E9C99 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330BA221F20A4008E9C99 /* Extensions.swift */; };
 		04E17A1B21A337670082A529 /* samples in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A1921A337670082A529 /* samples */; };
 		04E17A1C21A337670082A529 /* grammars in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A1A21A337670082A529 /* grammars */; };
@@ -34,7 +34,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		040330B6221F0EF3008E9C99 /* ExampleGrammarEngine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleGrammarEngine.swift; sourceTree = "<group>"; };
+		040330B6221F0EF3008E9C99 /* ExampleProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleProcessor.swift; sourceTree = "<group>"; };
 		040330BA221F20A4008E9C99 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		04784FFF21AC8F4B0092D095 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../../README.md; sourceTree = "<group>"; };
 		04E17A1921A337670082A529 /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; name = samples; path = ../../../../samples; sourceTree = "<group>"; };
@@ -89,7 +89,7 @@
 			children = (
 				04E17A2321A35BF80082A529 /* AppDelegate.swift */,
 				04E17A2A21A35BF90082A529 /* Assets.xcassets */,
-				040330B6221F0EF3008E9C99 /* ExampleGrammarEngine.swift */,
+				040330B6221F0EF3008E9C99 /* ExampleProcessor.swift */,
 				04E17A2F21A35BF90082A529 /* Info.plist */,
 				04E17A2C21A35BF90082A529 /* LaunchScreen.storyboard */,
 				04E17A2721A35BF80082A529 /* Main.storyboard */,
@@ -376,7 +376,7 @@
 			files = (
 				04E17A2621A35BF80082A529 /* ViewController.swift in Sources */,
 				04E17A2421A35BF80082A529 /* AppDelegate.swift in Sources */,
-				040330B7221F0EF3008E9C99 /* ExampleGrammarEngine.swift in Sources */,
+				040330B7221F0EF3008E9C99 /* ExampleProcessor.swift in Sources */,
 				040330BB221F20A4008E9C99 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -385,7 +385,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				040330BC221F4F2A008E9C99 /* ExampleGrammarEngine.swift in Sources */,
+				040330BC221F4F2A008E9C99 /* ExampleProcessor.swift in Sources */,
 				040330BD221F5016008E9C99 /* Extensions.swift in Sources */,
 				607FACEC1AFB9204008FA782 /* Tests.swift in Sources */,
 			);
