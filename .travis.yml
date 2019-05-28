@@ -6,9 +6,8 @@ osx_image: xcode10
 language: objective-c
 # cache: cocoapods
 podfile: runtime/swift/Example/Podfile
-# before_install:
-# gem install cocoapods # Since Travis is not always on latest version
-# - pod install --project-directory=runtime/swift/Example
-script:
+before_install:
 - gem install cocoapods
+- pod install --repo-update --project-directory=runtime/swift/Example
+script:
 - set -o pipefail && xcodebuild test -enableCodeCoverage YES -workspace runtime/swift/Example/GrammarKit.xcworkspace -scheme GrammarKit_Example -sdk iphonesimulator12.0 ONLY_ACTIVE_ARCH=NO -destination 'platform=iOS Simulator,name=iPhone 8 Plus,OS=12.0' | xcpretty

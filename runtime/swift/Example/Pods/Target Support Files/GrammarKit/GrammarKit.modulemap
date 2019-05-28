@@ -1,6 +1,0 @@
-framework module GrammarKit {
-  umbrella header "GrammarKit-umbrella.h"
-
-  export *
-  module * { export * }
-}

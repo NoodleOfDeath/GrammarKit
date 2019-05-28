@@ -1,6 +1,0 @@
-framework module Pods_GrammarKit_Example {
-  umbrella header "Pods-GrammarKit_Example-umbrella.h"
-
-  export *
-  module * { export * }
-}
