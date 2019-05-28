@@ -29,26 +29,26 @@ class ExampleProcessor: CompoundGrammaticalProcessor {
     /// - parameter characterStream:
     /// - parameter offset:
     /// - parameter verbose:
-    func process(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentScope: GrammarSyntaxScope? = nil) {
+    func process(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
         if options.contains(.verbose) {
             print()
             print("----- Tokenizing Character Stream -----")
             print()
         }
-        tokenize(characterStream, within: streamRange, parentScope: parentScope)
+        tokenize(characterStream, within: streamRange, parentTree: parentTree)
     }
     
-    override func processor(_ processor: GrammaticalProcessor, didGenerate syntaxScope: GrammarSyntaxScope, characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope? = nil) {
-        super.processor(processor, didGenerate: syntaxScope, characterStream: characterStream, tokenStream: tokenStream, parentScope: parentScope)
-        if options.contains(.verbose) { print(syntaxScope) }
-        if syntaxScope.rule?.has(option: .nested) == true && syntaxScope.maxRange < characterStream.length {
-            nestedRanges.append(syntaxScope.innerRange)
+    override func processor(_ processor: GrammaticalProcessor, didGenerate tree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
+        super.processor(processor, didGenerate: tree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
+        if options.contains(.verbose) { print(tree) }
+        if tree.rule?.has(option: .nested) == true && tree.maxRange < characterStream.length {
+            nestedRanges.append(tree.innerRange)
         }
     }
     
-    override func processor(_ processor: GrammaticalProcessor, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentScope: GrammarSyntaxScope? = nil) {
+    override func processor(_ processor: GrammaticalProcessor, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
 
-        super.processor(processor, didFinishProcessing: characterStream, tokenStream: tokenStream, parentScope: parentScope)
+        super.processor(processor, didFinishProcessing: characterStream, tokenStream: tokenStream, parentTree: parentTree)
         
         switch processor {
             
