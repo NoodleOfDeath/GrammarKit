@@ -3,16 +3,18 @@
 
 	<rules>
 
-		<rule id="NAMESPACE" order="5000" options="">
+		<!-- Lexer Rules -->
+
+		<rule id="NAMESPACE" precedence="5000" options="">
 			<definition>(ID '\.')+ ID</definition>
 		</rule>
 
-		<rule id="ANNOTATION" order="5000" options="">
+		<rule id="ANNOTATION" precedence="5000" options="">
 			<definition>'@[\p{L}]+' (L_PAREN (STRING COMMA)* STRING R_PAREN)?
 			</definition>
 		</rule>
 		
-		<rule id="KEYWORD" order="6000" options="">
+		<rule id="KEYWORD" precedence="10000" options="">
 			<definition>
 				<word>associatedtype</word>
 				<word>as</word>
@@ -69,164 +71,166 @@
 			</definition>
 		</rule>
 
-		<rule id="ONE_LINE_DOCUMENTATION" order="10000" options="">
+		<rule id="ONE_LINE_DOCUMENTATION" precedence="10000" options="">
 			<definition>'\/\/\/.*'</definition>
 		</rule>
-		<rule id="ONE_LINE_COMMENT" order="10000" options="">
+		<rule id="ONE_LINE_COMMENT" precedence="10000" options="">
 			<definition>'\/\/.*'</definition>
 		</rule>
-		<rule id="BLOCK_DOCUMENTATION" order="10000" options="">
+		<rule id="BLOCK_DOCUMENTATION" precedence="10000" options="">
 			<definition>'\/\*(?s:.*?)(\*\/|\Z)'</definition>
 		</rule>
-		<rule id="BLOCK_COMMENT" order="10000" options="">
+		<rule id="BLOCK_COMMENT" precedence="10000" options="">
 			<definition>'\/\*(?s:.*?)(\*\/|\Z)'</definition>
 		</rule>
 
-		<rule id="OPTIONAL_WRAPPER" order="2300" options="omit">
+		<rule id="OPTIONAL_WRAPPER" precedence="2300" options="omit">
 			<definition>'\?'</definition>
 		</rule>
-		<rule id="STRICT_WRAPPER" order="2300" options="omit">
+		<rule id="STRICT_WRAPPER" precedence="2300" options="omit">
 			<definition>'\!'</definition>
 		</rule>
 
-		<rule id="import_statement" order="6000" options="">
+		<!-- Parser Rules -->
+
+		<rule id="import_statement" precedence="6000" options="">
 			<definition>'import' (NAMESPACE | ID)</definition>
 		</rule>
 
-		<rule id="enum_declaration" order="7000" options="">
+		<rule id="enum_declaration" precedence="7000" options="">
 			<definition>(ANNOTATION | ONE_LINE_DOCUMENTATION | BLOCK_DOCUMENTATION)*
 				access_modifier* 'enum' ID type_extension? BLOCK
 			</definition>
 		</rule>
-		<rule id="struct_declaration" order="7000" options="">
+		<rule id="struct_declaration" precedence="=enum_declaration" options="">
 			<definition>(ANNOTATION | ONE_LINE_DOCUMENTATION | BLOCK_DOCUMENTATION)*
 				access_modifier* 'struct' ID type_extension? BLOCK
 			</definition>
 		</rule>
-		<rule id="class_declaration" order="7000" options="">
+		<rule id="class_declaration" precedence="=enum_declaration" options="">
 			<definition>(ANNOTATION | ONE_LINE_DOCUMENTATION | BLOCK_DOCUMENTATION)*
 				access_modifier* 'class' ID type_extension? BLOCK
 			</definition>
 		</rule>
-		<rule id="class_extension" order="7500" options="">
+		<rule id="class_extension" precedence="=enum_declaration" options="">
 			<definition>(ANNOTATION | ONE_LINE_DOCUMENTATION | BLOCK_DOCUMENTATION)*
 				'extension' ID type_extension? BLOCK
 			</definition>
 		</rule>
-		<rule id="constructor_declaration" order="8000" options="">
+		<rule id="constructor_declaration" precedence="=enum_declaration" options="">
 			<definition>(ANNOTATION | ONE_LINE_DOCUMENTATION | BLOCK_DOCUMENTATION)*
 				access_modifier* 'init' L_PAREN parameters? R_PAREN BLOCK
 			</definition>
 		</rule>
-		<rule id="method_declaration" order="8000" options="">
+		<rule id="method_declaration" precedence="=enum_declaration" options="">
 			<definition>(ANNOTATION | ONE_LINE_DOCUMENTATION | BLOCK_DOCUMENTATION)*
 				access_modifier* 'func' ID L_PAREN parameters? R_PAREN (RETURN_OPERATOR
 				(builtin_datatype | ID))? ('throws')? BLOCK
 			</definition>
 		</rule>
-		<rule id="variable_declaration" order="15000" options="">
+		<rule id="variable_declaration" precedence="=enum_declaration" options="">
 			<definition>(ANNOTATION | ONE_LINE_DOCUMENTATION | BLOCK_DOCUMENTATION)*
 				access_modifier* variable_declaration_keyword ID
 				rhs_assignment_clause?
 			</definition>
 		</rule>
 
-		<rule id="for_loop" order="20000" options="">
+		<rule id="for_loop" precedence="20000" options="">
 			<definition>'for' for_loop_expression BLOCK</definition>
 		</rule>
-		<rule id="while_loop" order="20000" options="">
+		<rule id="while_loop" precedence="=for_loop" options="">
 			<definition>'while' 'let'? expression BLOCK</definition>
 		</rule>
-		<rule id="repeat_loop" order="20000" options="">
+		<rule id="repeat_loop" precedence="=for_loop" options="">
 			<definition>'repeat'</definition>
 		</rule>
 
-		<rule id="method_invocation" order="20000" options="">
+		<rule id="method_invocation" precedence="20000" options="">
 			<definition>(NAMESPACE | ID) L_PAREN arguments? R_PAREN</definition>
 		</rule>
 
-		<rule id="lhs_assignment_clause" order="20000" options="">
+		<rule id="lhs_assignment_clause" precedence="2000" options="">
 			<definition>array_accessor | variable_accessor
 			</definition>
 		</rule>
 
-		<rule id="rhs_assignment_clause" order="20000" options="">
+		<rule id="rhs_assignment_clause" precedence="2000" options="">
 			<definition>EQ_ASSIGN_OP expression
 			</definition>
 		</rule>
 
-		<rule id="assignment_clause" order="20000" options="">
+		<rule id="assignment_clause" precedence="2000" options="">
 			<definition>lhs_assignment_clause rhs_assignment_clause
 			</definition>
 		</rule>
 
-		<rule id="access_modifier" order="99999" options="omit">
+		<rule id="access_modifier" precedence="0" options="omit">
 			<definition>'fileprivate' | 'final' | 'lazy' | 'private' | 'open' |
 				'override' | 'public'
 				| 'static' | 'weak'
 			</definition>
 		</rule>
-		<rule id="builtin_datatype" order="99999" options="omit">
+		<rule id="builtin_datatype" precedence="0" options="omit">
 			<definition>'Bool' | 'Double' | 'Float' | 'String' | 'Int' | 'Void'
 			</definition>
 		</rule>
-		<rule id="builtin_value" order="99999" options="omit">
+		<rule id="builtin_value" precedence="0" options="omit">
 			<definition>'false' | 'nil' | 'true'</definition>
 		</rule>
 
-		<rule id="variable_declaration_keyword" order="99999" options="omit">
+		<rule id="variable_declaration_keyword" precedence="0" options="omit">
 			<definition>'let' | 'var'</definition>
 		</rule>
-		<rule id="datatype" order="99999" options="omit">
+		<rule id="datatype" precedence="0" options="omit">
 			<definition>(builtin_datatype | ID) NIL_WRAPPER_POSTFIX?</definition>
 		</rule>
-		<rule id="datavalue" order="99999" options="omit">
+		<rule id="datavalue" precedence="0" options="omit">
 			<definition>builtin_value | method_invocation | KEYWORD | STRING |
 				LITERAL_STRING | NUMBER | NAMESPACE | ID
 			</definition>
 		</rule>
-		<rule id="operator" order="99999" options="omit">
+		<rule id="operator" precedence="0" options="omit">
 			<definition>LT_OPERATOR | GT_OPERATOR | NIL_COALESCING_OPERATOR</definition>
 		</rule>
-		<rule id="type_extension" order="99999" options="omit">
+		<rule id="type_extension" precedence="0" options="omit">
 			<definition>':' datatype (COMMA datatype)*</definition>
 		</rule>
 
-		<rule id="variable_accessor" order="99999" options="omit">
+		<rule id="variable_accessor" precedence="0" options="omit">
 			<definition>datavalue (':' datatype)?</definition>
 		</rule>
-		<rule id="array_accessor" order="99999" options="omit">
+		<rule id="array_accessor" precedence="0" options="omit">
 			<definition>datavalue L_BRACKET datavalue R_BRACKET</definition>
 		</rule>
 
-		<rule id="expression" order="99999" options="omit">
+		<rule id="expression" precedence="0" options="omit">
 			<definition>closed_expression | opened_expression</definition>
 		</rule>
-		<rule id="simple_expression" order="99999" options="omit">
+		<rule id="simple_expression" precedence="0" options="omit">
 			<definition>datavalue (operator datavalue)?</definition>
 		</rule>
-		<rule id="opened_expression" order="99999" options="omit">
+		<rule id="opened_expression" precedence="0" options="omit">
 			<definition>closed_expression | simple_expression</definition>
 		</rule>
-		<rule id="closed_expression" order="99999" options="omit">
+		<rule id="closed_expression" precedence="0" options="omit">
 			<definition>L_PAREN opened_expression R_PAREN</definition>
 		</rule>
 
-		<rule id="for_loop_expression" order="99999" options="omit">
+		<rule id="for_loop_expression" precedence="0" options="omit">
 			<definition>ID 'in' ID | expression</definition>
 		</rule>
 
-		<rule id="parameter" order="99999" options="omit">
+		<rule id="parameter" precedence="0" options="omit">
 			<definition>'_'? ID ':' datatype</definition>
 		</rule>
-		<rule id="parameters" order="99999" options="omit">
+		<rule id="parameters" precedence="0" options="omit">
 			<definition>parameter (COMMA parameter)*</definition>
 		</rule>
 
-		<rule id="argument" order="99999" options="omit">
+		<rule id="argument" precedence="0" options="omit">
 			<definition>(ID ':')? datavalue</definition>
 		</rule>
-		<rule id="arguments" order="99999" options="omit">
+		<rule id="arguments" precedence="0" options="omit">
 			<definition>argument (COMMA argument)*</definition>
 		</rule>
 

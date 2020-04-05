@@ -103,13 +103,13 @@
 			isa = PBXGroup;
 			children = (
 				CDCACB9921B43FE900F3081C /* _doc */,
-				CDCACBA321B46DC000F3081C /* grammars */,
+				6BA50102F59039408B4A8B39 /* Frameworks */,
 				04E17A2221A35BF80082A529 /* GrammarKit_Example */,
+				CDCACBA321B46DC000F3081C /* grammars */,
+				CB1FFDB979D27161251BBD7C /* Pods */,
 				607FACF51AFB993E008FA782 /* Podspec Metadata */,
 				607FACD11AFB9204008FA782 /* Products */,
 				607FACE81AFB9204008FA782 /* Tests */,
-				CB1FFDB979D27161251BBD7C /* Pods */,
-				6BA50102F59039408B4A8B39 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -252,6 +252,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);

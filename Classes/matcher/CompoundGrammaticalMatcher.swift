@@ -26,7 +26,7 @@ import Foundation
 
 /// Grammar engine wrapper class that acts as both a lexer and parser.
 @objc
-open class CompoundGrammaticalProcessor: GrammaticalProcessor {
+open class CompoundGrammaticalMatcher: GrammaticalMatcher {
     
     /// Lexer of this compound grammar endine.
     open var lexer: Lexer? {
@@ -86,22 +86,22 @@ open class CompoundGrammaticalProcessor: GrammaticalProcessor {
     
 }
 
-// MARK: - GrammaticalProcessorDelegate Methods
-extension CompoundGrammaticalProcessor: GrammaticalProcessorDelegate {
+// MARK: - GrammaticalMatcherDelegate Methods
+extension CompoundGrammaticalMatcher: GrammaticalMatcherDelegate {
     
     @objc
-    open func processor(_ processor: GrammaticalProcessor, didSkip token: Token, characterStream: CharacterStream, parentTree: SyntaxTree?) {
-        delegate?.processor?(processor, didSkip: token, characterStream: characterStream, parentTree: parentTree)
+    open func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream, parentTree: SyntaxTree?) {
+        delegate?.matcher?(matcher, didSkip: token, characterStream: characterStream, parentTree: parentTree)
     }
     
     @objc
-    open func processor(_ processor: GrammaticalProcessor, didGenerate syntaxTree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?) {
-        delegate?.processor?(processor, didGenerate: syntaxTree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
+    open func matcher(_ matcher: GrammaticalMatcher, didGenerate syntaxTree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?) {
+        delegate?.matcher?(matcher, didGenerate: syntaxTree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
     }
     
     @objc
-    open func processor(_ processor: GrammaticalProcessor, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?) {
-        delegate?.processor?(processor, didFinishProcessing: characterStream, tokenStream: tokenStream, parentTree: parentTree)
+    open func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?) {
+        delegate?.matcher?(matcher, didFinishMatching: characterStream, tokenStream: tokenStream, parentTree: parentTree)
     }
     
 }

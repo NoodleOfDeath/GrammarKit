@@ -3,86 +3,88 @@
 	
 	<rules>
 	
-		<rule id="WHITESPACE" order="1" options="skip">
+		<!-- Lexer Rules -->
+
+		<rule id="WHITESPACE" precedence="max" options="skip">
 			<definition>'[ \t]+'</definition>
 		</rule>
-		<rule id="NEWLINE" order="1" options="skip">
+		<rule id="NEWLINE" precedence="max" options="skip">
 			<definition>'\r?\n'</definition>
 		</rule>
 
-		<rule id="BLOCK" order="1" options="multipass">
+		<rule id="BLOCK" precedence="max" options="multipass">
 			<definition>L_BRACE (BLOCK | ~R_BRACE)* (R_BRACE | '\Z')</definition>
 		</rule>
 
-		<rule id="L_BRACE" order="1000" options="">
+		<rule id="L_BRACE" precedence="2000" options="">
 			<definition>'\{'</definition>
 		</rule>
-		<rule id="R_BRACE" order="1000" options="">
+		<rule id="R_BRACE" precedence="=L_BRACE" options="">
 			<definition>'\}'</definition>
 		</rule>
-		<rule id="L_BRACKET" order="1000" options="">
+		<rule id="L_BRACKET" precedence="=L_BRACE" options="">
 			<definition>'\['</definition>
 		</rule>
-		<rule id="R_BRACKET" order="1000" options="">
+		<rule id="R_BRACKET" precedence="=L_BRACE" options="">
 			<definition>'\]'</definition>
 		</rule>
-		<rule id="L_PAREN" order="1000" options="">
+		<rule id="L_PAREN" precedence="=L_BRACE" options="">
 			<definition>'\('</definition>
 		</rule>
-		<rule id="R_PAREN" order="1000" options="">
+		<rule id="R_PAREN" precedence="=L_BRACE" options="">
 			<definition>'\)'</definition>
 		</rule>
 
-		<rule id="LOGIC_OPERATOR" order="2000" options="">
+		<rule id="LOGIC_OPERATOR" precedence="2000" options="">
 			<definition>'&amp;&amp;' | '\|\|'</definition>
 		</rule>
-		<rule id="BITWISE_OPERATOR" order="2100" options="">
+		<rule id="BITWISE_OPERATOR" precedence="2100" options="">
 			<definition>'&lt;&lt;' | '&gt;&gt;' | '~' | '&amp;' | '\|'</definition>
 		</rule>
-		<rule id="RETURN_OPERATOR" order="2200" options="">
+		<rule id="RETURN_OPERATOR" precedence="2200" options="">
 			<definition>'\-&gt;'</definition>
 		</rule>
-		<rule id="LT_OPERATOR" order="2200" options="">
+		<rule id="LT_OPERATOR" precedence="2200" options="">
 			<definition>'&lt;'</definition>
 		</rule>
-		<rule id="GT_OPERATOR" order="2200" options="">
+		<rule id="GT_OPERATOR" precedence="2200" options="">
 			<definition>'&gt;'</definition>
 		</rule>
-		<rule id="EQ_OPERATOR" order="2200" options="">
+		<rule id="EQ_OPERATOR" precedence="2200" options="">
 			<definition>'=='</definition>
 		</rule>
-		<rule id="EQ_ASSIGN_OP" order="2300" options="">
+		<rule id="EQ_ASSIGN_OP" precedence="2300" options="">
 			<definition>'='</definition>
 		</rule>
-		<rule id="ASSIGNMENT_OPERATOR" order="2300" options="">
+		<rule id="ASSIGNMENT_OPERATOR" precedence="2300" options="">
 			<definition>'\+=' | '\-='</definition>
 		</rule>
-		<rule id="NIL_COALESCING_OPERATOR" order="2300" options="">
+		<rule id="NIL_COALESCING_OPERATOR" precedence="2300" options="">
 			<definition>'\?\?'</definition>
 		</rule>
-		<rule id="NIL_WRAPPER_POSTFIX" order="2300" options="">
+		<rule id="NIL_WRAPPER_POSTFIX" precedence="2300" options="">
 			<definition>OPTIONAL_WRAPPER | STRICT_WRAPPER</definition>
 		</rule>
 
-		<rule id="COMMA" order="3000" options="">
+		<rule id="COMMA" precedence="3000" options="">
 			<definition>','</definition>
 		</rule>
-		<rule id="LINE_DELIMETER" order="3000" options="">
+		<rule id="LINE_DELIMETER" precedence="3000" options="">
 			<definition>';'</definition>
 		</rule>
 
-		<rule id="NUMBER" order="7000" options="">
+		<rule id="NUMBER" precedence="7000" options="">
 			<definition>'0x[0-9a-fA-F][0-9a-fA-F]+' | ('[0-9]+' ('\.[0-9]+')?)
 			</definition>
 		</rule>
-		<rule id="ID" order="9000" options="">
+		<rule id="ID" precedence="8000" options="">
 			<definition>'[\p{L}\_\$][\p{L}\_\$0-9]*'</definition>
 		</rule>
 
-		<rule id="LITERAL_STRING" order="10000" options="">
+		<rule id="LITERAL_STRING" precedence="10000" options="">
 			<definition>'\'(?s:.*?)(\'|\Z)'</definition>
 		</rule>
-		<rule id="STRING" order="10000" options="">
+		<rule id="STRING" precedence="10000" options="">
 			<definition>'\"(?s:.*?)(\"|\Z)'</definition>
 		</rule>
 		

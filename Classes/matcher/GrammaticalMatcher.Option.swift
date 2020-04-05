@@ -24,7 +24,7 @@
 
 import Foundation
 
-extension GrammaticalProcessor {
+extension GrammaticalMatcher {
     
     ///
     public struct Option: BaseOptionSet {

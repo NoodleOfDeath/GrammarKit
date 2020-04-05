@@ -24,52 +24,52 @@
 
 /// Specifications for a grammar engine delegate.
 @objc
-public protocol GrammaticalProcessorDelegate: class {
+public protocol GrammaticalMatcherDelegate: class {
     
     /// Called when a grammar engine skips a token.
     ///
     /// - Parameters:
-    ///     - processor: that called this method.
+    ///     - matcher: that called this method.
     ///     - token: that was skipped.
-    ///     - characterStream: `processor` is processing.
+    ///     - characterStream: `matcher` is matching.
     ///     - parentTree: containing all tokenzied/parses information.
     @objc optional
-    func processor(_ processor: GrammaticalProcessor, didSkip token: Token, characterStream: CharacterStream, parentTree: Grammar.SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream, parentTree: Grammar.SyntaxTree?)
     
     /// Called when a grammar engine generates a syntax.
     /// Overload for `engine(_:didGenerate:characterStream:tokenStream:)`.
     ///
     /// - Parameters:
-    ///     - processor: that called this method.
+    ///     - matcher: that called this method.
     ///     - syntaxTree: that was generated.
-    ///     - characterStream: `processor` is processing.
-    ///     - tokenStream: generated, or being parsed, by `processor`.
+    ///     - characterStream: `matcher` is matching.
+    ///     - tokenStream: generated, or being parsed, by `matcher`.
     ///     - parentTree: containing all tokenzied/parses information.
     @objc optional
-    func processor(_ processor: GrammaticalProcessor, didGenerate syntaxTree: Grammar.SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didGenerate syntaxTree: Grammar.SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
     
     /// Called when a grammar engine finishes a job.
-    /// Overload for `engine(_:didFinishProcessing:tokenStream:)`.
+    /// Overload for `engine(_:didFinishMatching:tokenStream:)`.
     ///
     /// - Parameters:
-    ///     - processor: that called this method.
-    ///     - characterStream: `processor` is processing.
-    ///     - tokenStream: generated, or parsed, by `processor`.
+    ///     - matcher: that called this method.
+    ///     - characterStream: `matcher` is matching.
+    ///     - tokenStream: generated, or parsed, by `matcher`.
     ///     - parentTree: containing all tokenzied/parses information.
     @objc optional
-    func processor(_ processor: GrammaticalProcessor, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
     
 }
 
-/// Base abstract class for a grammar processing engine.
+/// Base abstract class for a grammar matching.
 @objc
-open class GrammaticalProcessor: NSObject {
+open class GrammaticalMatcher: NSObject {
     
     public typealias Metadata = Grammar.Metadata
     public typealias SyntaxTree = Grammar.SyntaxTree
 
     /// Delegate of this grammar engine.
-    open weak var delegate: GrammaticalProcessorDelegate?
+    open weak var delegate: GrammaticalMatcherDelegate?
     
     /// Grammar of this engine.
     public let grammar: Grammar

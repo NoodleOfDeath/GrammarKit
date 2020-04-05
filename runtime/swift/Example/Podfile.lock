@@ -9,7 +9,7 @@ DEPENDENCIES:
   - GrammarKit (from `../../../`)
 
 SPEC REPOS:
-  https://github.com/CocoaPods/Specs.git:
+  https://github.com/cocoapods/specs.git:
     - SwiftyUTType
     - SwiftyXMLParser
 
@@ -24,4 +24,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: d65f2b9b9b64c6569d1a33314561b4523267314c
 
-COCOAPODS: 1.5.3
+COCOAPODS: 1.5.2

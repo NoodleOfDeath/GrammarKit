@@ -50,7 +50,7 @@ class Tests: XCTestCase {
             guard let grammar = loader.load(with: "public.swift-source") else { XCTFail(); return }
             let text = try String(contentsOfFile: sampleFile)
             let engine = CompoundGPEngine(grammar: grammar)
-            engine.process(text, options: .verbose)
+            engine.match(text, options: .verbose)
         } catch {
             print(error)
             XCTFail()
@@ -116,7 +116,7 @@ class GrammarKitSystemTest {
 		
 		Grammar grammar = loader.load("public.swift-source");
 		SyntaxEngine<String, TextToken, Lexer<String, TextToken>, Parser<String, TextToken>> engine = new BaseTextSyntaxEngine(grammar);
-		engine.process(characterStream, true);
+		engine.match(characterStream, true);
 
 	}
 

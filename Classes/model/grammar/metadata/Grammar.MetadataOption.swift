@@ -54,7 +54,7 @@ extension Grammar {
         
         /// Indicates that the rule contains the identifier to an imported
         /// file reference.
-        public static let `import` = This("import")
+        public static let reference = This("reference")
         
         public init(rawValue: RawValue) {
             self.rawValue = rawValue

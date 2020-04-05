@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 
 /// Grammar engine used to tokenize character streams.
-open class Lexer: GrammaticalProcessor {
+open class Lexer: GrammaticalMatcher {
     
     ///
     ///
@@ -62,12 +62,12 @@ open class Lexer: GrammaticalProcessor {
                 token.rule = syntaxTree.rule
                 tokenStream.add(token: token)
                 if syntaxTree.rule == grammar.unmatchedRule {
-                    delegate?.processor?(self,
+                    delegate?.matcher?(self,
                                          didSkip: token,
                                          characterStream: characterStream,
                                          parentTree: parentTree)
                 } else {
-                    delegate?.processor?(self,
+                    delegate?.matcher?(self,
                                          didGenerate: syntaxTree,
                                          characterStream: characterStream,
                                          tokenStream: nil,
@@ -76,8 +76,8 @@ open class Lexer: GrammaticalProcessor {
             }
             streamRange.shiftLocation(by: (syntaxTree.matches ? syntaxTree.length : 1))
         }
-        delegate?.processor?(self,
-                             didFinishProcessing: characterStream,
+        delegate?.matcher?(self,
+                             didFinishMatching: characterStream,
                              tokenStream: tokenStream,
                              parentTree: parentTree)
     }

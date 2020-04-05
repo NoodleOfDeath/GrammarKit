@@ -26,7 +26,7 @@ import Foundation
 
 /// Data structure for a grammar rule.
 @objc
-open class GrammarRule: NSObject, TreeChain, Quantified, Codable {
+open class GrammarRule: NSObject, TreeChain, Quantified, ComparisonGraphNode, Codable {
     
     enum CodingKeys: String, CodingKey {
         case next
@@ -144,7 +144,7 @@ open class GrammarRule: NSObject, TreeChain, Quantified, Codable {
     public var ruleClass: Class = .unknown
     
     /// precedence of this grammar rule.
-    open var precedence = Precedence()
+    open var precedence = Precedence(id: "", "")
     
     /// Metadata of this grammar rule.
     open var metadata: Metadata = Metadata() {

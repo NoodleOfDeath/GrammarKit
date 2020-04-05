@@ -26,25 +26,25 @@ import UIKit
 
 /// Specifications for a string range.
 @objc
-public protocol StringRange: NSObjectProtocol {
+public protocol StringRangeProtocol: NSObjectProtocol {
     
-    /// Start of this text range.
+    /// Start of this string range.
     var start: Int { get set }
     
-    /// End of this text range.
+    /// End of this string range.
     var end: Int { get set }
     
-    /// String value contents of the tokens in this text range.
+    /// String value contents of the tokens in this string range.
     var string: String { get set }
     
 }
 
-extension StringRange {
+extension StringRangeProtocol {
     
-    /// Character length of this text range.
+    /// Character length of this string range.
     public var length: Int { return end - start }
     
-    /// Range of this text range determined from its location index and length.
+    /// Range of this string range determined from its location index and length.
     public var range: NSRange { return NSMakeRange(start, length) }
     
     public static func < (lhs: Self, rhs: Self) -> Bool {
@@ -59,9 +59,9 @@ extension StringRange {
     
 }
 
-/// Base implementation for a `StringRange`.
+/// Base implementation for a `StringRangeProtocol`.
 @objc
-open class BaseStringRange: NSObject, StringRange, Codable {
+open class StringRange: NSObject, StringRangeProtocol, Codable {
     
     open var start: Int
     
@@ -71,26 +71,26 @@ open class BaseStringRange: NSObject, StringRange, Codable {
     
     // MARK: - Constructor Methods
     
-    /// Constructs a new text range instance with an initial start, length,
+    /// Constructs a new string range instance with an initial start, length,
     /// and string value.
     ///
     /// - Parameters:
-    ///     - start: of the new text range.
-    ///     - end: of the new text range.
-    ///     - string: value of the new text range.
+    ///     - start: of the new string range.
+    ///     - end: of the new string range.
+    ///     - string: value of the new string range.
     public init(start: Int = 0, end: Int = 0, string: String? = nil) {
         self.start = start
         self.end = end
         self.string = string ?? ""
     }
     
-    /// Constructs a new text range instance with an initial start, length,
+    /// Constructs a new string range instance with an initial start, length,
     /// and string value.
     ///
     /// - Parameters:
-    ///     - start: of the new text range.
-    ///     - length: of the new text range.
-    ///     - string: value of the new text range.
+    ///     - start: of the new string range.
+    ///     - length: of the new string range.
+    ///     - string: value of the new string range.
     public init(start: Int = 0, length: Int, string: String? = nil) {
         self.start = start
         self.end = start + length
@@ -99,57 +99,54 @@ open class BaseStringRange: NSObject, StringRange, Codable {
     
 }
 
+/// Specifications for a URL resource reference.
 @objc
-public protocol URLResourceRangeProtocol: StringRange {
+public protocol DocumentReferenceProtocol: StringRangeProtocol {
 
-    /// URL of this resource.
-    var url: URL? { get set }
+    /// Document being referenced.
+    var document: UIDocument? { get }
     
     /// URL indexed subscopeMap of this scope.
-    var urlMap: [URL: URLResourceRangeProtocol] { get }
+    var urlMap: [URL: DocumentReferenceProtocol] { get }
     
     // MARK: - Instance Properties
     
-    /// Mapped subscopes of this text range.
-    var stringMap: [Int: URLResourceRangeProtocol] { get }
+    /// Mapped subscopes of this string range.
+    var stringMap: [Int: DocumentReferenceProtocol] { get }
     
 }
 
-extension URLResourceRangeProtocol {
+extension DocumentReferenceProtocol {
     
     public static func < (lhs: Self, rhs: Self) -> Bool {
-        if lhs.url != rhs.url { return false }
+        guard lhs.document?.fileURL == rhs.document?.fileURL else { return false }
         return lhs.start < rhs.start
     }
     
 }
 
-/// Base implementation of a scope for a particular resource located within
-/// a given url.
+/// Base implementation for a `DocumentReferenceProtocol`.
 @objc
-open class URLResourceRange: BaseStringRange, URLResourceRangeProtocol, Comparable {
+open class DocumentReference: StringRange, DocumentReferenceProtocol, Comparable {
     
-    // MARK: - StringRange Properties
-    
+    // MARK: - StringRangeProtocol Properties
+
+    // MARK: - Instance Properties
+
     open var lineNumber: Int = 0
+
+    open var document: UIDocument?
+    
+    open lazy var urlMap = [URL: DocumentReferenceProtocol]()
     
     // MARK: - Instance Properties
     
-    /// URL of this resource.
-    open var url: URL?
-    
-    /// URL indexed subscopeMap of this scope.
-    open lazy var urlMap = [URL: URLResourceRangeProtocol]()
-    
-    // MARK: - Instance Properties
-    
-    /// Mapped subscopes of this text range.
-    open lazy var stringMap = [Int: URLResourceRangeProtocol]()
+    open lazy var stringMap = [Int: DocumentReferenceProtocol]()
     
     /// Cache containing the text contents of this resource.
     open var cachedTextStorage: String?
     
-    /// String value contents of the tokens in this text range.
+    /// String value contents of the tokens in this string range.
     open var cachedString: String? {
         if cachedTextStorage == nil { updateDerivedTextStorage() }
         return cachedTextStorage?.substring(with: range)
@@ -157,16 +154,16 @@ open class URLResourceRange: BaseStringRange, URLResourceRangeProtocol, Comparab
     
     // MARK: - Constructor Methods
     
-    /// Constructs a new text range instance with an initial start, length,
+    /// Constructs a new string range instance with an initial start, length,
     /// and string value.
     ///
     /// - Parameters:
-    ///     - start: of the new text range.
-    ///     - end: of the new text range.
-    ///     - string: value of the new text range.
-    public convenience init(url: URL? = nil, start: Int = 0, lineNumber: Int = 0, end: Int = 0, string: String? = nil, urlMap: [URL: URLResourceRangeProtocol]? = nil) {
+    ///     - start: of the new string range.
+    ///     - end: of the new string range.
+    ///     - string: value of the new string range.
+    public convenience init <DocumentType: UIDocument>(document: DocumentType? = nil, start: Int = 0, lineNumber: Int = 0, end: Int = 0, string: String? = nil, urlMap: [URL: DocumentReferenceProtocol]? = nil) {
         self.init()
-        self.url = url
+        self.document = document
         self.start = start
         self.lineNumber = lineNumber
         self.end = end
@@ -174,7 +171,7 @@ open class URLResourceRange: BaseStringRange, URLResourceRangeProtocol, Comparab
         self.urlMap = urlMap ?? [:]
     }
     
-    /// Constructs a new text range instance with an initial start, length,
+    /// Constructs a new string range instance with an initial start, length,
     /// and string value.
     ///
     /// - Parameters:
@@ -182,9 +179,9 @@ open class URLResourceRange: BaseStringRange, URLResourceRangeProtocol, Comparab
     ///     - start: of the new scope.
     ///     - length: of the new scope.
     ///     - string: value of the new scope.
-    public convenience init(url: URL? = nil, start: Int = 0, lineNumber: Int = 0, length: Int, string: String? = nil, urlMap: [URL: URLResourceRangeProtocol]? = nil) {
+    public convenience init <DocumentType: UIDocument>(document: DocumentType? = nil, start: Int = 0, lineNumber: Int = 0, length: Int, string: String? = nil, urlMap: [URL: DocumentReferenceProtocol]? = nil) {
         self.init()
-        self.url = url
+        self.document = document
         self.start = start
         self.lineNumber = lineNumber
         self.end = start + length
@@ -194,12 +191,12 @@ open class URLResourceRange: BaseStringRange, URLResourceRangeProtocol, Comparab
     
     // MARK: - Instance Methods
     
-    open subscript (key: URL) -> URLResourceRangeProtocol? {
+    open subscript (key: URL) -> DocumentReferenceProtocol? {
         get { return urlMap[key] }
         set { urlMap[key] = newValue }
     }
     
-    open subscript (index: Int) -> URLResourceRangeProtocol {
+    open subscript (index: Int) -> DocumentReferenceProtocol {
         get { return self }
         set {
             
@@ -207,8 +204,8 @@ open class URLResourceRange: BaseStringRange, URLResourceRangeProtocol, Comparab
     }
     
     open func updateDerivedTextStorage() {
-        guard let url = url else { return }
-        cachedTextStorage = try? String(contentsOf: url)
+        guard let document = document else { return }
+        cachedTextStorage = try? String(contentsOf: document.fileURL)
     }
     
     open func clearDerivedTextStorage() {

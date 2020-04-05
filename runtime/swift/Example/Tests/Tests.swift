@@ -19,9 +19,11 @@ class Tests: XCTestCase {
         let loader = GrammarLoader(searchPaths: grammarsDirectory)
         do {
             guard let grammar = loader.loadGrammar(for: sampleFile.fileURL.uttype.rawValue) else { XCTFail(); return }
+            print(grammar)
+            print("------------")
             let text = try String(contentsOfFile: sampleFile)
-            let engine = ExampleProcessor(grammar: grammar, options: .verbose)
-            engine.tokenize(CharacterStream(text))
+            let matcher = ExampleMatcher(grammar: grammar, options: .verbose)
+            matcher.tokenize(CharacterStream(text))
         } catch {
             print(error)
             XCTFail()

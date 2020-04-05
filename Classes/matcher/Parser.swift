@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/// Grammatical processor for processing token streams.
-open class Parser: GrammaticalProcessor {
+/// Grammatical matcher for matching token streams.
+open class Parser: GrammaticalMatcher {
     
     /// Parses a token stream.
     ///
@@ -60,24 +60,24 @@ open class Parser: GrammaticalProcessor {
                 }
             }
             if syntaxTree.matches && syntaxTree.rule?.has(option: .skip) == false {
-                delegate?.processor?(self,
-                                     didGenerate: syntaxTree,
-                                     characterStream: characterStream,
-                                     tokenStream: tokenStream,
-                                     parentTree: parentTree)
+                delegate?.matcher?(self,
+                                   didGenerate: syntaxTree,
+                                   characterStream: characterStream,
+                                   tokenStream: tokenStream,
+                                   parentTree: parentTree)
             } else {
                 let token = tokenStream[streamRange.location]
-                delegate?.processor?(self,
-                                     didSkip: token,
-                                     characterStream: characterStream,
-                                     parentTree: parentTree)
+                delegate?.matcher?(self,
+                                   didSkip: token,
+                                   characterStream: characterStream,
+                                   parentTree: parentTree)
             }
             streamRange.shiftLocation(by: syntaxTree.matches ? syntaxTree.count : 1)
         }
-        delegate?.processor?(self,
-                             didFinishProcessing: characterStream,
-                             tokenStream: tokenStream,
-                             parentTree: parentTree)
+        delegate?.matcher?(self,
+                           didFinishMatching: characterStream,
+                           tokenStream: tokenStream,
+                           parentTree: parentTree)
     }
     
     ///

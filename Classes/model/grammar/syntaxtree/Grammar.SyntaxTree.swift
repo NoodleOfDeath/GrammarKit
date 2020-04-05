@@ -28,7 +28,7 @@ extension Grammar {
 
     /// Data structure representing a grammar rule match tree.
     @objc
-    open class SyntaxTree: BaseStringRange, TreeChain {
+    open class SyntaxTree: StringRange, TreeChain {
         
         public typealias This = Grammar.SyntaxTree
         public typealias NodeType = Grammar.SyntaxTree

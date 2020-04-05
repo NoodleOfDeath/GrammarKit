@@ -34,12 +34,16 @@ open class Grammar: NSObject, Codable {
     
     public static let unmatchedRuleId = "UNMATCHED"
     public static let unmatchedRuleExpr = "."
-    public static let unmatchedRuleOrder = Int.min
+    public static let unmatchedRuleOrder = "min"
     
     // MARK: - CustomStringConvertible Properties
     
     open override var description: String {
-        return ""
+        var strings = [String]()
+        for rule in lexerRules {
+            strings.append("\(rule.id) (\(rule.precedence.weight ?? 0)) (\(rule.precedence.relations)): \(rule))")
+        }
+        return strings.joined(separator: "\n")
     }
     
     // MARK: - Instance Properties
@@ -49,7 +53,7 @@ open class Grammar: NSObject, Codable {
     
     /// Name of this grammar.
     open var name: String = ""
-    
+
     /// Rule map of this grammar.
     open var rules = [String: GrammarRule]() {
         didSet { deriveRuleSets() }
@@ -120,8 +124,30 @@ open class Grammar: NSObject, Codable {
     
     /// Sorts the rule map of this grammar.
     open func sortRules() {
-        lexerRules.sort { $0.precedence > $1.precedence }
-        parserRules.sort { $0.precedence > $1.precedence }
+        let lexerGraph = ComparisonGraph(nodes: lexerRules)
+        for rule in lexerRules {
+            if let weight = rule.precedence.weight {
+                lexerGraph.set(weight: weight, for: rule.id)
+            }
+            for relation in rule.precedence.relations {
+                lexerGraph.connect(rule.id, relation.key, relation.value)
+            }
+        }
+        lexerRules = lexerRules.sorted {
+            lexerGraph.compare($0, $1) == .lessThan
+        }.reversed()
+        let parserGraph = ComparisonGraph(nodes: parserRules)
+        for rule in parserRules {
+            if let weight = rule.precedence.weight {
+                parserGraph.set(weight: weight, for: rule.id)
+            }
+            for relation in rule.precedence.relations {
+                parserGraph.connect(rule.id, relation.key, relation.value)
+            }
+        }
+        parserRules = parserRules.sorted {
+            parserGraph.compare($0, $1) == .lessThan
+        }.reversed()
     }
     
     /// Adds a built-in identifier to this grammar.

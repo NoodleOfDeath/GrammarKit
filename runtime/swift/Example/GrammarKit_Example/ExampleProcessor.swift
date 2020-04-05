@@ -9,7 +9,7 @@ import Foundation
 import GrammarKit
 
 ///
-class ExampleProcessor: CompoundGrammaticalProcessor {
+class ExampleMatcher: CompoundGrammaticalMatcher {
     
     lazy var nestedRanges: [NSRange] = [NSRange]()
     
@@ -17,11 +17,11 @@ class ExampleProcessor: CompoundGrammaticalProcessor {
     /// - parameter characterStream:
     /// - parameter offset:
     /// - parameter verbose:
-    func process(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil) {
+    func match(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil) {
         if let length = length {
-            process(characterStream, within: NSMakeRange(offset, length))
+            match(characterStream, within: NSMakeRange(offset, length))
         } else {
-            process(characterStream, within: characterStream?.range.shiftingLocation(by: offset))
+            match(characterStream, within: characterStream?.range.shiftingLocation(by: offset))
         }
     }
     
@@ -29,7 +29,7 @@ class ExampleProcessor: CompoundGrammaticalProcessor {
     /// - parameter characterStream:
     /// - parameter offset:
     /// - parameter verbose:
-    func process(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
+    func match(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
         if options.contains(.verbose) {
             print()
             print("----- Tokenizing Character Stream -----")
@@ -38,19 +38,19 @@ class ExampleProcessor: CompoundGrammaticalProcessor {
         tokenize(characterStream, within: streamRange, parentTree: parentTree)
     }
     
-    override func processor(_ processor: GrammaticalProcessor, didGenerate tree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
-        super.processor(processor, didGenerate: tree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
+    override func matcher(_ matcher: GrammaticalMatcher, didGenerate tree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
+        super.matcher(matcher, didGenerate: tree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
         if options.contains(.verbose) { print(tree) }
         if tree.rule?.has(option: .nested) == true && tree.maxRange < characterStream.length {
             nestedRanges.append(tree.innerRange)
         }
     }
     
-    override func processor(_ processor: GrammaticalProcessor, didFinishProcessing characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
+    override func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
 
-        super.processor(processor, didFinishProcessing: characterStream, tokenStream: tokenStream, parentTree: parentTree)
+        super.matcher(matcher, didFinishMatching: characterStream, tokenStream: tokenStream, parentTree: parentTree)
         
-        switch processor {
+        switch matcher {
             
         case is Lexer:
             guard let tokenStream = tokenStream else { return }
@@ -74,7 +74,7 @@ class ExampleProcessor: CompoundGrammaticalProcessor {
             if nestedRanges.count > 0 {
                 let range = nestedRanges.removeFirst()
                 if range.max < characterStream.length {
-                    process(characterStream, from: range.max)
+                    match(characterStream, from: range.max)
                 }
             }
             break
