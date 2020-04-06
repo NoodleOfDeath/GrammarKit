@@ -52,6 +52,7 @@ extension GrammarRule {
                     continue
                 } else if string == "max" {
                     self.weight = .max
+                    continue
                 }
                 if let match = "([<=>])?\\s*([\\p{L}_][\\p{L}_0-9-]*)\\s*(?:([-+])\\s*([0-9]+))?".firstMatch(in: string) {
                     relations[string.substring(with: match.range(at: 2))] = ComparisonResult(string.substring(with: match.range(at: 1)))
