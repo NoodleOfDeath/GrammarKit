@@ -79,7 +79,7 @@ open class GrammarRule: NSObject, TreeChain, Quantified, ComparisonGraphNode, Co
     }
     
     open var treeDescription: String {
-        return String(format: "%@ [%@]: %@", id, precedence, description)
+        return String(format: "%@ [%@]\n\t %@", id, precedence, description)
     }
     
     open weak var parent: NodeType?
@@ -144,7 +144,7 @@ open class GrammarRule: NSObject, TreeChain, Quantified, ComparisonGraphNode, Co
     public var ruleClass: Class = .unknown
     
     /// precedence of this grammar rule.
-    open var precedence = Precedence(id: "", "")
+    open lazy var precedence = Precedence(id: id)
     
     /// Metadata of this grammar rule.
     open var metadata: Metadata = Metadata() {
@@ -208,13 +208,13 @@ open class GrammarRule: NSObject, TreeChain, Quantified, ComparisonGraphNode, Co
         children = try values.decode([GrammarRule].self, forKey: CodingKeys.children)
         inverted = try values.decode(Bool.self, forKey: CodingKeys.inverted)
         ruleClass = try values.decode(Class.self, forKey: CodingKeys.ruleClass)
-        precedence = try values.decode(Precedence.self, forKey: CodingKeys.precedence)
         id = try values.decode(String.self, forKey: CodingKeys.id)
         value = try values.decode(String.self, forKey: CodingKeys.value)
         quantifier = try values.decode(Quantifier.self, forKey: CodingKeys.quantifier)
         componentType = try values.decode(ComponentType.self, forKey: CodingKeys.componentType)
         metadata = try values.decode(Metadata.self, forKey: CodingKeys.metadata)
         super.init()
+        precedence ?= try values.decodeIfPresent(Precedence.self, forKey: CodingKeys.precedence)
         updateChildren()
         updateNext()
         processMetadata()

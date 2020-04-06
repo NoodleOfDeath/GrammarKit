@@ -37,6 +37,7 @@
 		040330B6221F0EF3008E9C99 /* ExampleProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleProcessor.swift; sourceTree = "<group>"; };
 		040330BA221F20A4008E9C99 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		04784FFF21AC8F4B0092D095 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../../README.md; sourceTree = "<group>"; };
+		0490F32C243A8A6100B107A4 /* GrammarKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GrammarKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0498FF15229DDAF7009B4816 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; name = .gitignore; path = ../../../../SwiftyFileSystem/.gitignore; sourceTree = "<group>"; };
 		0498FF16229DDAF7009B4816 /* .travis.yml */ = {isa = PBXFileReference; lastKnownFileType = text; name = .travis.yml; path = ../../../../SwiftyFileSystem/.travis.yml; sourceTree = "<group>"; };
 		04E17A1921A337670082A529 /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; name = samples; path = ../../../../samples; sourceTree = "<group>"; };
@@ -156,6 +157,7 @@
 		6BA50102F59039408B4A8B39 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0490F32C243A8A6100B107A4 /* GrammarKit.framework */,
 				42CA404A9C1BAA8185A9B2B5 /* Pods_GrammarKit_Example.framework */,
 				D53C6200A069FFBAF19B4202 /* Pods_GrammarKit_Tests.framework */,
 			);

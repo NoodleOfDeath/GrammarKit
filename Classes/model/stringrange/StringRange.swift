@@ -25,8 +25,7 @@
 import UIKit
 
 /// Specifications for a string range.
-@objc
-public protocol StringRangeProtocol: NSObjectProtocol {
+public protocol StringRangeProtocol: Comparable {
     
     /// Start of this string range.
     var start: Int { get set }
@@ -40,28 +39,31 @@ public protocol StringRangeProtocol: NSObjectProtocol {
 }
 
 extension StringRangeProtocol {
-    
+
+    // MARK: - Instance Properties
+
     /// Character length of this string range.
     public var length: Int { return end - start }
     
     /// Range of this string range determined from its location index and length.
     public var range: NSRange { return NSMakeRange(start, length) }
-    
+
+    // MARK: - Comparable Methods
+
     public static func < (lhs: Self, rhs: Self) -> Bool {
         return lhs.start < rhs.start
     }
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        return
-            (lhs.string, lhs.start, lhs.end) ==
-            (rhs.string, rhs.start, rhs.end)
+        return (lhs.start, lhs.end, lhs.string) == (rhs.start, rhs.end, rhs.string)
     }
     
 }
 
 /// Base implementation for a `StringRangeProtocol`.
-@objc
 open class StringRange: NSObject, StringRangeProtocol, Codable {
+
+    // MARK: - StringRangeProtocol Properties
     
     open var start: Int
     
@@ -100,19 +102,10 @@ open class StringRange: NSObject, StringRangeProtocol, Codable {
 }
 
 /// Specifications for a URL resource reference.
-@objc
 public protocol DocumentReferenceProtocol: StringRangeProtocol {
 
     /// Document being referenced.
     var document: UIDocument? { get }
-    
-    /// URL indexed subscopeMap of this scope.
-    var urlMap: [URL: DocumentReferenceProtocol] { get }
-    
-    // MARK: - Instance Properties
-    
-    /// Mapped subscopes of this string range.
-    var stringMap: [Int: DocumentReferenceProtocol] { get }
     
 }
 
@@ -122,96 +115,20 @@ extension DocumentReferenceProtocol {
         guard lhs.document?.fileURL == rhs.document?.fileURL else { return false }
         return lhs.start < rhs.start
     }
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        return (lhs.document, lhs.start, lhs.end) == (rhs.document, rhs.start, rhs.end)
+    }
     
 }
 
 /// Base implementation for a `DocumentReferenceProtocol`.
-@objc
-open class DocumentReference: StringRange, DocumentReferenceProtocol, Comparable {
+open class DocumentReference: StringRange, DocumentReferenceProtocol {
     
-    // MARK: - StringRangeProtocol Properties
-
-    // MARK: - Instance Properties
-
-    open var lineNumber: Int = 0
+    // MARK: - DocumentReferenceProtocol Properties
 
     open var document: UIDocument?
-    
-    open lazy var urlMap = [URL: DocumentReferenceProtocol]()
-    
-    // MARK: - Instance Properties
-    
-    open lazy var stringMap = [Int: DocumentReferenceProtocol]()
-    
-    /// Cache containing the text contents of this resource.
-    open var cachedTextStorage: String?
-    
-    /// String value contents of the tokens in this string range.
-    open var cachedString: String? {
-        if cachedTextStorage == nil { updateDerivedTextStorage() }
-        return cachedTextStorage?.substring(with: range)
-    }
-    
-    // MARK: - Constructor Methods
-    
-    /// Constructs a new string range instance with an initial start, length,
-    /// and string value.
-    ///
-    /// - Parameters:
-    ///     - start: of the new string range.
-    ///     - end: of the new string range.
-    ///     - string: value of the new string range.
-    public convenience init <DocumentType: UIDocument>(document: DocumentType? = nil, start: Int = 0, lineNumber: Int = 0, end: Int = 0, string: String? = nil, urlMap: [URL: DocumentReferenceProtocol]? = nil) {
-        self.init()
-        self.document = document
-        self.start = start
-        self.lineNumber = lineNumber
-        self.end = end
-        self.string = string ?? ""
-        self.urlMap = urlMap ?? [:]
-    }
-    
-    /// Constructs a new string range instance with an initial start, length,
-    /// and string value.
-    ///
-    /// - Parameters:
-    ///     - url: of this new scope.
-    ///     - start: of the new scope.
-    ///     - length: of the new scope.
-    ///     - string: value of the new scope.
-    public convenience init <DocumentType: UIDocument>(document: DocumentType? = nil, start: Int = 0, lineNumber: Int = 0, length: Int, string: String? = nil, urlMap: [URL: DocumentReferenceProtocol]? = nil) {
-        self.init()
-        self.document = document
-        self.start = start
-        self.lineNumber = lineNumber
-        self.end = start + length
-        self.string = string ?? ""
-        self.urlMap = urlMap ?? [:]
-    }
-    
-    // MARK: - Instance Methods
-    
-    open subscript (key: URL) -> DocumentReferenceProtocol? {
-        get { return urlMap[key] }
-        set { urlMap[key] = newValue }
-    }
-    
-    open subscript (index: Int) -> DocumentReferenceProtocol {
-        get { return self }
-        set {
-            
-        }
-    }
-    
-    open func updateDerivedTextStorage() {
-        guard let document = document else { return }
-        cachedTextStorage = try? String(contentsOf: document.fileURL)
-    }
-    
-    open func clearDerivedTextStorage() {
-        cachedTextStorage = nil
-    }
-    
+
 }
 
 

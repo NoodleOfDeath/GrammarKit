@@ -8,11 +8,15 @@
 
 import Foundation
 import SwiftyXMLParser
-....Name
+
+let count = (20 << 10)
+
 /// Base implementation of a grammar.
+@objc
 open class Grammar : NSObject {
     
     ///
+    @objc
     struct XMLTag {
         public static let grammar = "grammar"
         public static let lexerRules = "lexer-rules"
@@ -29,7 +33,7 @@ open class Grammar : NSObject {
         public static let PackageConfigFile = "grammar.xml"
         public static let UnmatchedRuleId = "UNMATCHED"
         public static let UnmatchedRuleExpr = "."
-        public static let UnmatchedRuleOrder = Int.max
+        public static let UnmatchedRuleOrder = 20
         
     }
     

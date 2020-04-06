@@ -40,9 +40,19 @@ open class Grammar: NSObject, Codable {
     
     open override var description: String {
         var strings = [String]()
+        strings.append("")
+        strings.append(String(format: "--- Lexer Rules (%d) ---", lexerRules.count))
+        strings.append("")
         for rule in lexerRules {
-            strings.append("\(rule.id) (\(rule.precedence.weight ?? 0)) (\(rule.precedence.relations)): \(rule))")
+            strings.append(rule.treeDescription)
         }
+        strings.append("")
+        strings.append(String(format: "--- Parser Rules (%d) ---", parserRules.count))
+        strings.append("")
+        for rule in parserRules {
+            strings.append(rule.treeDescription)
+        }
+        strings.append("")
         return strings.joined(separator: "\n")
     }
     
@@ -69,12 +79,12 @@ open class Grammar: NSObject, Codable {
     open var identifiers = [Identifier]()
     
     /// Unmatched rule of this grammar. Used only for lexer grammars.
-    open lazy var unmatchedRule: GrammarRule = {
+    open var unmatchedRule: GrammarRule {
         let rule = GrammarRule(grammar: self, id: This.unmatchedRuleId, value: This.unmatchedRuleExpr, componentType: .literal)
         rule.ruleClass = .lexerRule
         rule.precedence = GrammarRule.Precedence(id: This.unmatchedRuleId, This.unmatchedRuleOrder)
         return rule
-    }()
+    }
     
     /// Words of this grammar.
     open var words = [Identifier]()
@@ -124,30 +134,28 @@ open class Grammar: NSObject, Codable {
     
     /// Sorts the rule map of this grammar.
     open func sortRules() {
-        let lexerGraph = ComparisonGraph(nodes: lexerRules)
-        for rule in lexerRules {
+        lexerRules = sort(rules: lexerRules)
+        parserRules = sort(rules: parserRules)
+    }
+
+    fileprivate func sort(rules: [GrammarRule]) -> [GrammarRule] {
+        let graph = ComparisonGraph(nodes: rules)
+        // Load weighted rules first.
+        for rule in (rules.sorted { $0.precedence.weight != nil && $1.precedence.weight == nil })  {
             if let weight = rule.precedence.weight {
-                lexerGraph.set(weight: weight, for: rule.id)
+                graph.set(weight: weight, for: rule.id)
             }
             for relation in rule.precedence.relations {
-                lexerGraph.connect(rule.id, relation.key, relation.value)
+                graph.connect(rule.id, relation.key, relation.value)
+                // Set rule weights based on qual references
+                if relation.value == .equalTo {
+                    if let weight = graph.weights[rule.id] {
+                        rule.precedence.weight = weight
+                    }
+                }
             }
         }
-        lexerRules = lexerRules.sorted {
-            lexerGraph.compare($0, $1) == .lessThan
-        }.reversed()
-        let parserGraph = ComparisonGraph(nodes: parserRules)
-        for rule in parserRules {
-            if let weight = rule.precedence.weight {
-                parserGraph.set(weight: weight, for: rule.id)
-            }
-            for relation in rule.precedence.relations {
-                parserGraph.connect(rule.id, relation.key, relation.value)
-            }
-        }
-        parserRules = parserRules.sorted {
-            parserGraph.compare($0, $1) == .lessThan
-        }.reversed()
+        return graph.sorted(reversed: true)
     }
     
     /// Adds a built-in identifier to this grammar.

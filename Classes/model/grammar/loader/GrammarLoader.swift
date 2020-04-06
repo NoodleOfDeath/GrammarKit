@@ -80,6 +80,7 @@ open class GrammarLoader: NSObject {
     }
     
     /// Constructs a new grammar loader with the specified search paths.
+    ///
     /// - Parameters:
     ///     - searchPaths: to initialize this grammar loader with.
     ///     - derivedDataDirectory:
@@ -89,7 +90,11 @@ open class GrammarLoader: NSObject {
     
     /// Returns a specified path ending with exactly one extension occurrence of
     /// `This.PackageExtension`.
-    /// - parameter path: to format.
+    ///
+    /// - Parameters:
+    ///     - path: to format.
+    ///     - packageExtension:
+    ///     - packageConfigFile:
     /// - Returns: path ending with exactly one extension occurrence of
     /// `This.PackageExtension`.
     open class func format(packageName path: String, packageExtension: String = defaults.packageExtension, packageConfigFile: String = defaults.packageConfigFile) -> String {
@@ -102,7 +107,10 @@ open class GrammarLoader: NSObject {
     
     /// Returns a specified path ending with exactly one config file occurrence
     /// of `This.PackageConfigFile`.
-    /// - parameter path: to format.
+    ///
+    /// - Parameters:
+    ///     - path: to format.
+    ///     - packageConfigFile:
     /// - Returns: path ending with exactly one config file occurrence of
     /// `This.PackageConfigFile`.
     open class func format(configFilePath path: String, packageConfigFile: String = defaults.packageConfigFile) -> String {
@@ -111,7 +119,12 @@ open class GrammarLoader: NSObject {
         }
          return path +/ packageConfigFile
     }
-    
+
+    ///
+    ///
+    /// - Parameters:
+    ///     - id:
+    /// - Returns:
     open func grammarPackage(for id: String) -> String? {
         var filename = ""
         for searchPath in searchPaths {
@@ -204,19 +217,7 @@ open class GrammarLoader: NSObject {
         grammar.rules = rules
         
         if options.contains(.verbose) {
-            print()
-            print(String(format: "--- Lexer Rules (%d) ---", grammar.lexerRules.count))
-            print()
-            grammar.lexerRules.forEach {
-                print(String(format: "\t%@", $0.treeDescription))
-            }
-            print()
-            print(String(format: "--- Parser Rules (%d) ---", grammar.parserRules.count))
-            print()
-            grammar.parserRules.forEach {
-                print(String(format: "\t%@", $0.treeDescription))
-            }
-            print()
+            print(grammar)
         }
         
         return grammar
@@ -483,6 +484,9 @@ open class GrammarLoader: NSObject {
         guard let element = accessor.element else { return nil }
         guard let string = element.childElements.count == 0 ? element.text : accessor[XMLTagName.string].text else { return nil }
         let detailedDescription = accessor.attributes[XMLAttributeName.description] ?? accessor[XMLTagName.description].text
+        if detailedDescription == "Fuck" {
+
+        }
         return Identifier(string: string, detailedDescription: detailedDescription, metadata: metadata)
     }
     

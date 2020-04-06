@@ -41,7 +41,7 @@ extension GrammarRule {
         public var relations = [String: ComparisonResult]()
         
         /// Constructs a new precedence with an initial value.
-        public init(id: String, _ precedence: String) {
+        public init(id: String, _ precedence: String = "min") {
             self.id = id
             for string in precedence.components(separatedBy: ",") {
                 if let weight = Int(string) {
@@ -53,7 +53,7 @@ extension GrammarRule {
                 } else if string == "max" {
                     self.weight = .max
                 }
-                if let match = "([<=>])\\s*([\\p{L}_][\\p{L}_0-9-]*)".firstMatch(in: string) {
+                if let match = "([<=>])?\\s*([\\p{L}_][\\p{L}_0-9-]*)\\s*(?:([-+])\\s*([0-9]+))?".firstMatch(in: string) {
                     relations[string.substring(with: match.range(at: 2))] = ComparisonResult(string.substring(with: match.range(at: 1)))
                 }
             }
@@ -66,7 +66,14 @@ extension GrammarRule {
 extension GrammarRule.Precedence: CustomStringConvertible {
 
     public var description: String {
-        return "\(id)(\(weight ?? 0) -> \(relations)"
+        var strings = [String]()
+        if let weight = weight {
+            strings.append(String(weight))
+        }
+        for relation in relations {
+            strings.append("\(relation.1)\(relation.0)")
+        }
+        return strings.joined(separator: ", ")
     }
 
 }

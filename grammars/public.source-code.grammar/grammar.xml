@@ -5,6 +5,7 @@
 	
 		<!-- Lexer Rules -->
 
+		<!-- Whitespaces -->
 		<rule id="WHITESPACE" precedence="max" options="skip">
 			<definition>'[ \t]+'</definition>
 		</rule>
@@ -12,11 +13,26 @@
 			<definition>'\r?\n'</definition>
 		</rule>
 
+		<!-- Code Blocks -->
 		<rule id="BLOCK" precedence="max" options="multipass">
 			<definition>L_BRACE (BLOCK | ~R_BRACE)* (R_BRACE | '\Z')</definition>
 		</rule>
 
-		<rule id="L_BRACE" precedence="2000" options="">
+		<!-- Strings -->
+		<rule id="LITERAL_STRING" precedence="20000" options="">
+			<definition>'\'(?s:.*?)(\'|\Z)'</definition>
+		</rule>
+		<rule id="STRING" precedence="=LITERAL_STRING" options="">
+			<definition>'\"(?s:.*?)(\"|\Z)'</definition>
+		</rule>
+
+		<rule id="NUMBER" precedence="=STRING" options="">
+			<definition>'0x[0-9a-fA-F][0-9a-fA-F]+' | ('[0-9]+' ('\.[0-9]+')?)
+			</definition>
+		</rule>
+
+		<!-- Block Delimiters -->
+		<rule id="L_BRACE" precedence="10000" options="">
 			<definition>'\{'</definition>
 		</rule>
 		<rule id="R_BRACE" precedence="=L_BRACE" options="">
@@ -35,57 +51,46 @@
 			<definition>'\)'</definition>
 		</rule>
 
-		<rule id="LOGIC_OPERATOR" precedence="2000" options="">
-			<definition>'&amp;&amp;' | '\|\|'</definition>
-		</rule>
-		<rule id="BITWISE_OPERATOR" precedence="2100" options="">
-			<definition>'&lt;&lt;' | '&gt;&gt;' | '~' | '&amp;' | '\|'</definition>
-		</rule>
-		<rule id="RETURN_OPERATOR" precedence="2200" options="">
-			<definition>'\-&gt;'</definition>
-		</rule>
-		<rule id="LT_OPERATOR" precedence="2200" options="">
-			<definition>'&lt;'</definition>
-		</rule>
-		<rule id="GT_OPERATOR" precedence="2200" options="">
-			<definition>'&gt;'</definition>
-		</rule>
-		<rule id="EQ_OPERATOR" precedence="2200" options="">
-			<definition>'=='</definition>
-		</rule>
-		<rule id="EQ_ASSIGN_OP" precedence="2300" options="">
-			<definition>'='</definition>
-		</rule>
-		<rule id="ASSIGNMENT_OPERATOR" precedence="2300" options="">
-			<definition>'\+=' | '\-='</definition>
-		</rule>
-		<rule id="NIL_COALESCING_OPERATOR" precedence="2300" options="">
-			<definition>'\?\?'</definition>
-		</rule>
-		<rule id="NIL_WRAPPER_POSTFIX" precedence="2300" options="">
-			<definition>OPTIONAL_WRAPPER | STRICT_WRAPPER</definition>
-		</rule>
-
-		<rule id="COMMA" precedence="3000" options="">
-			<definition>','</definition>
-		</rule>
-		<rule id="LINE_DELIMETER" precedence="3000" options="">
-			<definition>';'</definition>
-		</rule>
-
-		<rule id="NUMBER" precedence="7000" options="">
-			<definition>'0x[0-9a-fA-F][0-9a-fA-F]+' | ('[0-9]+' ('\.[0-9]+')?)
-			</definition>
-		</rule>
-		<rule id="ID" precedence="8000" options="">
+		<rule id="ID" precedence="9000" options="">
 			<definition>'[\p{L}\_\$][\p{L}\_\$0-9]*'</definition>
 		</rule>
 
-		<rule id="LITERAL_STRING" precedence="10000" options="">
-			<definition>'\'(?s:.*?)(\'|\Z)'</definition>
+		<!-- Bitwise and Logic Operators -->
+		<rule id="BITWISE_OPERATOR" precedence="4000" options="">
+			<definition>'&lt;&lt;' | '&gt;&gt;' | '~' | '&amp;' | '\|'</definition>
 		</rule>
-		<rule id="STRING" precedence="10000" options="">
-			<definition>'\"(?s:.*?)(\"|\Z)'</definition>
+		<rule id="LOGIC_OPERATOR" precedence="3900" options="">
+			<definition>'&amp;&amp;' | '\|\|'</definition>
+		</rule>
+
+		<!-- Assignment Operators -->
+		<rule id="EQ_ASSIGNMENT_OPERATOR" precedence="3500" options="">
+			<definition>'='</definition>
+		</rule>
+		<rule id="INCREMENTAL_ASSIGNMENT_OPERATOR" precedence="=EQ_ASSIGNMENT_OPERATOR" options="">
+			<definition>'\+=' | '\-='</definition>
+		</rule>
+
+		<!-- Comparison Operators -->
+		<rule id="EQ_OPERATOR" precedence="3000" options="">
+			<definition>'=='</definition>
+		</rule>
+		<rule id="LT_OPERATOR" precedence="=EQ_OPERATOR" options="">
+			<definition>'&lt;'</definition>
+		</rule>
+		<rule id="GT_OPERATOR" precedence="=EQ_OPERATOR" options="">
+			<definition>'&gt;'</definition>
+		</rule>
+
+		<!-- Delimiter Tokens -->
+		<rule id="COMMA" precedence="2000" options="">
+			<definition>','</definition>
+		</rule>
+		<rule id="LINE_DELIMETER" precedence="=COMMA" options="">
+			<definition>';'</definition>
+		</rule>
+		<rule id="COLON_DELIMETER" precedence="=COMMA" options="">
+			<definition>':'</definition>
 		</rule>
 		
 	</rules>

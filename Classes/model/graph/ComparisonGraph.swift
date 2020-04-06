@@ -51,13 +51,13 @@ public protocol ComparisonGraphNode {
 
 }
 
-public class ComparisonGraph {
+public class ComparisonGraph<T: ComparisonGraphNode> {
 
-    public var nodes = [ComparisonGraphNode]()
+    public var nodes = [T]()
     public var weights = [String: Int]()
-    public var arcs = [String: [String: ComparisonResult]]()
+    public var relations = [String: [String: ComparisonResult]]()
 
-    public init(nodes: [ComparisonGraphNode] = []) {
+    public init(nodes: [T] = []) {
         self.nodes = nodes
     }
 
@@ -82,9 +82,9 @@ public class ComparisonGraph {
         if let a = weights[a], let b = weights[b] {
             return (a < b ? .lessThan : a > b ? .greaterThan : .equalTo)
         }
-        if let arcs = self.arcs[a] {
-            if let value = arcs[b] { return value }
-            for (id, relation) in arcs {
+        if let relations = self.relations[a] {
+            if let value = relations[b] { return value }
+            for (id, relation) in relations {
                 guard !excluding.contains(id), relation != .greaterThan else { continue }
                 return compare(id, b, excluding + [a, b, id])
             }
@@ -92,20 +92,26 @@ public class ComparisonGraph {
         return .equalTo
     }
 
-    public func compare<NodeType: ComparisonGraphNode>(_ a: NodeType, _ b: NodeType) -> ComparisonResult {
+    public func compare(_ a: T, _ b: T) -> ComparisonResult {
         return compare(a.id, b.id)
     }
 
-    public func sorted() -> [ComparisonGraphNode] {
+    func sorted(reversed: Bool = false) -> [T] {
         return nodes.sorted {
+            if reversed { return self.compare($0.id, $1.id) != .lessThan }
             return self.compare($0.id, $1.id) == .lessThan
         }
     }
 
     fileprivate func oneWayConnect(_ a: String, _ b: String, _ relation: ComparisonResult) {
-        var arcs = self.arcs[a] ?? [:]
-        arcs[b] = relation
-        self.arcs[a] = arcs
+        var relations = self.relations[a] ?? [:]
+        relations[b] = relation
+        self.relations[a] = relations
+        if relation == .equalTo {
+            if let weight = weights[b] {
+                set(weight: weight, for: a)
+            }
+        }
     }
 
 }
@@ -114,7 +120,7 @@ extension ComparisonGraph: CustomStringConvertible {
 
    public var description: String {
         var strings = [String]()
-        for (id, map) in arcs {
+        for (id, map) in relations {
             let weight = weights[id]
             strings.append("\(id)(\(weight ?? 0)) -> \(map)")
         }

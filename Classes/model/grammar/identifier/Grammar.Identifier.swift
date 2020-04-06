@@ -28,7 +28,6 @@ extension Grammar {
 
     /// Data structure that represents a grammatical range found in a grammar
     /// that can be indexed.
-    @objc(GrammaticalIdentifier)
     open class Identifier: DocumentReference {
         
         public typealias This = Identifier
@@ -59,8 +58,8 @@ extension Grammar {
         // MARK: - Constructor Methods
         
         /// Constructs a new identifer.
-        public convenience init<DocumentType: UIDocument>(document: DocumentType? = nil, start: Int = 0, lineNumber: Int = 0, string: String, type: String? = nil, detailedDescription: String? = nil, metadata: Metadata? = nil) {
-            self.init(start: start, lineNumber: lineNumber, length: string.length, string: string)
+        public convenience init(document: UIDocument? = nil, start: Int = 0, lineNumber: Int = 0, string: String, type: String? = nil, detailedDescription: String? = nil, metadata: Metadata? = nil) {
+            self.init(start: start, length: string.length, string: string)
             self.document = document
             self.type = type
             self.detailedDescription = detailedDescription
@@ -69,18 +68,4 @@ extension Grammar {
         
     }
 
-}
-
-extension Grammar.Identifier {
-    
-    public static func < (lhs: This, rhs: This) -> Bool {
-        return lhs.string < rhs.string
-    }
-    
-    public static func == (lhs: This, rhs: This) -> Bool {
-        return
-            lhs.document == rhs.document &&
-            (lhs.start, lhs.end) == (rhs.start, rhs.end)
-    }
-    
 }
