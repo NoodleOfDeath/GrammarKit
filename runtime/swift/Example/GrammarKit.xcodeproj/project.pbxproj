@@ -36,10 +36,10 @@
 /* Begin PBXFileReference section */
 		040330B6221F0EF3008E9C99 /* ExampleProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleProcessor.swift; sourceTree = "<group>"; };
 		040330BA221F20A4008E9C99 /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		0432A6A9243CD13D000736F5 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; name = .gitignore; path = ../../../.gitignore; sourceTree = "<group>"; };
+		0432A6AA243CD13D000736F5 /* .travis.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = .travis.yml; path = ../../../.travis.yml; sourceTree = "<group>"; };
 		04784FFF21AC8F4B0092D095 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../../README.md; sourceTree = "<group>"; };
 		0490F32C243A8A6100B107A4 /* GrammarKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GrammarKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		0498FF15229DDAF7009B4816 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; name = .gitignore; path = ../../../../SwiftyFileSystem/.gitignore; sourceTree = "<group>"; };
-		0498FF16229DDAF7009B4816 /* .travis.yml */ = {isa = PBXFileReference; lastKnownFileType = text; name = .travis.yml; path = ../../../../SwiftyFileSystem/.travis.yml; sourceTree = "<group>"; };
 		04E17A1921A337670082A529 /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; name = samples; path = ../../../../samples; sourceTree = "<group>"; };
 		04E17A1A21A337670082A529 /* grammars */ = {isa = PBXFileReference; lastKnownFileType = folder; name = grammars; path = ../../../../grammars; sourceTree = "<group>"; };
 		04E17A2121A35BF80082A529 /* GrammarKit_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrammarKit_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -145,8 +145,8 @@
 		607FACF51AFB993E008FA782 /* Podspec Metadata */ = {
 			isa = PBXGroup;
 			children = (
-				0498FF15229DDAF7009B4816 /* .gitignore */,
-				0498FF16229DDAF7009B4816 /* .travis.yml */,
+				0432A6A9243CD13D000736F5 /* .gitignore */,
+				0432A6AA243CD13D000736F5 /* .travis.yml */,
 				F8D5E761823D13A73188D7F7 /* GrammarKit.podspec */,
 				46A72FB77CBDBBD02A88AC6A /* README.md */,
 				38AABB6054A5FD65933E1436 /* LICENSE */,

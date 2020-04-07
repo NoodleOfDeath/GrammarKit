@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'GrammarKit'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.summary          = 'Simple, extensible, and scalable grammar parsing engine.'
 
 # This description is used to generate tags and improve search results.
@@ -30,9 +30,9 @@ Support to import and convert ANTLR4 grammar files to GrammarKit grammar file fo
   s.source           = { :git => 'https://github.com/NoodleOfDeath/GrammarKit.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '9.0'
-  s.swift_version = '4.0'
-  s.pod_target_xcconfig = { 'SWIFT_VERSION' => '4.0' }
+  s.ios.deployment_target = '10.0'
+  s.swift_version = '5.0'
+  s.pod_target_xcconfig = { 'SWIFT_VERSION' => '5.0' }
 
   s.source_files = 'runtime/swift/GrammarKit/Classes/**/*{h,m,swift}'
   
@@ -43,6 +43,6 @@ Support to import and convert ANTLR4 grammar files to GrammarKit grammar file fo
   # s.public_header_files = 'runtime/swift/PastaPaster/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'Foundation'
   s.dependency 'SwiftyXMLParser', '4.0'
-  s.dependency 'SwiftyUTType'
+  s.dependency 'SwiftyUTType', '1.0.1'
   
 end
