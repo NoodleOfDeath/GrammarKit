@@ -43,6 +43,6 @@ Support to import and convert ANTLR4 grammar files to GrammarKit grammar file fo
   # s.public_header_files = 'runtime/swift/PastaPaster/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'Foundation'
   s.dependency 'SwiftyXMLParser', '4.0'
-  s.dependency 'SwiftyUTType', '1.0.1'
+  s.dependency 'SwiftyUTType', '~>1.0.2'
   
 end
