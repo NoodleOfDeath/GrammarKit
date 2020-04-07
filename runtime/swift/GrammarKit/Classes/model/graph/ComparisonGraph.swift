@@ -74,12 +74,15 @@ public class ComparisonGraph<T: ComparisonGraphNode> {
     public var weights = [String: Int]()
     public var relations = [String: [String: ComparisonResult]]()
 
+    var equalRelations = [(String, String)]()
+
     public init(nodes: [T] = []) {
         self.nodes = nodes
     }
 
     public func connect(_ a: String, _ b: String, _ relation: ComparisonResult) {
         oneWayConnect(a, b, relation)
+        if relation == .equalTo { return }
         oneWayConnect(b, a, relation.inverse)
     }
 
@@ -96,8 +99,11 @@ public class ComparisonGraph<T: ComparisonGraphNode> {
     }
 
     public func compare(_ a: String, _ b: String, _ excluding: [String] = []) -> ComparisonResult {
-        if let a = weights[a], let b = weights[b] {
-            return (a < b ? .lessThan : a > b ? .greaterThan : .equalTo)
+        if let a = weights[a] {
+            if  let b = weights[b] {
+                return (a < b ? .lessThan : a > b ? .greaterThan : .equalTo)
+            }
+            if a == .min { return .lessThan }
         }
         if let relations = self.relations[a] {
             if let value = relations[b] { return value }
@@ -120,11 +126,22 @@ public class ComparisonGraph<T: ComparisonGraphNode> {
         }
     }
 
+    func resolveEqualRelations() {
+        for (a, b) in equalRelations {
+            if let relations = self.relations[b] {
+                for (id, relation) in relations.filter({ $0.1 != .equalTo }) {
+                    connect(a, id, relation)
+                }
+            }
+        }
+    }
+
     fileprivate func oneWayConnect(_ a: String, _ b: String, _ relation: ComparisonResult) {
         var relations = self.relations[a] ?? [:]
         relations[b] = relation
         self.relations[a] = relations
         if relation == .equalTo {
+            equalRelations.append((a, b))
             if let weight = weights[b] {
                 set(weight: weight, for: a)
             }
@@ -139,7 +156,7 @@ extension ComparisonGraph: CustomStringConvertible {
         var strings = [String]()
         for (id, map) in relations {
             let weight = weights[id]
-            strings.append("\(id)(\(weight ?? 0)) -> \(map)")
+            strings.append("\(id)(\(weight ?? 0)) -> \(map.sorted { $0.1 == .lessThan && $0.1 != $1.1 })")
         }
         return strings.joined(separator: "\n")
     }

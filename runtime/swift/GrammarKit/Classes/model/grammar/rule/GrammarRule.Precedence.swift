@@ -71,7 +71,7 @@ extension GrammarRule.Precedence: CustomStringConvertible {
         if let weight = weight {
             strings.append(String(weight))
         }
-        for relation in relations {
+        for relation in relations.sorted(by: { ($0.1 == .greaterThan && $0.1 != $1.1) || ($0.1 == .equalTo && $1.1 == .lessThan)  }) {
             strings.append("\(relation.1)\(relation.0)")
         }
         return strings.joined(separator: ", ")

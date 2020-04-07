@@ -9,7 +9,10 @@
 import Foundation
 import Main.SwiftyXMLParser
 
-let count = (20 << 10) as? UInt
+associatedtype
+
+var count = (20 << 10) as? UInt ?? (10 + 3)
+count += 6
 
 /// Base implementation of a grammar.
 @objc

@@ -149,9 +149,13 @@ open class Grammar: NSObject, Codable {
                 graph.connect(rule.id, $0, $1)
             }
         }
-        for rule in rules.filter({$0.precedence.weight == nil}) {
-            if let weight = graph.weights[rule.id] {
+        graph.resolveEqualRelations()
+        for rule in rules {
+            if rule.precedence.weight == nil, let weight = graph.weights[rule.id] {
                 rule.precedence.weight = weight
+            }
+            if let relations = graph.relations[rule.id] {
+                rule.precedence.relations = relations
             }
         }
         return graph.sorted(reversed: true)
