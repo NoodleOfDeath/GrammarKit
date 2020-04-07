@@ -9,12 +9,12 @@
 		<rule id="WHITESPACE" precedence="max" options="skip">
 			<definition>'[ \t]+'</definition>
 		</rule>
-		<rule id="NEWLINE" precedence="max" options="skip">
+		<rule id="NEWLINE" precedence="=WHITESPACE" options="skip">
 			<definition>'\r?\n'</definition>
 		</rule>
 
 		<!-- Code Blocks -->
-		<rule id="BLOCK" precedence="max" options="multipass">
+		<rule id="BLOCK" precedence="=WHITESPACE" options="multipass">
 			<definition>L_BRACE (BLOCK | ~R_BRACE)* (R_BRACE | '\Z')</definition>
 		</rule>
 
@@ -24,11 +24,6 @@
 		</rule>
 		<rule id="STRING" precedence="=LITERAL_STRING" options="">
 			<definition>'\"(?s:.*?)(\"|\Z)'</definition>
-		</rule>
-
-		<rule id="NUMBER" precedence="=STRING" options="">
-			<definition>'0x[0-9a-fA-F][0-9a-fA-F]+' | ('[0-9]+' ('\.[0-9]+')?)
-			</definition>
 		</rule>
 
 		<!-- Block Delimiters -->
@@ -49,10 +44,6 @@
 		</rule>
 		<rule id="R_PAREN" precedence="=L_BRACE" options="">
 			<definition>'\)'</definition>
-		</rule>
-
-		<rule id="ID" precedence="9000" options="">
-			<definition>'[\p{L}\_\$][\p{L}\_\$0-9]*'</definition>
 		</rule>
 
 		<!-- Bitwise and Logic Operators -->
@@ -91,6 +82,15 @@
 		</rule>
 		<rule id="COLON_DELIMETER" precedence="=COMMA" options="">
 			<definition>':'</definition>
+		</rule>
+
+		<!-- Numbers -->
+		<rule id="NUMBER" precedence="=LITERAL_STRING" options="">
+			<definition>'0x[0-9a-fA-F][0-9a-fA-F]+' | ('[0-9]+' ('\.[0-9]+')?)</definition>
+		</rule>
+
+		<rule id="ID" precedence="9000" options="">
+			<definition>'[\p{L}\_\$][\p{L}\_\$0-9]*'</definition>
 		</rule>
 		
 	</rules>

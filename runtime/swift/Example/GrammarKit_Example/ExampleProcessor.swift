@@ -1,7 +1,7 @@
 //
 //  GrammarKit
 //
-//  Copyright © 2019 NoodleOfDeath. All rights reserved.
+//  Copyright © 2020 NoodleOfDeath. All rights reserved.
 //
 
 import Foundation

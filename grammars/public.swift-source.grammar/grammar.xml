@@ -5,32 +5,11 @@
 
 		<!-- Lexer Rules -->
 
-		<rule id="ONE_LINE_DOCUMENTATION" precedence="10000" options="omit">
-			<definition>'\/\/\/.*'</definition>
+		<rule id="DOCUMENTATION_BLOCK" precedence="&lt;BLOCK,&lt;WHITESPACE,&gt;LITERAL_STRING" options="">
+			<definition>((ONE_LINE_DOCUMENTATION | MULTILINE_DOCUMENTATION) (WHITESPACE | NEWLINE)*)+</definition>
 		</rule>
-		<rule id="ONE_LINE_COMMENT" precedence="10000" options="omit">
-			<definition>'\/\/.*'</definition>
-		</rule>
-
-		<rule id="BLOCK_DOCUMENTATION" precedence="10000" options="omit">
-			<definition>'\/\*(?s:.*?)(\*\/|\Z)'</definition>
-		</rule>
-		<rule id="BLOCK_COMMENT" precedence="10000" options="omit">
-			<definition>'\/\*(?s:.*?)(\*\/|\Z)'</definition>
-		</rule>
-
-		<rule id="DOCUMENTATION_BLOCK" precedence="max" options="">
-			<definition>((ONE_LINE_DOCUMENTATION }| BLOCK_DOCUMENTATION) (WHITESPACE | NEWLINE)*)+</definition>
-		</rule>
-		<rule id="COMMENT_BLOCK" precedence="max,&lt;DOCUMENTATION_BLOCK" options="">
-			<definition>((ONE_LINE_COMMENT | BLOCK_COMMENT) (WHITESPACE | NEWLINE)*)+</definition>
-		</rule>
-
-		<rule id="OPTIONAL_WRAPPER" precedence="2300" options="omit">
-			<definition>'\?'</definition>
-		</rule>
-		<rule id="STRICT_WRAPPER" precedence="2300" options="omit">
-			<definition>'\!'</definition>
+		<rule id="COMMENT_BLOCK" precedence="&lt;DOCUMENTATION_BLOCK,&gt;LITERAL_STRING" options="">
+			<definition>((ONE_LINE_COMMENT | MULTILINE_COMMENT) (WHITESPACE | NEWLINE)*)+</definition>
 		</rule>
 
 		<rule id="NIL_COALESCING_OPERATOR" precedence="2300" options="">
@@ -45,7 +24,7 @@
 			<definition>'\-&gt;'</definition>
 		</rule>
 
-		<rule id="NAMESPACE" precedence="5000" options="">
+		<rule id="NAMESPACE" precedence="&gt;ID,&lt;KEYWORD" options="">
 			<definition>(ID '\.')+ ID</definition>
 		</rule>
 
@@ -53,7 +32,7 @@
 			<definition>'@[\p{L}]+' (L_PAREN (STRING COMMA)* STRING R_PAREN)?</definition>
 		</rule>
 		
-		<rule id="KEYWORD" precedence="10000" options="">
+		<rule id="KEYWORD" precedence="&lt;LITERAL_STRING,&gt;NAMESPACE" options="">
 			<definition>
 				<word>as</word>
 				<word>
@@ -111,6 +90,29 @@
 				<word>where</word>
 				<word>while</word>
 			</definition>
+		</rule>
+
+		<!-- Omitted Lexer Rules -->
+
+		<rule id="OPTIONAL_WRAPPER" options="omit">
+			<definition>'\?'</definition>
+		</rule>
+		<rule id="STRICT_WRAPPER" options="omit">
+			<definition>'\!'</definition>
+		</rule>
+
+		<rule id="ONE_LINE_DOCUMENTATION" options="omit">
+			<definition>'\/\/\/.*'</definition>
+		</rule>
+		<rule id="ONE_LINE_COMMENT" options="omit">
+			<definition>'\/\/.*'</definition>
+		</rule>
+
+		<rule id="MULTILINE_DOCUMENTATION" options="omit">
+			<definition>'\/\*(?s:.*?)(\*\/|\Z)'</definition>
+		</rule>
+		<rule id="MULTILINE_COMMENT" options="omit">
+			<definition>'\/\*(?s:.*?)(\*\/|\Z)'</definition>
 		</rule>
 
 		<!-- Parser Rules -->
@@ -176,7 +178,11 @@
 			<definition>lhs_assignment_clause rhs_assignment_clause</definition>
 		</rule>
 
-		<!-- Fragment Rules -->
+		<rule id="typecast" precedence="2000" options="">
+			<definition>'as' (NIL_WRAPPER_POSTFIX)? datatype</definition>
+		</rule>
+
+		<!-- Omitted Parser Rules -->
 
 		<rule id="access_modifier" options="omit">
 			<definition>'fileprivate' | 'final' | 'lazy' | 'private' | 'open' | 'override' | 'public' | 'static' | 'weak'</definition>
@@ -212,7 +218,7 @@
 		</rule>
 
 		<rule id="expression" options="omit">
-			<definition>closed_expression | opened_expression</definition>
+			<definition>(closed_expression | opened_expression) typecast?</definition>
 		</rule>
 		<rule id="simple_expression" options="omit">
 			<definition>datavalue (operator datavalue)?</definition>
@@ -221,7 +227,7 @@
 			<definition>closed_expression | simple_expression</definition>
 		</rule>
 		<rule id="closed_expression" options="omit">
-			<definition>L_PAREN opened_expression R_PAREN</definition>
+			<definition>L_PAREN opened_expression typecast? R_PAREN</definition>
 		</rule>
 
 		<rule id="for_loop_expression" options="omit">

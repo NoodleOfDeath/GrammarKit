@@ -1,7 +1,7 @@
 //
 //  GrammarKit_Example
 //
-//  Copyright © 2019 CocoaPods. All rights reserved.
+//  Copyright © 2020 CocoaPods. All rights reserved.
 //
 
 import UIKit

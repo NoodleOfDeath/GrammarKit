@@ -1,7 +1,7 @@
 //
 //  GrammarKit
 //
-//  Copyright © 2019 NoodleOfDeath. All rights reserved.
+//  Copyright © 2020 NoodleOfDeath. All rights reserved.
 //
 
 import XCTest
@@ -14,7 +14,7 @@ class Tests: XCTestCase {
     func testExample() {
         guard
             let grammarsDirectory = Bundle(for: type(of: self)).resourcePath +/ "grammars",
-            let sampleFile = Bundle(for: type(of: self)).resourcePath +/ "samples/Test.swift"
+            let sampleFile = Bundle(for: type(of: self)).resourcePath +/ "samples/Sample.swift"
             else { XCTFail(); return }
         let loader = GrammarLoader(searchPaths: grammarsDirectory)
         do {
