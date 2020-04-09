@@ -234,6 +234,28 @@ extension NSRange {
     
 }
 
+#if os(iOS)
+// MARK: - NSShadow Extensions
+extension NSShadow {
+
+    /// UI type casted color of this shadow.
+    var color: UIColor? {
+        get { return shadowColor as? UIColor }
+        set { shadowColor = newValue }
+    }
+
+    /// CG type casted color of this shadow.
+    var cgColor: CGColor? {
+        get { return color?.cgColor }
+        set {
+            guard let cgColor = newValue else { color = nil; return }
+            color = UIColor(cgColor: cgColor)
+        }
+    }
+
+}
+#endif
+
 // MARK: - Range Property Extensions
 extension Range where Bound == Int {
     
@@ -711,6 +733,120 @@ extension String {
         self = text
     }
     
+}
+
+// MARK: - UIImage Method Extensions
+extension UIImage {
+
+    /// Width of this image.
+    var width: CGFloat { return size.width }
+
+    /// Height of this image.
+    var height: CGFloat { return size.height }
+
+    ///
+    struct CGAttribute: BaseRawRepresentable {
+
+        typealias This = CGAttribute
+        typealias RawValue = String
+
+        let rawValue: String
+
+        static let tintColor = This("tintColor")
+        static let alpha = This("alpha")
+        static let shadow = This("shadow")
+        static let cropSize = This("cropSize")
+
+        init(rawValue: RawValue) {
+            self.rawValue = rawValue
+        }
+
+    }
+
+    /// Returns a version of this image that is redrawn with specified
+    /// attributes.
+    ///
+    /// - Parameters:
+    ///     - attributes: to redraw this image with.
+    /// - Returns: A version of this image that is redrawn with the specified
+    /// `attributes`, or `nil` if this operation fails.
+    func with(attributes: [CGAttribute: Any]) -> UIImage? {
+        UIGraphicsBeginImageContextWithOptions(size, false, scale)
+        guard
+            let cgImage = cgImage,
+            let context = UIGraphicsGetCurrentContext()
+            else { return nil }
+        let rect = CGRect(origin: .zero, size: size)
+        context.translateBy(x: 0, y: size.height)
+        context.scaleBy(x: 1.0, y: -1.0)
+        if let shadow = attributes[.shadow] as? NSShadow {
+            context.setShadow(offset: shadow.shadowOffset,
+                              blur: shadow.shadowBlurRadius,
+                              color: (shadow.color ?? UIColor.black.withAlphaComponent(0.2)).cgColor)
+        }
+        context.draw(cgImage, in: rect)
+        context.clip(to: rect, mask: cgImage)
+        if let tintColor = attributes[.tintColor] as? UIColor {
+            context.setFillColor(tintColor.cgColor)
+            context.setBlendMode(.screen)
+            context.fill(rect)
+        }
+        if let alpha = attributes[.alpha] as? CGFloat, alpha < 1.0 {
+            context.setFillColor(UIColor.white.cgColor)
+            context.setBlendMode(.normal)
+            context.setAlpha(1.0 - alpha)
+            context.fill(rect)
+        }
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        if let cropSize = attributes[.cropSize] as? CGSize {
+            return newImage?.scalingAndCropping(to: cropSize)
+        }
+        return newImage
+    }
+
+    /// Returns an image that is scaled and cropped to a target size.
+    ///
+    /// - Parameters:
+    ///     - targetSize: Size to scale and/or crop this image to.
+    /// - Returns: A copy of this image that is scaled and cropped to a
+    /// target size.
+    func scalingAndCropping(to targetSize: CGSize) -> UIImage? {
+
+        var scaleFactor: CGFloat = 0.0
+        var scaledSize = targetSize
+        var thumbnailOrigin: CGPoint = .zero
+
+        if (size != targetSize) {
+
+            let widthFactor = targetSize.width / width
+            let heightFactor = targetSize.height / height
+
+            scaleFactor = max(widthFactor, heightFactor)
+
+            scaledSize.width = width * scaleFactor
+            scaledSize.height = height * scaleFactor
+
+            if (widthFactor > heightFactor) {
+                thumbnailOrigin.y = (targetSize.height - scaledSize.height) * 0.5
+            } else if (widthFactor < heightFactor) {
+                thumbnailOrigin.x = (targetSize.width - scaledSize.width) * 0.5
+            }
+
+        }
+
+        UIGraphicsBeginImageContext(targetSize)
+
+        let rect = CGRect(origin: thumbnailOrigin, size: scaledSize)
+        draw(in: rect)
+
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        return newImage
+
+    }
+
 }
 
 // MARK: - URL Path Concatenation
