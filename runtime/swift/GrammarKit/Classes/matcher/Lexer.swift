@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/// Grammar engine used to tokenize character streams.
-open class Lexer: GrammaticalMatcher {
+/// Grammar matcher used to tokenize character streams.
+open class Lexer: BaseGrammaticalMatcher {
     
     ///
     ///

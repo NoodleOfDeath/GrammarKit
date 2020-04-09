@@ -14,7 +14,7 @@
 		</rule>
 
 		<!-- Code Blocks -->
-		<rule id="BLOCK" precedence="=WHITESPACE" options="multipass">
+		<rule id="BLOCK" precedence="=WHITESPACE" options="multiline">
 			<definition>L_BRACE (BLOCK | ~R_BRACE)* (R_BRACE | '\Z')</definition>
 		</rule>
 
@@ -114,6 +114,17 @@
 
 		<rule id="ID" precedence="&lt;NUMBER" options="">
 			<definition>'[\p{L}\_\$][\p{L}\_\$0-9]*'</definition>
+		</rule>
+
+		<!-- Lexer Rules -->
+
+		<rule id="math_operator" options="omit">
+
+		</rule>
+
+		<!-- Lexer Fragments -->
+		<rule id="operator" options="omit">
+			<definition>BITWISE_OPERATOR | LOGIC_OPERATOR | LT_OPERATOR | GT_OPERATOR | EQ_OPERATOR | ADD_OPERATOR | SUB_OPERATOR | MULT_OPERATOR | DIV_OPERATOR | INCREMENTAL_ASSIGNMENT_OPERATOR</definition>
 		</rule>
 		
 	</rules>

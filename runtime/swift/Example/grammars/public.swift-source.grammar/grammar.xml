@@ -5,10 +5,10 @@
 
 		<!-- Lexer Rules -->
 
-		<rule id="DOCUMENTATION_BLOCK" precedence="&lt;WHITESPACE,&gt;STRING" options="">
+		<rule id="DOCUMENTATION_BLOCK" precedence="&lt;WHITESPACE,&gt;STRING" options="multiline">
 			<definition>((ONE_LINE_DOCUMENTATION | MULTILINE_DOCUMENTATION) (WHITESPACE | NEWLINE)*)+</definition>
 		</rule>
-		<rule id="COMMENT_BLOCK" precedence="&lt;DOCUMENTATION_BLOCK,&gt;STRING" options="">
+		<rule id="COMMENT_BLOCK" precedence="&lt;DOCUMENTATION_BLOCK,&gt;STRING" options="multiline">
 			<definition>((ONE_LINE_COMMENT | MULTILINE_COMMENT) (WHITESPACE | NEWLINE)*)+</definition>
 		</rule>
 
@@ -35,7 +35,10 @@
 			<definition>
 				<word>
 					<string>associatedtype</string>
-					<description>When defining a protocol, it’s sometimes useful to declare one or more associated types as part of the protocol’s definition. An associated type gives a placeholder name to a type that is used as part of the protocol. The actual type to use for that associated type isn’t specified until the protocol is adopted. Associated types are specified with the associatedtype keyword. See https://docs.swift.org/swift-book/LanguageGuide/Generics.html#ID189</description>
+					<description>When defining a protocol, it’s sometimes useful to declare one or more associated types as part of the protocol’s definition. An associated type gives a placeholder name to a type that is used as part of the protocol. The actual type to use for that associated type isn’t specified until the protocol is adopted. Associated types are specified with the associatedtype keyword.</description>
+					<metadata>
+						<reference>https://docs.swift.org/swift-book/LanguageGuide/Generics.html#ID189</reference>
+					</metadata>
 				</word>
 				<word>as</word>
 				<word>break</word>
@@ -196,8 +199,8 @@
 		<rule id="datavalue" options="omit">
 			<definition>builtin_value | method_invocation | KEYWORD | STRING | LITERAL_STRING | NUMBER | NAMESPACE | ID</definition>
 		</rule>
-		<rule id="operator" options="omit">
-			<definition>BITWISE_OPERATOR | LOGIC_OPERATOR | LT_OPERATOR | GT_OPERATOR | EQ_OPERATOR | ADD_OPERATOR | SUB_OPERATOR | MULT_OPERATOR | DIV_OPERATOR | INCREMENTAL_ASSIGNMENT_OPERATOR | NIL_COALESCING_OPERATOR</definition>
+		<rule id="operator" options="omit,extend">
+			<definition>NIL_COALESCING_OPERATOR</definition>
 		</rule>
 		<rule id="type_extension" options="omit">
 			<definition>':' datatype (COMMA datatype)*</definition>

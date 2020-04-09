@@ -24,23 +24,19 @@
 
 import Foundation
 
-extension GrammaticalMatcher {
-    
+public struct GrammaticalMatcherOption: BaseOptionSet {
+        
+    public typealias This = GrammaticalMatcherOption
+    public typealias RawValue = Int
+
+    public let rawValue: RawValue
+
     ///
-    public struct Option: BaseOptionSet {
-        
-        public typealias This = Option
-        public typealias RawValue = Int
-        
-        public let rawValue: RawValue
-        
-        ///
-        public static let verbose = This(1 << 0)
-        
-        public init(rawValue: RawValue) {
-            self.rawValue = rawValue
-        }
-        
+    public static let verbose = This(1 << 0)
+
+    public init(rawValue: RawValue) {
+        self.rawValue = rawValue
     }
-    
+
 }
+    

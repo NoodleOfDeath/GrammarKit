@@ -1,9 +1,9 @@
 PODS:
-  - GrammarKit (1.0.1):
-    - SwiftyUTType (~> 1.0.1)
-    - SwiftyXMLParser (= 4.0)
-  - SwiftyUTType (1.0.2)
-  - SwiftyXMLParser (4.0.0)
+  - GrammarKit (1.0.3):
+    - SwiftyUTType (~> 1.0)
+    - SwiftyXMLParser (~> 5.0)
+  - SwiftyUTType (1.0.3)
+  - SwiftyXMLParser (5.0.0)
 
 DEPENDENCIES:
   - GrammarKit (from `../../../`)
@@ -18,10 +18,10 @@ EXTERNAL SOURCES:
     :path: "../../../"
 
 SPEC CHECKSUMS:
-  GrammarKit: fc8c736415910d531380151f2579911d46be90cc
-  SwiftyUTType: a85b69509fef1b3b057d9c204e3c158d4baf7b2e
-  SwiftyXMLParser: 8065da2e715e86aeba677a34fad8c252db5128bb
+  GrammarKit: 34bc607111e4e925618455569156ec15b468b220
+  SwiftyUTType: 865cf090ab1a58a0fe8c5e9cbbcf56749e67abdd
+  SwiftyXMLParser: 5ebb8793192f403fa8cc691045143906122a7a75
 
-PODFILE CHECKSUM: d65f2b9b9b64c6569d1a33314561b4523267314c
+PODFILE CHECKSUM: b17df77fd1fbb838f9f7494acef530549d25ede1
 
 COCOAPODS: 1.9.1

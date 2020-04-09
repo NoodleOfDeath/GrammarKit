@@ -154,10 +154,10 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     open var options: [MetadataOption] { return metadata.options }
     
     /// Category of this grammar rule.
-    open var category: TokenCategory? { return metadata.category }
+    open var category: String? { return metadata.category }
     
     /// Categories of this grammar rule.
-    open var categories: [TokenCategory] { return metadata.categories }
+    open var categories: [String] { return metadata.categories }
     
     /// Returns `true` if, and only if, `options` contains `option`.
     ///

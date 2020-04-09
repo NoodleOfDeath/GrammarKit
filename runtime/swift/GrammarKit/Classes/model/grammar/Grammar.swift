@@ -43,15 +43,14 @@ open class Grammar: NSObject, Codable {
         strings.append("")
         strings.append(String(format: "--- Lexer Rules (%d) ---", lexerRules.count))
         strings.append("")
-        for rule in lexerRules {
-            strings.append(rule.treeDescription)
-        }
+        lexerRules.forEach { strings.append($0.treeDescription) }
         strings.append("")
         strings.append(String(format: "--- Parser Rules (%d) ---", parserRules.count))
         strings.append("")
-        for rule in parserRules {
-            strings.append(rule.treeDescription)
-        }
+        parserRules.forEach { strings.append($0.treeDescription) }
+        strings.append("")
+        strings.append(String(format: "--- Words (%d) ---", words.count))
+        words.forEach { strings.append($0.description) }
         strings.append("")
         return strings.joined(separator: "\n")
     }
@@ -75,9 +74,6 @@ open class Grammar: NSObject, Codable {
     /// Parser rules of this grammar.
     open lazy var parserRules: [GrammarRule] = [GrammarRule]()
     
-    /// Identifiers of this grammar.
-    open var identifiers = [Identifier]()
-    
     /// Unmatched rule of this grammar. Used only for lexer grammars.
     open var unmatchedRule: GrammarRule {
         let rule = GrammarRule(grammar: self, id: This.unmatchedRuleId, value: This.unmatchedRuleExpr, componentType: .literal)
@@ -88,6 +84,9 @@ open class Grammar: NSObject, Codable {
     
     /// Words of this grammar.
     open var words = [Identifier]()
+
+    /// Identifiers of this grammar.
+    open var identifiers = [Identifier]()
     
     // MARK: - Constructor Methods
     
@@ -159,6 +158,14 @@ open class Grammar: NSObject, Codable {
             }
         }
         return graph.sorted(reversed: true)
+    }
+
+    /// Adds a built-in identifier to this grammar.
+    ///
+    /// - Parameters:
+    ///     - identifier: to add to this grammar.
+    open func add(word: Identifier) {
+        words.append(word)
     }
     
     /// Adds a built-in identifier to this grammar.

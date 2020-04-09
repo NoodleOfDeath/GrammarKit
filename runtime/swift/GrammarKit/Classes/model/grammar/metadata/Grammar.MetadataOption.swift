@@ -41,6 +41,10 @@ extension Grammar {
         /// Indicates that the lexer/parser should skip notifiying
         /// observers when this rule encounters matches.
         public static let skip = This("skip")
+
+        /// Indicates that this rule should extend off of inherited
+        /// implementation(s) as an alternative clause.
+        public static let extend = This("extend")
         
         /// Indicates that the rule can span over multiple lines.
         public static let multiline = This("multiline")

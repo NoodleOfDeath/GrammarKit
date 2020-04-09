@@ -24,7 +24,7 @@
 
 import Foundation
 
-/// Simple data structure representing a token read by a lexer grammar engine.
+/// Simple data structure representing a token read by a lexer grammar matcher.
 open class Token: NSObject, Codable {
     
     // MARK: - Static Properties

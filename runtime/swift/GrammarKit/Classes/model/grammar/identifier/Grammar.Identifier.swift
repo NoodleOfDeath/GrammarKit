@@ -22,13 +22,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import UIKit
+import Foundation
 
 extension Grammar {
 
     /// Data structure that represents a grammatical range found in a grammar
     /// that can be indexed.
-    open class Identifier: DocumentReference {
+    open class Identifier: StringRange {
         
         public typealias This = Identifier
         
@@ -41,7 +41,13 @@ extension Grammar {
         }
         
         override open var description: String {
-            return String(describing: string)
+            var strings = [String]()
+            strings.append(string)
+            if let detailedDescription = detailedDescription {
+                strings.append(String(format: "\t%@", detailedDescription))
+            }
+            metadata.references.forEach({ strings.append(String(format: "\t%@", $0.absoluteString)) })
+            return strings.joined(separator: "\n")
         }
         
         // MARK: - Instance Properties
@@ -58,9 +64,8 @@ extension Grammar {
         // MARK: - Constructor Methods
         
         /// Constructs a new identifer.
-        public convenience init(document: UIDocument? = nil, start: Int = 0, lineNumber: Int = 0, string: String, type: String? = nil, detailedDescription: String? = nil, metadata: Metadata? = nil) {
+        public convenience init(start: Int = -1, lineNumber: Int = -1, string: String, type: String? = nil, detailedDescription: String? = nil, metadata: Metadata? = nil) {
             self.init(start: start, length: string.length, string: string)
-            self.document = document
             self.type = type
             self.detailedDescription = detailedDescription
             self.metadata = metadata ?? Metadata()

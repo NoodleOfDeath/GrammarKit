@@ -25,7 +25,7 @@
 import Foundation
 
 /// Specifications for a string range.
-public protocol StringRangeProtocol: Comparable {
+public protocol StringRangeProtocol: Comparable, Codable {
     
     /// Start of this string range.
     var start: Int { get set }
@@ -51,7 +51,7 @@ extension StringRangeProtocol {
 }
 
 /// Base implementation for a `StringRangeProtocol`.
-open class StringRange: NSObject, StringRangeProtocol, Codable {
+open class StringRange: NSObject, StringRangeProtocol {
 
     // MARK: - StringRangeProtocol Properties
     
@@ -83,10 +83,8 @@ open class StringRange: NSObject, StringRangeProtocol, Codable {
     ///     - start: of the new string range.
     ///     - length: of the new string range.
     ///     - string: value of the new string range.
-    public init(start: Int = 0, length: Int, string: String? = nil) {
-        self.start = start
-        self.end = start + length
-        self.string = string ?? ""
+    public convenience init(start: Int = 0, length: Int, string: String? = nil) {
+        self.init(start: start, end: start + length, string: string)
     }
 
     // MARK: - Comparable Methods

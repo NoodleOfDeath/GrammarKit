@@ -38,6 +38,7 @@ extension Grammar {
             case options
             case categories
             case attributes
+            case references
         }
         
         override open var description: String {
@@ -67,57 +68,73 @@ extension Grammar {
         public let id: String
         
         /// Options of this component.
-        public let options: [MetadataOption]
+        public var options: [MetadataOption]
         
         /// Categories of this component.
-        public let categories: [TokenCategory]
+        public var categories: [String]
         
         /// Category of this component.
-        public var category: TokenCategory? { return categories.first }
+        public var category: String? { return categories.first }
         
         /// Attributes of this metadata.
-        public let attributes: [String: String]
+        public var attributes: [String: String]
+
+        /// References
+        public var references = [URL]()
         
         // MARK: - Constructor Methods
         
         ///
         ///
         /// - Parameters:
+        ///     - id:
         ///     - options:
         ///     - categories:
-        ///     - id:
         ///     - attributes:
+        ///     - references:
         public required init(id: String? = nil,
                              options: [MetadataOption]? = nil,
-                             categories: [TokenCategory]? = nil,
-                             attributes: [String: String]? = nil) {
+                             categories: [String]? = nil,
+                             attributes: [String: String]? = nil,
+                             references: [URL]? = nil) {
             self.id = id ?? ""
             self.options = options ?? []
             self.categories = categories ?? []
             self.attributes = attributes ?? [:]
+            self.references = references ?? []
         }
         
         public required init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
-            next = try values.decodeIfPresent(Metadata.self, forKey: CodingKeys.next)
-            children = try values.decode([Metadata].self, forKey: CodingKeys.children)
-            id = try values.decode(String.self, forKey: CodingKeys.id)
-            options = try values.decode([MetadataOption].self, forKey: CodingKeys.options)
-            categories = try values.decode([TokenCategory].self, forKey: CodingKeys.categories)
-            attributes = try values.decode([String: String].self, forKey: CodingKeys.attributes)
+            next = try values.decodeIfPresent(Metadata.self, forKey: .next)
+            children = try values.decode([Metadata].self, forKey: .children)
+            id = try values.decode(String.self, forKey: .id)
+            options = try values.decode([MetadataOption].self, forKey: .options)
+            categories = try values.decode([String].self, forKey: .categories)
+            attributes = try values.decode([String: String].self, forKey: .attributes)
+            references = try values.decode([URL].self, forKey: .references)
             super.init()
             updateChildren()
             updateNext()
+        }
+
+        public static func + (lhs: Metadata, rhs: Metadata) -> Metadata {
+            lhs.options += rhs.options
+            lhs.categories += rhs.categories
+            lhs.attributes += rhs.attributes
+            lhs.references += rhs.references
+            return lhs
         }
 
         public func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encodeIfPresent(next, forKey: .next)
             try container.encode(children, forKey: .children)
-            try container.encode(id, forKey: CodingKeys.id)
-            try container.encode(options, forKey: CodingKeys.options)
-            try container.encode(categories, forKey: CodingKeys.categories)
-            try container.encode(attributes, forKey: CodingKeys.attributes)
+            try container.encode(id, forKey: .id)
+            try container.encode(options, forKey: .options)
+            try container.encode(categories, forKey: .categories)
+            try container.encode(attributes, forKey: .attributes)
+            try container.encode(references, forKey: .references)
         }
         
         // MARK: - Instance Methods
@@ -149,7 +166,7 @@ extension Grammar {
         /// - Parameters:
         ///     - categories: to test for membership
         /// - Returns:
-        public func isMemberOf(_ categories: TokenCategory...) -> Bool {
+        public func isMemberOf(_ categories: String...) -> Bool {
             return self.categories.first { categories.contains($0) } != nil
         }
         

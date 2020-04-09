@@ -23,7 +23,7 @@
 // THE SOFTWARE.
 
 /// Grammatical matcher for matching token streams.
-open class Parser: GrammaticalMatcher {
+open class Parser: BaseGrammaticalMatcher {
     
     /// Parses a token stream.
     ///

@@ -24,20 +24,20 @@
 
 import Foundation
 
-/// Grammar engine wrapper class that acts as both a lexer and parser.
-open class CompoundGrammaticalMatcher: GrammaticalMatcher {
+/// Grammar matcher wrapper class that acts as both a lexer and parser.
+open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     
     /// Lexer of this compound grammar endine.
     open var lexer: Lexer? {
         didSet { lexer?.delegate = self }
     }
     
-    /// Parser of this compound grammar engine.
+    /// Parser of this compound grammar matcher.
     open var parser: Parser? {
         didSet { parser?.delegate = self }
     }
     
-    override public init(grammar: Grammar, options: Option = []) {
+    override public init(grammar: Grammar, options: GrammaticalMatcherOption = []) {
         super.init(grammar: grammar, options: options)
         lexer = Lexer(grammar: grammar)
         lexer?.delegate = self

@@ -1,6 +1,6 @@
 # GrammarKit - Getting Started
 
-In order to make the most of this engine, the developer needs to be well educated on grammar theory, syntactical analysis, and abstract syntax trees. The engine itself is only as powerful as the grammar library files it implements. The following is a simple outline of a possible workflow to incorporate this framework into an application; note that the steps are not listed in any particular order.
+In order to make the most of this matcher, the developer needs to be well educated on grammar theory, syntactical analysis, and abstract syntax trees. The matcher itself is only as powerful as the grammar library files it implements. The following is a simple outline of a possible workflow to incorporate this framework into an application; note that the steps are not listed in any particular order.
 
 ## Installation
 
@@ -49,8 +49,8 @@ class Tests: XCTestCase {
         do {
             guard let grammar = loader.load(with: "public.swift-source") else { XCTFail(); return }
             let text = try String(contentsOfFile: sampleFile)
-            let engine = CompoundGPEngine(grammar: grammar)
-            engine.match(text, options: .verbose)
+            let matcher = CompoundGPEngine(grammar: grammar)
+            matcher.match(text, options: .verbose)
         } catch {
             print(error)
             XCTFail()
@@ -74,8 +74,8 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.noodleofdeath.GrammarKit.io.engine.SyntaxEngine;
-import com.noodleofdeath.GrammarKit.io.engine.impl.BaseTextSyntaxEngine;
+import com.noodleofdeath.GrammarKit.io.matcher.SyntaxEngine;
+import com.noodleofdeath.GrammarKit.io.matcher.impl.BaseTextSyntaxEngine;
 import com.noodleofdeath.GrammarKit.io.lexer.Lexer;
 import com.noodleofdeath.GrammarKit.io.parser.Parser;
 import com.noodleofdeath.GrammarKit.io.token.TextToken;
@@ -115,8 +115,8 @@ class GrammarKitSystemTest {
 		GrammarLoader loader = new BaseGrammarLoader(GRAMMARS_DIRECTORY);
 		
 		Grammar grammar = loader.load("public.swift-source");
-		SyntaxEngine<String, TextToken, Lexer<String, TextToken>, Parser<String, TextToken>> engine = new BaseTextSyntaxEngine(grammar);
-		engine.match(characterStream, true);
+		SyntaxEngine<String, TextToken, Lexer<String, TextToken>, Parser<String, TextToken>> matcher = new BaseTextSyntaxEngine(grammar);
+		matcher.match(characterStream, true);
 
 	}
 

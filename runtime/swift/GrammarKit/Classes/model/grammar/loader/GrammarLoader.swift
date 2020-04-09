@@ -55,6 +55,7 @@ open class GrammarLoader: NSObject {
         case `break`
         case string
         case description
+        case reference
     }
     
     /// Common XML attribute names used in grammar definition files.
@@ -65,6 +66,7 @@ open class GrammarLoader: NSObject {
         case options
         case category
         case description
+        case reference
     }
     
     /// Search paths in which to look for grammar files and packages.
@@ -209,9 +211,14 @@ open class GrammarLoader: NSObject {
         
         let ruleSet = root[XMLTagName.rules]
         for node in ruleSet[XMLTagName.rule] {
-            guard let rule = parseXMLNode(for: grammar, node: node) else { continue }
+            guard let rule = parse(node: node, for: grammar) else { continue }
             rule.ruleClass = rule.id.isCapitalized ? .lexerRule : .parserRule
-            rules[rule.id] = rule
+            if rule.has(option: .extend), let existingRule = rules[rule.id] {
+                existingRule.add(child: rule)
+                rules[rule.id] = existingRule
+            } else {
+                rules[rule.id] = rule
+            }
         }
         
         grammar.rules = rules
@@ -231,7 +238,7 @@ open class GrammarLoader: NSObject {
     ///     - rootRule:
     ///     - grammar:
     /// - Returns:
-    open func parseXMLNode(for grammar: Grammar, node: XML.Accessor) -> GrammarRule? {
+    open func parse(node: XML.Accessor, for grammar: Grammar) -> GrammarRule? {
         guard let id = node.attributes[XMLAttributeName.id] else { return nil }
         let metadata = parseMetadata(for: node)
         let defNode = node[XMLTagName.definition]
@@ -241,7 +248,7 @@ open class GrammarLoader: NSObject {
             for word in defNode[XMLTagName.word] {
                 guard let id = parse(word: word, metadata: metadata) else { continue }
                 words.append(String(format: "'%@'", id.string))
-                grammar.add(identifier: id)
+                grammar.add(word: id)
             }
             definition = words.joined(separator: " | ")
         } else {
@@ -485,14 +492,12 @@ open class GrammarLoader: NSObject {
     /// - Parameters:
     ///     - accessor: to parse a word from.
     /// - Returns: an identifier that represents a word.
-    open func parse(word accessor: XML.Accessor, metadata: Metadata? = nil) -> Identifier? {
+    open func parse(word accessor: XML.Accessor, metadata: Metadata) -> Identifier? {
         guard let element = accessor.element else { return nil }
         guard let string = element.childElements.count == 0 ? element.text : accessor[XMLTagName.string].text else { return nil }
         let detailedDescription = accessor.attributes[XMLAttributeName.description] ?? accessor[XMLTagName.description].text
-        if detailedDescription == "Fuck" {
-
-        }
-        return Identifier(string: string, detailedDescription: detailedDescription, metadata: metadata)
+        let metadata = metadata + parseMetadata(for: accessor)
+        return Identifier(string: string, detailedDescription: detailedDescription, metadata: metadata + parseMetadata(for: accessor))
     }
     
     /// Parses the metadata of a component.
@@ -502,12 +507,21 @@ open class GrammarLoader: NSObject {
     open func parseMetadata(for accessor: XML.Accessor, rule: GrammarRule? = nil) -> Metadata {
         
         let metadata = createMetadata(from: accessor.attributes)
-        
+
         if let metadataElement = accessor[XMLTagName.metadata].element {
             var root: Metadata?
             var parent: Metadata?
             var children = [Metadata]()
             metadataElement.childElements.forEach {
+                switch $0.name {
+                case XMLTagName.reference.rawValue:
+                    if let text = $0.text, let url = URL(string: text) {
+                        metadata.references.append(url)
+                    }
+
+                default:
+                    break
+                }
                 if $0.name != XMLTagName.break {
                     let component = parseMetadata(for: $0)
                     if root == nil { root = component }
@@ -535,7 +549,7 @@ open class GrammarLoader: NSObject {
             
         case XMLTagName.component.rawValue:
             break
-            
+
         case XMLTagName.group.rawValue:
             var root: Metadata?
             var parent: Metadata?
@@ -554,7 +568,6 @@ open class GrammarLoader: NSObject {
             }
             if let root = root { children.append(root) }
             metadata.children = children
-            break
             
         default:
             break
@@ -565,8 +578,8 @@ open class GrammarLoader: NSObject {
     
     open func createMetadata(from attributes: [String: String]) -> Metadata {
         let id = attributes[XMLAttributeName.id]
-        let options = MetadataOption.from(attributes[XMLAttributeName.options]?.split(by: "\\s*,\\s*"))
-        let categories = TokenCategory.from(attributes[XMLAttributeName.category]?.split(by: "\\s*,\\s*"))
+        let options = attributes[XMLAttributeName.options]?.split(by: "\\s*,\\s*").map({ MetadataOption($0) }) ?? []
+        let categories = attributes[XMLAttributeName.category]?.split(by: "\\s*,\\s*") ?? []
         let metadata = Metadata(id: id,
                                 options: options,
                                 categories: categories,

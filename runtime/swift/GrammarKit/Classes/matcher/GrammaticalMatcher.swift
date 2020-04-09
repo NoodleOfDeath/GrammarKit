@@ -22,10 +22,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/// Specifications for a grammar engine delegate.
+@objc
+public protocol GrammaticalMatcher: class {
+
+    typealias Metadata = Grammar.Metadata
+    typealias SyntaxTree = Grammar.SyntaxTree
+
+}
+
+/// Specifications for a grammar matcher delegate.
 public protocol GrammaticalMatcherDelegate: class {
     
-    /// Called when a grammar engine skips a token.
+    /// Called when a grammar matcher skips a token.
     ///
     /// - Parameters:
     ///     - matcher: that called this method.
@@ -34,8 +42,8 @@ public protocol GrammaticalMatcherDelegate: class {
     ///     - parentTree: containing all tokenzied/parses information.
     func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream, parentTree: Grammar.SyntaxTree?)
     
-    /// Called when a grammar engine generates a syntax.
-    /// Overload for `engine(_:didGenerate:characterStream:tokenStream:)`.
+    /// Called when a grammar matcher generates a syntax.
+    /// Overload for `matcher(_:didGenerate:characterStream:tokenStream:)`.
     ///
     /// - Parameters:
     ///     - matcher: that called this method.
@@ -45,8 +53,8 @@ public protocol GrammaticalMatcherDelegate: class {
     ///     - parentTree: containing all tokenzied/parses information.
     func matcher(_ matcher: GrammaticalMatcher, didGenerate syntaxTree: Grammar.SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
     
-    /// Called when a grammar engine finishes a job.
-    /// Overload for `engine(_:didFinishMatching:tokenStream:)`.
+    /// Called when a grammar matcher finishes a job.
+    /// Overload for `matcher(_:didFinishMatching:tokenStream:)`.
     ///
     /// - Parameters:
     ///     - matcher: that called this method.
@@ -57,26 +65,24 @@ public protocol GrammaticalMatcherDelegate: class {
     
 }
 
-/// Base abstract class for a grammar matching.
-open class GrammaticalMatcher: NSObject {
-    
-    public typealias Metadata = Grammar.Metadata
-    public typealias SyntaxTree = Grammar.SyntaxTree
 
-    /// Delegate of this grammar engine.
+/// Base abstract class for a grammar matching.
+open class BaseGrammaticalMatcher: NSObject, GrammaticalMatcher {
+
+    /// Delegate of this grammar matcher.
     open weak var delegate: GrammaticalMatcherDelegate?
     
-    /// Grammar of this engine.
+    /// Grammar of this matcher.
     public let grammar: Grammar
     
-    /// Options of this grammar engine.
-    open var options: Option = []
+    /// Options of this grammar matcher.
+    open var options: GrammaticalMatcherOption = []
     
-    /// Constructs a new grammar engine with an initial grammar.
+    /// Constructs a new grammar matcher with an initial grammar.
     ///
     /// - Parameters:
-    ///     - grammar: to initialize this engine with.
-    public init(grammar: Grammar, options: Option = []) {
+    ///     - grammar: to initialize this matcher with.
+    public init(grammar: Grammar, options: GrammaticalMatcherOption = []) {
         self.grammar = grammar
         self.options = options
     }

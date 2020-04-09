@@ -42,8 +42,8 @@ class Tests: XCTestCase {
         do {
             guard let grammar = loader.load(with: "public.swift-source") else { XCTFail(); return }
             let text = try String(contentsOfFile: sampleFile)
-            let engine = CompoundGPEngine(grammar: grammar)
-            engine.match(text, options: .verbose)
+            let matcher = CompoundGPEngine(grammar: grammar)
+            matcher.match(text, options: .verbose)
         } catch {
             print(error)
             XCTFail()
