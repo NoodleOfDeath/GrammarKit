@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name             = 'GrammarKit'
-  s.version          = '1.0.3'
+  s.version          = '1.0.2'
   s.summary          = 'Simple, extensible, and scalable grammar parsing matcher.'
 
   s.description      = <<-DESC
