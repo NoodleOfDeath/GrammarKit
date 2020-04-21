@@ -29,6 +29,19 @@ extension Grammar {
     /// Regular expression patterns used to parse grammar rules from string
     /// definitions.
     public struct Pattern {
+
+        public struct Structure {
+
+            /// Regular expression that denotes a grammar header.
+            public static let grammar = "grammar\\s+((?:[\\\\];|[^;])*?)\\s*?;"
+
+            /// Regular expression that denotes a grammar import.
+            public static let `import` = "import\\s+((?:[\\\\];|[^;])*?)\\s*?;"
+
+            /// Regular expression that denotes a grammar rule.
+            public static let rule = "^(?=\\s*)(?:(fragment)\\s+)?(\\w+)\\s*(\\{.*?\\})?\\s*(?::\\s*((?:[\\\\];|[^;])*?))?\\s*;"
+
+        }
         
         /// Regular expression for a `empty` grammar rule definition token.
         public static let empty = "(?:\\s*;\\s*)"
@@ -46,7 +59,7 @@ extension Grammar {
         public static let group = "(?:\\(.*)"
         
         /// Regular expression for a `atom` grammar rule definition token.
-        public static let atom = "(?:" + empty + "|" + literal +  "|" + expression + "|" + word + "|" + group + ")"
+        public static let atom = "(?:\(empty)|\(literal)|\(expression)|\(word)|\(group))"
         
         /// Regular expression for a `quantifier` grammar rule definition token.
         public static let quantifier = "(?:[\\*\\+\\?]\\??|\\{\\s*\\d\\s*(?:,\\d)?\\}|\\{,\\d\\})"
@@ -69,7 +82,7 @@ extension Grammar {
         
         /// Regular expression for a `cgAlternative` grammar rule definition
         /// token with capture groups.
-        public static let cgAlternative = "((?:(~)?" + atom + "\\s*" + quantifier + "?\\s*)+)"
+        public static let cgAlternative = "((?:(~)?\(atom)\\s*\(quantifier)?\\s*)+)"
         
         /// Regular expression for a `cgGroup` grammar rule definition token
         /// with capture groups.
@@ -85,11 +98,11 @@ extension Grammar {
         
         /// Regular expression for a `cgExpression` grammar rule definition
         /// token with capture groups.
-        public static let cgExpression = "(?:\\s*(" + expression + "))\\s*"
+        public static let cgExpression = "(?:\\s*(\(expression)))\\s*"
         
         /// Regular expression for a `cgAtom` grammar rule definition token with
         /// capture groups.
-        public static let cgAtom = "(~)?\\s*(" + atom + ")\\s*(" + quantifier + "?)"
+        public static let cgAtom = "(~)?\\s*(\(atom))\\s*(\(quantifier)?)"
         
     }
 

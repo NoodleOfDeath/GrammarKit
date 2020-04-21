@@ -32,11 +32,11 @@ open class Parser: BaseGrammaticalMatcher {
     ///     - offset:
     ///     - length:
     ///     - parentTree:
-    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil) {
+    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
         if let length = length {
-            parse(tokenStream, within: NSMakeRange(offset, length), parentTree: parentTree)
+            parse(tokenStream, within: NSMakeRange(offset, length), parentTree: parentTree, rules: rules)
         } else {
-            parse(tokenStream, within: tokenStream?.range.shiftingLocation(by: offset), parentTree: parentTree)
+            parse(tokenStream, within: tokenStream?.range.shiftingLocation(by: offset), parentTree: parentTree, rules: rules)
         }
     }
     
@@ -46,13 +46,13 @@ open class Parser: BaseGrammaticalMatcher {
     ///     - tokenStream:
     ///     - streamRange:
     ///     - parentTree:
-    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
+    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
         guard let tokenStream = tokenStream else { return }
         let characterStream = tokenStream.characterStream
         var streamRange = streamRange ?? tokenStream.range
         while streamRange.location < tokenStream.length {
             var syntaxTree = SyntaxTree(treeClass: .parserTree)
-            for rule in grammar.parserRules {
+            for rule in (rules ?? grammar.parserRules) {
                 syntaxTree = parse(tokenStream, rule: rule, within: streamRange, parentTree: parentTree)
                 if syntaxTree.matches {
                     syntaxTree.rule = rule
@@ -112,9 +112,9 @@ open class Parser: BaseGrammaticalMatcher {
             }
             
             subscope = parse(tokenStream,
-                            rule: ruleRef,
-                            within: streamRange,
-                            metadata: rule.metadata)
+                             rule: ruleRef,
+                             within: streamRange,
+                             metadata: rule.metadata)
             while rule.inverted != subscope.absoluteMatch {
                 if rule.inverted {
                     subscope = SyntaxTree(treeClass: .parserTree)
@@ -131,8 +131,6 @@ open class Parser: BaseGrammaticalMatcher {
                                  within: streamRange.shiftingLocation(by: dx),
                                  metadata: rule.metadata)
             }
-            
-            break
             
         case .composite:
             
@@ -168,8 +166,6 @@ open class Parser: BaseGrammaticalMatcher {
                 
             }
             
-            break
-            
         case .lexerRuleReference, .lexerFragmentReference:
             
             var token = tokenStream[streamRange.location]
@@ -184,8 +180,6 @@ open class Parser: BaseGrammaticalMatcher {
                 token = tokenStream[streamRange.location + dx]
                 matches = rule.value == token.rule?.id
             }
-            
-            break
             
         default:
             // .literal, .expression
@@ -207,8 +201,6 @@ open class Parser: BaseGrammaticalMatcher {
                 matches = pattern.doesMatch(token.value, options: .anchored)
             }
             
-            break
-            
         }
         
         if (!rule.quantifier.hasRange && matchCount > 0) || rule.quantifier.optional || rule.quantifier.matches(matchCount) {
@@ -222,8 +214,9 @@ open class Parser: BaseGrammaticalMatcher {
             syntaxTree.matches = true
             parentTree?.add(child: syntaxTree)
         }
-        
+
         return syntaxTree
+
     }
     
 }

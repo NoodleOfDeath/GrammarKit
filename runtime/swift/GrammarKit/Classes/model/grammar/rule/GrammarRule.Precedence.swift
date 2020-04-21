@@ -41,25 +41,37 @@ extension GrammarRule {
         public var relations = [String: ComparisonResult]()
         
         /// Constructs a new precedence with an initial value.
-        public init(id: String, _ precedence: String = "min") {
+        public init(id: String, _ precedence: [String] = [">UNMATCHED"]) {
             self.id = id
-            for string in precedence.components(separatedBy: ",") {
+            for string in precedence {
+
                 if let weight = Int(string) {
                     self.weight = weight
                     continue
-                } else if string == "min" {
+                }
+
+                switch string {
+
+                case "min":
                     self.weight = .min
                     continue
-                } else if string == "max" {
+
+                case "max":
                     self.weight = .max
                     continue
+
+                default:
+                    break
+
                 }
+
                 if let match = "([<=>])?\\s*([\\p{L}_][\\p{L}_0-9-]*)\\s*(?:([-+])\\s*([0-9]+))?".firstMatch(in: string) {
                     relations[string.substring(with: match.range(at: 2))] = ComparisonResult(string.substring(with: match.range(at: 1)))
                 }
+
             }
         }
-        
+
     }
     
 }

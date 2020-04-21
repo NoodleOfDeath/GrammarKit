@@ -24,34 +24,32 @@
 
 import Foundation
 
-extension Grammar {
+extension Grammar.Metadata {
 
-    /// Data structure that represents a grammatical range found in a grammar
-    /// that can be indexed.
-    open class Identifier: StringRange {
-        
-        public typealias This = Identifier
-        
-        override open var description: String {
-            var strings = [String]()
-            strings.append(string)
-            strings.append(metadata.description)
-            return strings.joined(separator: "\n")
+    public struct Directive: Codable {
+
+        let string: String
+
+        init?(string: String) {
+            self.string = string
         }
 
-        // MARK: - Instance Properties
-        
-        /// Type of this identifier
-        open lazy var metadata: Metadata = Metadata()
-        
-        // MARK: - Constructor Methods
-        
-        /// Constructs a new identifer.
-        public convenience init(start: Int = -1, lineNumber: Int = -1, string: String, type: String? = nil, metadata: Metadata? = nil) {
-            self.init(start: start, length: string.length, string: string)
-            self.metadata = metadata ?? Metadata()
-        }
-        
+    }
+
+}
+
+extension Grammar.Metadata.Directive: CustomStringConvertible {
+
+    public var description: String {
+        return string
+    }
+
+}
+
+extension Grammar.Metadata.Directive: CVarArg {
+
+    public var _cVarArgEncoding: [Int] {
+        return description._cVarArgEncoding
     }
 
 }

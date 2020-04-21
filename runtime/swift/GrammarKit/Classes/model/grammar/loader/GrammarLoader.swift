@@ -39,23 +39,26 @@ open class GrammarLoader: NSObject {
     /// Common string constants used by this class.
     public struct defaults {
         public static let packageExtension = "grammar"
-        public static let packageConfigFile = "grammar.xml"
+        public static let packageConfigFile = "grammar.g"
     }
     
     /// Common XML element tag names used in grammar definition files.
     public enum XMLTagName: String {
+
         case grammar
         case rules
+
         case rule
         case definition
-        case word
+
         case metadata
-        case component
-        case group
-        case `break`
+        case reference
+        case directive
+
+        case word
         case string
         case description
-        case reference
+
     }
     
     /// Common XML attribute names used in grammar definition files.
@@ -67,6 +70,15 @@ open class GrammarLoader: NSObject {
         case category
         case description
         case reference
+    }
+
+    public enum AttributeKey: String {
+        case id
+        case definition
+        case options
+        case precedence
+        case description
+        case metadata
     }
     
     /// Search paths in which to look for grammar files and packages.
@@ -145,20 +157,16 @@ open class GrammarLoader: NSObject {
     ///     - id: of the grammar to search for and load.
     ///     - options: to use while loading the grammar.
     /// - Returns: A fully loaded grammar if one was found; `nil`, otherwise.
-    open func loadGrammar(for id: String, options: Option = []) -> Grammar? {
-        var grammar: Grammar?
+    open func loadGrammar(for id: String) -> Grammar? {
         guard let filename = grammarPackage(for: id) else { return nil }
         guard let contents = try? String(contentsOfFile: filename) else { return nil }
-        do {
-            grammar = try load(node: XML.parse(contents), options: options)
-        } catch {
-            print(error)
-        }
-        return grammar
+        return load(string: contents)
     }
     
-    /// Searches for and loads a grammar associated with a specified
-    /// identifier.
+    /// Asynchronously searches for and loads a grammar associated with a
+    /// specified identifier. This is useful for loading a grammar in an
+    /// environment with very limited computational and memory resources, or
+    /// for loading extraordinarily large grammars.
     ///
     /// - Parameters:
     ///     - id: of the grammar to search for and load.
@@ -166,9 +174,8 @@ open class GrammarLoader: NSObject {
     ///     - completionHandler: to callback when the grammar has successfully
     /// finished loading.
     /// - Returns: A fully loaded grammar if one was found; `nil`, otherwise.
-    open func loadGrammar(for id: String, options: Option = [], completionHandler: @escaping (Grammar?) -> Void) {
+    open func loadGrammar(for id: String, completionHandler: @escaping (Grammar?) -> Void) {
         DispatchQueue.global().async {
-            var grammar: Grammar?
             guard let filename = self.grammarPackage(for: id) else {
                 completionHandler(nil)
                 return
@@ -177,15 +184,67 @@ open class GrammarLoader: NSObject {
                 completionHandler(nil)
                 return
             }
-            do {
-                grammar = try self.load(node: XML.parse(contents), options: options)
-            } catch {
-                print(error)
-            }
             DispatchQueue.main.async {
-                completionHandler(grammar)
+                completionHandler(try? self.load(node: XML.parse(contents)))
             }
         }
+    }
+
+    open func load(string: String) -> Grammar? {
+
+        let grammar = Grammar()
+
+        var rules = [String: GrammarRule]()
+        rules[Grammar.unmatchedRuleId] = grammar.unmatchedRule
+
+        let string = string
+            .replacingOccurrences(of: "//.*", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "[ \\t]+", with: " ", options: .regularExpression)
+
+        if let match = Pattern.Structure.grammar.firstMatch(in: string) {
+            grammar.name = string.substring(with: match.range(at: 1))
+        } else {
+            print("ERROR: Unable to find grammar header")
+           return nil
+        }
+
+        Pattern.Structure.import.enumerateMatches(in: string) { (match, _, _) in
+            guard let match = match else { return }
+            let parentName = string.substring(with: match.range(at: 1))
+            if let parentGrammar = self.loadGrammar(for: parentName) {
+                rules += parentGrammar.rules
+            }
+        }
+
+        Pattern.Structure.rule.enumerateMatches(in: string, options: ([.anchorsMatchLines, .dotMatchesLineSeparators], [.withTransparentBounds])) { (match, _, _) in
+            guard let match = match else { return }
+            let range1 = match.range(at: 1)
+            let range2 = match.range(at: 2)
+            let range3 = match.range(at: 3)
+            let range4 = match.range(at: 4)
+            let id = string.substring(with: range2)
+            var attributes = [String: Any]()
+            if range3.length > 0 {
+                let jsonString = string.substring(with: range3)
+                if let data = jsonString.data(using: .utf8),
+                    let attr = (try? JSONSerialization.jsonObject(with: data, options: [])) as? [String: Any] {
+                    attributes = attr
+                }
+            }
+            let definition = (range4.length > 0 ? string.substring(with: range4) : "").replacingOccurrences(of: "(\\r?\\n|\\s)+", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
+            if range1.length > 0 {
+                var options = attributes[AttributeKey.options] as? [String] ?? []
+                options.append("fragment")
+                attributes[AttributeKey.options] = options
+            }
+            let rule = createRule(with: id, attributes: attributes, definition: definition, for: grammar)
+            rules[id] = rule
+        }
+
+        grammar.rules = rules
+
+        return grammar
+
     }
     
     /// Loads a grammar from a root XML element.
@@ -195,17 +254,16 @@ open class GrammarLoader: NSObject {
     ///     - options: to use while loading the grammar.
     /// - Returns: A fully loaded grammar.
     /// - Throws:
-    open func load(node: XML.Accessor, options: Option = []) -> Grammar {
+    open func load(node: XML.Accessor) -> Grammar {
         
         let root = node[XMLTagName.grammar]
         let grammar = Grammar()
         
         var rules = [String: GrammarRule]()
-        
         rules[Grammar.unmatchedRuleId] = grammar.unmatchedRule
         
         if let parentName = root.attributes[XMLAttributeName.extends],
-            let parentGrammar = loadGrammar(for: parentName, options: options) {
+            let parentGrammar = loadGrammar(for: parentName) {
             rules = parentGrammar.rules
         }
         
@@ -223,12 +281,41 @@ open class GrammarLoader: NSObject {
         
         grammar.rules = rules
         
-        if options.contains(.verbose) {
-            print(grammar)
-        }
-        
         return grammar
         
+    }
+
+    open func createRule(with id: String, attributes: [String: Any] = [:], definition: String, for grammar: Grammar) -> GrammarRule? {
+
+        var definition = definition
+        if let data = definition.data(using: .utf8) {
+            if let dictionary = (try? JSONSerialization.jsonObject(with: data, options: [.allowFragments])) as? [[String: Any]] {
+                var words = [String]()
+                for word in dictionary {
+                    guard let id = parse(word: word) else { continue }
+                    words.append(String(format: "'%@'", id.string))
+                    grammar.add(word: id)
+                }
+                definition = words.joined(separator: " | ")
+            }
+        }
+
+        guard let rule = parseCompositeRule(for: grammar,
+                                            id: id,
+                                            definition: definition,
+                                            composite: true)
+            else { return nil }
+
+        rule.ruleClass = rule.id.isCapitalized ? .lexerRule : .parserRule
+        if let precedence = attributes[AttributeKey.precedence] as? [String] {
+            rule.precedence = GrammarRule.Precedence(id: id, precedence)
+        }
+        let metadata = createMetadata(for: id, from: attributes)
+        rule.metadata = metadata
+
+        return rule
+
+
     }
     
     ///
@@ -246,7 +333,8 @@ open class GrammarLoader: NSObject {
         if defNode.element?.childElements.count != 0 {
             var words = [String]()
             for word in defNode[XMLTagName.word] {
-                guard let id = parse(word: word, metadata: metadata) else { continue }
+                guard let id = parse(word: word) else { continue }
+                id.metadata += metadata
                 words.append(String(format: "'%@'", id.string))
                 grammar.add(word: id)
             }
@@ -260,7 +348,7 @@ open class GrammarLoader: NSObject {
                                             definition: definition,
                                             composite: true)
             else { return nil }
-        if let precedence = node.attributes[XMLAttributeName.precedence] {
+        if let precedence = node.attributes[XMLAttributeName.precedence]?.components(separatedBy: "\\s*,\\s*") {
             rule.precedence = GrammarRule.Precedence(id: id, precedence)
         }
         rule.metadata = metadata
@@ -492,12 +580,21 @@ open class GrammarLoader: NSObject {
     /// - Parameters:
     ///     - accessor: to parse a word from.
     /// - Returns: an identifier that represents a word.
-    open func parse(word accessor: XML.Accessor, metadata: Metadata) -> Identifier? {
+    open func parse(word accessor: XML.Accessor) -> Identifier? {
         guard let element = accessor.element else { return nil }
         guard let string = element.childElements.count == 0 ? element.text : accessor[XMLTagName.string].text else { return nil }
-        let detailedDescription = accessor.attributes[XMLAttributeName.description] ?? accessor[XMLTagName.description].text
-        let metadata = metadata + parseMetadata(for: accessor)
-        return Identifier(string: string, detailedDescription: detailedDescription, metadata: metadata + parseMetadata(for: accessor))
+        return Identifier(string: string, metadata: parseMetadata(for: accessor))
+    }
+
+    /// Parses a word from an XML accessor and returns an identifer represeting
+    /// that word.
+    ///
+    /// - Parameters:
+    ///     - accessor: to parse a word from.
+    /// - Returns: an identifier that represents a word.
+    open func parse(word: [String: Any]) -> Identifier? {
+        guard let string = (word[AttributeKey.definition] ?? word[AttributeKey.id]) as? String else { return nil }
+        return Identifier(string: string, metadata: parseMetadata(for: word))
     }
     
     /// Parses the metadata of a component.
@@ -505,85 +602,49 @@ open class GrammarLoader: NSObject {
     /// - Parameters:
     ///     - metadata: accessor to parse metadata from.
     open func parseMetadata(for accessor: XML.Accessor, rule: GrammarRule? = nil) -> Metadata {
-        
-        let metadata = createMetadata(from: accessor.attributes)
-
-        if let metadataElement = accessor[XMLTagName.metadata].element {
-            var root: Metadata?
-            var parent: Metadata?
-            var children = [Metadata]()
-            metadataElement.childElements.forEach {
-                switch $0.name {
-                case XMLTagName.reference.rawValue:
-                    if let text = $0.text, let url = URL(string: text) {
-                        metadata.references.append(url)
-                    }
-
-                default:
-                    break
-                }
-                if $0.name != XMLTagName.break {
-                    let component = parseMetadata(for: $0)
-                    if root == nil { root = component }
-                    parent?.next = component
-                    parent = component
-                } else {
-                    if let root = root { children.append(root) }
-                    root = nil
-                    parent = nil
-                }
-            }
-            if let root = root { children.append(root) }
-            metadata.children = children
-        }
-        
-        return metadata
-        
-    }
-    
-    open func parseMetadata(for element: XML.Element) -> Metadata {
-        
-        let metadata = createMetadata(from: element.attributes)
-        
-        switch element.name {
-            
-        case XMLTagName.component.rawValue:
-            break
-
-        case XMLTagName.group.rawValue:
-            var root: Metadata?
-            var parent: Metadata?
-            var children = [Metadata]()
-            element.childElements.forEach {
-                if $0.name != XMLTagName.break {
-                    let component = parseMetadata(for: $0)
-                    if root == nil { root = component }
-                    parent?.next = component
-                    parent = component
-                } else {
-                    if let root = root { children.append(root) }
-                    root = nil
-                    parent = nil
-                }
-            }
-            if let root = root { children.append(root) }
-            metadata.children = children
-            
-        default:
-            break
-            
+        let id = accessor[XMLAttributeName.id].text ?? ""
+        let metadata = createMetadata(for: id, from: accessor.attributes)
+        if let element = accessor[XMLTagName.metadata].element {
+            return parseMetadata(for: element, extending: metadata)
         }
         return metadata
     }
-    
-    open func createMetadata(from attributes: [String: String]) -> Metadata {
-        let id = attributes[XMLAttributeName.id]
-        let options = attributes[XMLAttributeName.options]?.split(by: "\\s*,\\s*").map({ MetadataOption($0) }) ?? []
-        let categories = attributes[XMLAttributeName.category]?.split(by: "\\s*,\\s*") ?? []
-        let metadata = Metadata(id: id,
-                                options: options,
-                                categories: categories,
-                                attributes: attributes)
+
+    open func parseMetadata(for element: XML.Element, extending metadata: Metadata? = nil) -> Metadata {
+
+        let id = element.attributes[XMLAttributeName.id] ?? ""
+        let metadata = metadata ?? createMetadata(for: id, from: element.attributes)
+
+        element.childElements.forEach {
+
+            switch $0.name {
+
+            case XMLTagName.reference.rawValue:
+                if let text = $0.text, let reference = Metadata.Reference(string: text) {
+                    metadata.references.append(reference)
+                }
+
+            case XMLTagName.directive.rawValue:
+                break
+
+            default:
+                break
+
+            }
+
+        }
+
+        return metadata
+
+    }
+
+    open func parseMetadata(for word: [String: Any]? = nil) -> Metadata {
+        return Metadata(from: word)
+    }
+
+    open func createMetadata(for id: String, from attributes: [String: Any]) -> Metadata {
+        let metadata = Metadata(from: attributes)
+        metadata.id = id
         return metadata
     }
     

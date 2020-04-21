@@ -32,6 +32,9 @@ public protocol GrammaticalMatcher: class {
 
 /// Specifications for a grammar matcher delegate.
 public protocol GrammaticalMatcherDelegate: class {
+
+    typealias Metadata = Grammar.Metadata
+    typealias SyntaxTree = Grammar.SyntaxTree
     
     /// Called when a grammar matcher skips a token.
     ///
@@ -40,10 +43,9 @@ public protocol GrammaticalMatcherDelegate: class {
     ///     - token: that was skipped.
     ///     - characterStream: `matcher` is matching.
     ///     - parentTree: containing all tokenzied/parses information.
-    func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream, parentTree: Grammar.SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream, parentTree: SyntaxTree?)
     
-    /// Called when a grammar matcher generates a syntax.
-    /// Overload for `matcher(_:didGenerate:characterStream:tokenStream:)`.
+    /// Called when a grammar matcher generates a syntax tree.
     ///
     /// - Parameters:
     ///     - matcher: that called this method.
@@ -51,17 +53,16 @@ public protocol GrammaticalMatcherDelegate: class {
     ///     - characterStream: `matcher` is matching.
     ///     - tokenStream: generated, or being parsed, by `matcher`.
     ///     - parentTree: containing all tokenzied/parses information.
-    func matcher(_ matcher: GrammaticalMatcher, didGenerate syntaxTree: Grammar.SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didGenerate syntaxTree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?)
     
     /// Called when a grammar matcher finishes a job.
-    /// Overload for `matcher(_:didFinishMatching:tokenStream:)`.
     ///
     /// - Parameters:
     ///     - matcher: that called this method.
     ///     - characterStream: `matcher` is matching.
     ///     - tokenStream: generated, or parsed, by `matcher`.
     ///     - parentTree: containing all tokenzied/parses information.
-    func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?)
     
 }
 

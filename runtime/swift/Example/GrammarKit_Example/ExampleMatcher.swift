@@ -11,17 +11,17 @@ import GrammarKit
 ///
 class ExampleMatcher: CompoundGrammaticalMatcher {
     
-    lazy var nestedRanges: [NSRange] = [NSRange]()
+    lazy var nestedRanges = [NSRange]()
     
     ///
     /// - parameter characterStream:
     /// - parameter offset:
     /// - parameter verbose:
-    func match(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil) {
+    func match(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, rules: [GrammarRule]? = nil) {
         if let length = length {
-            match(characterStream, within: NSMakeRange(offset, length))
+            match(characterStream, within: NSMakeRange(offset, length), rules: rules)
         } else {
-            match(characterStream, within: characterStream?.range.shiftingLocation(by: offset))
+            match(characterStream, within: characterStream?.range.shiftingLocation(by: offset), rules: rules)
         }
     }
     
@@ -29,21 +29,20 @@ class ExampleMatcher: CompoundGrammaticalMatcher {
     /// - parameter characterStream:
     /// - parameter offset:
     /// - parameter verbose:
-    func match(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
+    func match(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
         if options.contains(.verbose) {
             print()
             print("----- Tokenizing Character Stream -----")
             print()
         }
-        tokenize(characterStream, within: streamRange, parentTree: parentTree)
+        tokenize(characterStream, within: streamRange, parentTree: parentTree, rules: rules)
     }
     
     override func matcher(_ matcher: GrammaticalMatcher, didGenerate tree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
         super.matcher(matcher, didGenerate: tree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
         if options.contains(.verbose) { print(tree) }
-        if tree.rule?.has(option: .nested) == true && tree.maxRange < characterStream.length {
-            nestedRanges.append(tree.innerRange)
-        }
+        guard let rule = tree.rule, rule.has(option: .nested) == true && tree.maxRange < characterStream.length else { return }
+        nestedRanges.append(tree.range[(1, -2)])
     }
     
     override func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
@@ -71,17 +70,16 @@ class ExampleMatcher: CompoundGrammaticalMatcher {
                 print("Parser did finish parsing token stream")
                 print()
             }
-            if nestedRanges.count > 0 {
-                let range = nestedRanges.removeFirst()
-                if range.max < characterStream.length {
-                    match(characterStream, from: range.max)
-                }
-            }
-            break
-            
+//            if nestedRanges.count > 0 {
+//                let range = nestedRanges.removeFirst()
+//                if range.max < characterStream.length {
+//                    match(characterStream, from: range.max)
+//                }
+//            }
+
         default:
             break
-            
+
         }
         
     }

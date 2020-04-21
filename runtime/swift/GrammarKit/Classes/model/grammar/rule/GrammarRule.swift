@@ -48,57 +48,66 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     
     override open var description: String {
         
-        var description = ""
+        var strings = [String]()
         
         switch componentType {
             
         case .literal, .expression:
-            description += String(format: "'%@'%@", value, quantifier)
+            strings.append(String(format: "'%@'%@", value, quantifier))
             break
             
         case .composite:
             break
             
         default:
-            description += String(format: "%@%@", value, quantifier)
+            strings.append(String(format: "%@%@", value, quantifier))
             break
             
         }
         
         if subrules.count > 0 {
-            var strings = [String]()
-            subrules.forEach { strings.append($0.description) }
-            description += String(format: " (%@)%@", strings.joined(separator: " | "), quantifier)
+            var substrings = [String]()
+            subrules.forEach { substrings.append($0.description) }
+            strings.append(String(format: " (%@)%@", substrings.joined(separator: " | "), quantifier))
         }
         
-        if let next = next { description += String(format: " %@", next) }
-        if inverted { description = String(format: "~%@", description) }
+        if let next = next { strings.append(String(format: " %@", next)) }
+        if inverted { strings = [String(format: "~%@", strings.joined())] }
         
-        return description.trimmingCharacters(in: .whitespacesAndNewlines)
+        return strings.joined().trimmed(true)
+
     }
     
     open var treeDescription: String {
-        return String(format: "%@ [%@]\n\t %@", id, precedence, description)
+        return String(format: "%@ [%@]\n\t%@\n%@", id, precedence, description, metadata)
     }
+
+    // MARK: - Node Properties
     
     open weak var parent: NodeType?
-    
-    open weak var previous: NodeType?
-    
-    open var next: NodeType? {
-        didSet { updateNext() }
-    }
-    
+
+    // MARK: - Tree Properties
+
     open var children = [NodeType]() {
         didSet { updateChildren() }
     }
-    
+
     /// Subrules of this grammar rule.
     /// Alias for `children`.
     open var subrules: [NodeType] {
         get { return children }
         set { children = newValue }
     }
+
+    // MARK: - NodeChain Properties
+    
+    open weak var previous: NodeType?
+    
+    open var next: NodeType? {
+        didSet { updateNext() }
+    }
+
+    // MARK: - Instance Properties
     
     /// Mininum length of this rule in terms of node depth.
     open var minLength: Int {

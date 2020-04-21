@@ -22,29 +22,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-extension GrammarLoader {
-    
-    /// OptionSet 0 representing the different options that can be used
-    /// when loading a grammar.
-    public struct Option: OptionSet {
-        
-        public typealias This = Option
-        public typealias RawValue = UInt
-        
-        public let rawValue: RawValue
-        
-        /// Indicates that the grammar should be loaded verbosely, printing
-        /// debug related information to the standard output.
-        public static let verbose = This(1 << 0)
-        
-        public init(_ rawValue: RawValue) {
-            self.rawValue = rawValue
+import Foundation
+
+extension Grammar.Metadata {
+
+    public struct Reference: Codable {
+
+        public let url: URL
+
+        public init(url: URL) {
+            self.url = url
         }
-        
-        public init(rawValue: RawValue) {
-            self.rawValue = rawValue
+
+        public init?(string: String) {
+            guard let url = URL(string: string) else { return nil }
+            self.init(url: url)
         }
-        
+
     }
-    
+
+}
+
+extension Grammar.Metadata.Reference: CustomStringConvertible {
+
+    public var description: String {
+        return url.absoluteString
+    }
+
+}
+
+extension Grammar.Metadata.Reference: CVarArg {
+
+    public var _cVarArgEncoding: [Int] {
+        return description._cVarArgEncoding
+    }
+
 }

@@ -1,60 +1,124 @@
 //
-//  BaseGrammar.swift
-//  GrammarKit
+// The MIT License (MIT)
 //
-//  Created by NoodleOfDeath on 8/26/18.
-//  Copyright © 2018 NoodleOfDeath. All rights reserved.
+// Copyright © 2020 NoodleOfDeath. All rights reserved.
+// NoodleOfDeath
 //
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
-import Foundation
-import Main.SwiftyXMLParser
+func test() -> ((Bool) -> ())? {
+    return true
+}
 
-associatedtype
+let letters = [ "a", "b", "c" ]
+for letter in letter {
+    print(letter)
+}
 
-var count = (20 << 10) as? UInt ?? (10 + 3)
-count += 6
+if true {
 
-/// Base implementation of a grammar.
+} else if false {
+
+} else {
+
+}
+
+let range = 0 ... 100
+
+do {
+    try? JSONSerialization.jsonObject()
+} catch let error {
+
+}
+
+repeat {
+
+} while true
+
 @objc
-open class Grammar : NSObject {
+public protocol GrammaticalMatcher: class {
+
+    typealias Metadata = Grammar.Metadata
+    typealias SyntaxTree = Grammar.SyntaxTree
+
+}
+
+/// Specifications for a grammar matcher delegate.
+public protocol GrammaticalMatcherDelegate: class {
     
+    /// Called when a grammar matcher skips a token.
     ///
-    @objc
-    struct XMLTag {
-        public static let grammar = "grammar"
-        public static let lexerRules = "lexer-rules"
-        public static let parserRules = "parser-rules"
-        public static let rule = "rule"
-        public static let definition = "definition"
-        public static let word = "word"
-    }
+    /// - Parameters:
+    ///     - matcher: that called this method.
+    ///     - token: that was skipped.
+    ///     - characterStream: `matcher` is matching.
+    ///     - parentTree: containing all tokenzied/parses information.
+    func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream, parentTree: Grammar.SyntaxTree?)
     
+    /// Called when a grammar matcher generates a syntax.
+    /// Overload for `matcher(_:didGenerate:characterStream:tokenStream:)`.
     ///
-    struct k {
-        
-        public static let PackageExtension = "grammar"
-        public static let PackageConfigFile = "grammar.xml"
-        public static let UnmatchedRuleId = "UNMATCHED"
-        public static let UnmatchedRuleExpr = "."
-        public static let UnmatchedRuleOrder = 20
-        
-    }
+    /// - Parameters:
+    ///     - matcher: that called this method.
+    ///     - syntaxTree: that was generated.
+    ///     - characterStream: `matcher` is matching.
+    ///     - tokenStream: generated, or being parsed, by `matcher`.
+    ///     - parentTree: containing all tokenzied/parses information.
+    func matcher(_ matcher: GrammaticalMatcher, didGenerate syntaxTree: Grammar.SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
     
-    /// Package name of this grammar.
-    open var packageName: String = ""
+    /// Called when a grammar matcher finishes a job.
+    /// Overload for `matcher(_:didFinishMatching:tokenStream:)`.
+    ///
+    /// - Parameters:
+    ///     - matcher: that called this method.
+    ///     - characterStream: `matcher` is matching.
+    ///     - tokenStream: generated, or parsed, by `matcher`.
+    ///     - parentTree: containing all tokenzied/parses information.
+    func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: Grammar.SyntaxTree?)
     
-    /// Constructs a new grammar with no rules.
-    public override init() {
-        
+}
+
+
+/// Base abstract class for a grammar matching.
+open class BaseGrammaticalMatcher: NSObject, GrammaticalMatcher {
+
+    /// Delegate of this grammar matcher.
+    open weak var delegate: GrammaticalMatcherDelegate?
+    
+    /// Grammar of this matcher.
+    public let grammar: Grammar
+    
+    /// Options of this grammar matcher.
+    open var options: GrammaticalMatcherOption = []
+    
+    /// Constructs a new grammar matcher with an initial grammar.
+    ///
+    /// - Parameters:
+    ///     - grammar: to initialize this matcher with.
+    public init(grammar: Grammar, options: GrammaticalMatcherOption = []) {
+        self.grammar = grammar
+        self.options = options
     }
     
 }
 
-extension Grammar: GrammarRuleGenerator {
-    
-    ///
-    open func generateRule(_ id: String, with definition: String = "", type: GrammarRuleClass = .atom, grammar: Grammar? = nil) -> GrammarRule {
-        return GrammarRule(id: id, value: definition, type: type, grammar: self)
-    }
-    
+extension BaseGrammaticalMatcher {
+
+
 }

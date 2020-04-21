@@ -36,8 +36,8 @@ extension Grammar {
         
         /// Indicates that this rule should not be added to the
         /// rule map of enumerated rules of this container grammar.
-        public static let omit = This("omit")
-        
+        public static let fragment = This("fragment")
+
         /// Indicates that the lexer/parser should skip notifiying
         /// observers when this rule encounters matches.
         public static let skip = This("skip")
@@ -49,17 +49,9 @@ extension Grammar {
         /// Indicates that the rule can span over multiple lines.
         public static let multiline = This("multiline")
         
-        /// Indicates that the rule contains nested scopes that
-        /// were not scanned.
+        /// Indicates that the rule contains nested scopes.
         public static let nested = This("nested")
-        
-        /// Indicates that the rule should be catalogged by the IDE.
-        public static let index = This("index")
-        
-        /// Indicates that the rule contains the identifier to an imported
-        /// file reference.
-        public static let reference = This("reference")
-        
+
         public init(rawValue: RawValue) {
             self.rawValue = rawValue
         }
@@ -80,4 +72,12 @@ extension Grammar {
         
     }
     
+}
+
+extension Grammar.MetadataOption: CustomStringConvertible {
+
+    public var description: String {
+        return rawValue
+    }
+
 }

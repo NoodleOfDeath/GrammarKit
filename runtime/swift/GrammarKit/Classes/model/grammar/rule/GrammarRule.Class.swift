@@ -36,7 +36,7 @@ extension GrammarRule {
         
         /// Parser Rule class.
         case parserRule
-        
+
         /// `true` if `self == .unknown`.
         public var isUnknown: Bool {
             return self == .unknown

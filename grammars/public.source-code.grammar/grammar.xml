@@ -14,8 +14,13 @@
 		</rule>
 
 		<!-- Code Blocks -->
-		<rule id="BLOCK" precedence="=WHITESPACE" options="multiline">
+		<rule id="BLOCK" precedence="=WHITESPACE" options="multiline,nested">
 			<definition>L_BRACE (BLOCK | ~R_BRACE)* (R_BRACE | '\Z')</definition>
+			<metadata>
+				<directive>
+					<sequence>subrange (1, length -1), rescan</sequence>
+				</directive>
+			</metadata>
 		</rule>
 
 		<!-- Strings -->
@@ -118,12 +123,16 @@
 
 		<!-- Lexer Rules -->
 
-		<rule id="math_operator" options="omit">
+		<rule id="math_operator" options="fragment">
+			<definition></definition>	
+		</rule>
 
+		<rule id="logic_operator" options="fragment">
+			<definition></definition>
 		</rule>
 
 		<!-- Lexer Fragments -->
-		<rule id="operator" options="omit">
+		<rule id="operator" options="fragment">
 			<definition>BITWISE_OPERATOR | LOGIC_OPERATOR | LT_OPERATOR | GT_OPERATOR | EQ_OPERATOR | ADD_OPERATOR | SUB_OPERATOR | MULT_OPERATOR | DIV_OPERATOR | INCREMENTAL_ASSIGNMENT_OPERATOR</definition>
 		</rule>
 		

@@ -151,6 +151,10 @@ extension NSRange {
 
 // MARK: - NSRange Shifting Extensions
 extension NSRange {
+
+    subscript(_ offset: (loc: Int, length: Int)) -> NSRange {
+        return NSMakeRange(location + offset.loc, length + offset.length)
+    }
     
     /// Shifts the location of this range by a specified offset and adjusts
     /// its length to have the same end index, unless `true` is passed for

@@ -28,44 +28,64 @@ extension Grammar {
     
     /// Data structure for metadata relating to a grammar rules.
     open class Metadata: NSObject, TreeChain, Codable {
-        
+
+        public typealias This = Metadata
         public typealias NodeType = Metadata
+
+        public static var nodeCount: Int = 0
         
         enum CodingKeys: String, CodingKey {
             case next
             case children
+            case baseId
             case id
+            case description
             case options
             case categories
-            case attributes
             case references
+            case directives
         }
-        
+
         override open var description: String {
-            var description = String(format: "%@: %@, %@", id, options.debugDescription, categories.debugDescription)
-            if count > 0 {
-                var strings = [String]()
-                children.forEach { strings.append($0.description) }
-                description += String(format: " (%@)", strings.joined(separator: " | "))
+            var strings = [String]()
+            strings.append("- Options: \(options)")
+            strings.append("- Categories: \(categories)")
+            if let description = detailedDescription {
+                strings.append("- Description: \(description)")
             }
-            if let next = next { description += String(format: " -> %@", next) }
-            return description.trimmingCharacters(in: .whitespacesAndNewlines)
+            references.forEach({ strings.append("- Reference: \($0)") })
+            directives.forEach({ strings.append("- Directive: \($0)") })
+            return strings.joined(separator: "\n")
         }
+
+        // MARK: - Node Properties
         
-        open var parent: NodeType?
-        
+        open var parent: NodeType? {
+            didSet {
+                guard let parent = parent else { return }
+                id = String(format: "%@.%@", parent.id, baseId)
+            }
+        }
+
+        // MARK: - Tree Properties
+
+        open var children = [NodeType]() { didSet { updateChildren() } }
+
+        // MARK: - NodeChain Properties
+
         open var previous: NodeType?
         
-        open var next: NodeType? {
-            didSet { updateNext() }
-        }
+        open var next: NodeType? { didSet { updateNext() } }
+
+        // MARK: - Instance Properties
+
+        fileprivate let baseId: String
         
-        open var children = [NodeType]() {
-            didSet { updateChildren() }
-        }
-        
-        /// Unique identifier of this metadata group.
-        public let id: String
+        /// Unique identifier of this metadata.
+        public var id: String
+
+        /// Detailed description of this metadata.
+        public var detailedDescription: String?
         
         /// Options of this component.
         public var options: [MetadataOption]
@@ -75,66 +95,87 @@ extension Grammar {
         
         /// Category of this component.
         public var category: String? { return categories.first }
-        
-        /// Attributes of this metadata.
-        public var attributes: [String: String]
 
-        /// References
-        public var references = [URL]()
-        
+        /// References of this metadata.
+        public var references = [Reference]()
+
+        /// Additional directives for the lexer/parser to handle upon matching.
+        public var directives = [Directive]()
+
         // MARK: - Constructor Methods
-        
-        ///
+
+        /// Constructs a new metadata instance with a initial, id, options,
+        /// categories, attributes, references, and directives.
         ///
         /// - Parameters:
-        ///     - id:
-        ///     - options:
-        ///     - categories:
-        ///     - attributes:
-        ///     - references:
-        public required init(id: String? = nil,
-                             options: [MetadataOption]? = nil,
-                             categories: [String]? = nil,
-                             attributes: [String: String]? = nil,
-                             references: [URL]? = nil) {
-            self.id = id ?? ""
-            self.options = options ?? []
-            self.categories = categories ?? []
-            self.attributes = attributes ?? [:]
-            self.references = references ?? []
+        ///     - id: of this metadata.
+        ///     - detailedDescription: of this metadata.
+        ///     - options: of this metadata.
+        ///     - categories: of this metadata.
+        ///     - references: of this metadata.
+        ///     - directives: of this metadata.
+        public required init(id: String,
+                             detailedDescription: String?,
+                             options: [MetadataOption],
+                             categories: [String],
+                             references: [Reference],
+                             directives: [Directive]) {
+            self.baseId = id
+            self.id = id
+            self.detailedDescription = detailedDescription
+            self.options = options
+            self.categories = categories
+            self.references = references
+            self.directives = directives
+            This.nodeCount += 1
+        }
+
+        /// Constructs a new metadata instance from a dictionary.
+        ///
+        /// - Parameters:
+        ///     - dict: to load values from.
+        public convenience init(from dict: [String: Any]? = nil) {
+            let id = dict?[CodingKeys.id] as? String ?? String(This.nodeCount)
+            let detailedDescription = dict?[CodingKeys.description] as? String
+            let options = (dict?[CodingKeys.options] as? [String])?.map({ MetadataOption($0) }) ?? []
+            let categories = (dict?[CodingKeys.categories] as? [String]) ?? []
+            let references = (dict?[CodingKeys.references] as? [String])?.map({ Reference(string: $0) }).filter({ $0 != nil }) as? [Reference] ?? []
+            let directives = (dict?[CodingKeys.directives] as? [String])?.map({ Directive(string: $0) }).filter({ $0 != nil }) as? [Directive] ?? []
+            self.init(id: id,
+                      detailedDescription: detailedDescription,
+                      options: options,
+                      categories: categories,
+                      references: references,
+                      directives: directives)
         }
         
         public required init(from decoder: Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
             next = try values.decodeIfPresent(Metadata.self, forKey: .next)
             children = try values.decode([Metadata].self, forKey: .children)
+            baseId = try values.decode(String.self, forKey: .baseId)
             id = try values.decode(String.self, forKey: .id)
+            detailedDescription = try values.decodeIfPresent(String.self, forKey: .description)
             options = try values.decode([MetadataOption].self, forKey: .options)
             categories = try values.decode([String].self, forKey: .categories)
-            attributes = try values.decode([String: String].self, forKey: .attributes)
-            references = try values.decode([URL].self, forKey: .references)
+            references = try values.decode([Reference].self, forKey: .references)
+            directives = try values.decode([Directive].self, forKey: .directives)
             super.init()
             updateChildren()
             updateNext()
-        }
-
-        public static func + (lhs: Metadata, rhs: Metadata) -> Metadata {
-            lhs.options += rhs.options
-            lhs.categories += rhs.categories
-            lhs.attributes += rhs.attributes
-            lhs.references += rhs.references
-            return lhs
         }
 
         public func encode(to encoder: Encoder) throws {
             var container = encoder.container(keyedBy: CodingKeys.self)
             try container.encodeIfPresent(next, forKey: .next)
             try container.encode(children, forKey: .children)
+            try container.encode(baseId, forKey: .baseId)
             try container.encode(id, forKey: .id)
+            try container.encodeIfPresent(detailedDescription, forKey: .description)
             try container.encode(options, forKey: .options)
             try container.encode(categories, forKey: .categories)
-            try container.encode(attributes, forKey: .attributes)
             try container.encode(references, forKey: .references)
+            try container.encode(directives, forKey: .directives)
         }
         
         // MARK: - Instance Methods
@@ -161,15 +202,34 @@ extension Grammar {
             return options.contains(MetadataOption(option))
         }
         
-        ///
+        /// Returns `true` if, and only if, `self.categories` contains any
+        /// element in `categories`; `false`, otherwise.
         ///
         /// - Parameters:
         ///     - categories: to test for membership
-        /// - Returns:
+        /// - Returns: `true` if, and only if, `self.categories` contains any
+        /// element in `categories`; `false`, otherwise.
         public func isMemberOf(_ categories: String...) -> Bool {
             return self.categories.first { categories.contains($0) } != nil
         }
         
     }
     
+}
+
+// MARK: - Metadata Addition Operations
+extension Grammar.Metadata {
+
+    public static func + (lhs: Grammar.Metadata, rhs: Grammar.Metadata) -> Grammar.Metadata {
+        lhs.options += rhs.options
+        lhs.categories += rhs.categories
+        lhs.references += rhs.references
+        lhs.directives += rhs.directives
+        return lhs
+    }
+
+    public static func += (lhs: inout Grammar.Metadata, rhs: Grammar.Metadata) {
+        lhs = lhs + rhs
+    }
+
 }

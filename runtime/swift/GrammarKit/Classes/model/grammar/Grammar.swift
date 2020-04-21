@@ -34,7 +34,7 @@ open class Grammar: NSObject, Codable {
     
     public static let unmatchedRuleId = "UNMATCHED"
     public static let unmatchedRuleExpr = "."
-    public static let unmatchedRuleOrder = "min"
+    public static let unmatchedRuleOrder = ["min"]
     
     // MARK: - CustomStringConvertible Properties
     
@@ -126,8 +126,8 @@ open class Grammar: NSObject, Codable {
     /// `rules` map.
     open func deriveRuleSets() {
         let flatMap = rules.map { $1 }
-        lexerRules = flatMap.filter { !$0.has(option: .omit) && $0.ruleClass == .lexerRule }
-        parserRules = flatMap.filter { !$0.has(option: .omit) && $0.ruleClass == .parserRule }
+        lexerRules = flatMap.filter { !$0.has(option: .fragment) && $0.ruleClass == .lexerRule }
+        parserRules = flatMap.filter { !$0.has(option: .fragment) && $0.ruleClass == .parserRule }
         sortRules()
     }
     

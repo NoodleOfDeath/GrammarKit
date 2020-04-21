@@ -75,7 +75,7 @@ extension NodeChain {
     
     /// Length of this node chain with this node as the start offset. A value
     /// of `0` indicates this node chain has no younger siblings.
-    var chainLength: Int {
+    public var chainLength: Int {
         return (next?.chainLength ?? 0) + 1
     }
     

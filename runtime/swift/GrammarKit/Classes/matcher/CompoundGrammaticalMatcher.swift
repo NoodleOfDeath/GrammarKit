@@ -51,8 +51,8 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     ///     - characterStream:
     ///     - offset:
     ///     - length:
-    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil) {
-        lexer?.tokenize(characterStream, from: offset, length: length, parentTree: parentTree)
+    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
+        lexer?.tokenize(characterStream, from: offset, length: length, parentTree: parentTree, rules: rules)
     }
     
     ///
@@ -60,8 +60,8 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     /// - Parameters:
     ///     - characterStream:
     ///     - streamRange:
-    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
-        lexer?.tokenize(characterStream, within: streamRange, parentTree: parentTree)
+    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
+        lexer?.tokenize(characterStream, within: streamRange, parentTree: parentTree, rules: rules)
     }
     
     ///
@@ -70,8 +70,8 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     ///     - tokenStream:
     ///     - offset:
     ///     - length:
-    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil) {
-        parser?.parse(tokenStream, from: offset, length: length, parentTree: parentTree)
+    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
+        parser?.parse(tokenStream, from: offset, length: length, parentTree: parentTree, rules: rules)
     }
     
     ///
@@ -79,8 +79,8 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     /// - Parameters:
     ///     - tokenStream:
     ///     - streamRange:
-    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
-        parser?.parse(tokenStream, within: streamRange, parentTree: parentTree)
+    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
+        parser?.parse(tokenStream, within: streamRange, parentTree: parentTree, rules: rules)
     }
     
 }

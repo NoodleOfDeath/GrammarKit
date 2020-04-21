@@ -31,11 +31,11 @@ open class Lexer: BaseGrammaticalMatcher {
     ///     - characterStream:
     ///     - offset:
     ///     - length:
-    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil) {
+    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
         if let length = length {
-            tokenize(characterStream, within: NSMakeRange(offset, length), parentTree: parentTree)
+            tokenize(characterStream, within: NSMakeRange(offset, length), parentTree: parentTree, rules: rules)
         } else {
-            tokenize(characterStream, within: characterStream?.range.shiftingLocation(by: offset), parentTree: parentTree)
+            tokenize(characterStream, within: characterStream?.range.shiftingLocation(by: offset), parentTree: parentTree, rules: rules)
         }
     }
     
@@ -44,13 +44,15 @@ open class Lexer: BaseGrammaticalMatcher {
     /// - Parameters:
     ///     - characterStream:
     ///     - streamRange:
-    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil) {
+    ///     - parentTree:
+    ///     - rules:
+    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
         guard let characterStream = characterStream else { return }
         var streamRange = streamRange ?? characterStream.range
         let tokenStream = TokenStream(characterStream: characterStream)
         while streamRange.location < characterStream.length {
             var syntaxTree = SyntaxTree(treeClass: .lexerTree)
-            for rule in grammar.lexerRules {
+            for rule in (rules ?? grammar.lexerRules) {
                 syntaxTree = tokenize(characterStream, rule: rule, within: streamRange, parentTree: parentTree)
                 if syntaxTree.matches || rule == grammar.unmatchedRule {
                     syntaxTree.rule = rule
@@ -83,10 +85,14 @@ open class Lexer: BaseGrammaticalMatcher {
     }
     
     ///
-    /// - parameter characterStream:
-    /// - parameter rule:
-    /// - parameter offset:
-    /// - parameter syntaxTree:
+    ///
+    /// - Parameters:
+    ///     - characterStream:
+    ///     - rule:
+    ///     - offset:
+    ///     - syntaxTree:
+    ///     - parentTree:
+    ///     - metadata:
     /// - Returns:
     public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, syntaxTree: SyntaxTree? = nil, parentTree: SyntaxTree? = nil, metadata: Metadata? = nil) -> SyntaxTree {
         
@@ -134,8 +140,6 @@ open class Lexer: BaseGrammaticalMatcher {
                                     metadata: rule.metadata)
             }
             
-            break
-            
         case .composite:
             
             if rule.subrules.count > 0 {
@@ -173,8 +177,6 @@ open class Lexer: BaseGrammaticalMatcher {
                 
             }
                 
-            break
-            
         default:
             // .literal, .expression
             
@@ -211,8 +213,6 @@ open class Lexer: BaseGrammaticalMatcher {
                                            range: range)
             }
                 
-            break
-            
         }
         
         if (!rule.quantifier.hasRange && matchCount > 0) || rule.quantifier.optional || rule.quantifier.matches(matchCount) {

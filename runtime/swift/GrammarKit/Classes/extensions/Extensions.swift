@@ -268,24 +268,24 @@ extension Range where Bound == Int {
 }
 
 ///
-struct StringFormattingOption: BaseOptionSet {
+public struct StringFormattingOption: BaseOptionSet {
     
-    typealias This = StringFormattingOption
-    typealias RawValue = Int
+    public typealias This = StringFormattingOption
+    public typealias RawValue = Int
     
-    static let escaped = This(1 << 0)
+    public static let escaped = This(1 << 0)
     
-    static let stripOuterBraces = This(1 << 1)
+    public static let stripOuterBraces = This(1 << 1)
     
-    static let stripOuterBrackets = This(1 << 2)
+    public static let stripOuterBrackets = This(1 << 2)
     
-    static let stripOuterParentheses = This(1 << 3)
+    public static let stripOuterParentheses = This(1 << 3)
     
-    static let truncate = This(1 << 4)
+    public static let truncate = This(1 << 4)
     
-    let rawValue: RawValue
+    public let rawValue: RawValue
     
-    init(rawValue: RawValue) {
+    public init(rawValue: RawValue) {
         self.rawValue = rawValue
     }
     
@@ -375,6 +375,15 @@ extension String {
 
 // MARK: - String Method Extensions (NSString Bridging Methods)
 extension String {
+
+    var trimmed: String {
+        return trimmed()
+    }
+
+    /// Trims the whitespaces and optionally newlines of this strings.
+    func trimmed(_ includingNewlines: Bool = false)  -> String {
+        return trimmingCharacters(in: (includingNewlines ? .whitespacesAndNewlines : .whitespaces))
+    }
     
     /// Returns a new string containing the characters of the receiver up to,
     /// but not including, the one at a given index.

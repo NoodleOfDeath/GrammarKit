@@ -63,28 +63,30 @@ extension Grammar {
         }
         
         override open var description: String {
-            return String(format: "%@: [%@] { %ld token(s) } (%ld, %ld)[%ld]",
+            return String(format: "%@ { %ld token(s) } (%ld, %ld)[%ld]:\n\t%@",
                           rule?.id ?? "No Match",
-                          treeClass.isLexerTree ? string.format(using: .escaped) :
-                            (treeClass.isParserTree ? tokens.description : string),
-                          count, start, start + length, length)
+                          count, start, start + length, length,
+                          (treeClass.isLexerTree ? string.format(using: .escaped) :
+                            (treeClass.isParserTree ? tokens.map({ $0.descriptionWith(format: .escaped) }).joined(separator: "\n\t") : string)))
         }
         
         open var treeDescription: String {
             return description
         }
 
-        // MARK: Node Properties
+        // MARK: - Node Properties
         
         open var parent: NodeType?
 
         // MARK: - Tree Properties
+
+        open var children = [NodeType]()
+
+        // MARK: - NodeChain Properties
         
         open var previous: NodeType?
         
         open var next: NodeType?
-        
-        open var children = [NodeType]()
         
         // MARK: - Instance Properties
         
@@ -107,12 +109,6 @@ extension Grammar {
         /// Shorthand for `location + length` or `range.max`.
         open var maxRange: Int {
             return start + length
-        }
-        
-        /// Returns the range of this syntax tree after omitting its first and
-        /// last tokens.
-        open var innerRange: NSRange {
-            return NSMakeRange(start + 1, length - 2)
         }
         
         /// Tokens collected by this syntax tree.

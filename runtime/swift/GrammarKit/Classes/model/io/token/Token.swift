@@ -37,12 +37,21 @@ open class Token: NSObject, Codable {
     // MARK: - CustomStringConvertible Properties
     
     override open var description: String {
-        return String(format: "%@: \"%@\" (%d, %d)[%d]",
+        return String(format: "%@ (%d, %d)[%d]: \"%@\"",
                       rule?.id ?? "",
-                      value,
                       range.location,
                       range.max,
-                      range.length)
+                      range.length,
+                      value)
+    }
+
+    open func descriptionWith(format: StringFormattingOption) -> String {
+        return String(format: "%@ (%d, %d)[%d]: \"%@\" ",
+                        rule?.id ?? "",
+                        range.location,
+                        range.max,
+                        range.length,
+                        value.format(using: format))
     }
     
     // MARK: - Instance Properties
