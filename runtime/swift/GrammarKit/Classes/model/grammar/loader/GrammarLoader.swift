@@ -288,7 +288,9 @@ open class GrammarLoader: NSObject {
     open func createRule(with id: String, attributes: [String: Any] = [:], definition: String, for grammar: Grammar) -> GrammarRule? {
 
         var definition = definition
-        if let data = definition.data(using: .utf8) {
+        let metadata = createMetadata(for: id, from: attributes)
+        if  metadata.has(option: .dictionary),
+            let data = definition.data(using: .utf8) {
             if let dictionary = (try? JSONSerialization.jsonObject(with: data, options: [.allowFragments])) as? [[String: Any]] {
                 var words = [String]()
                 for word in dictionary {
@@ -310,7 +312,6 @@ open class GrammarLoader: NSObject {
         if let precedence = attributes[AttributeKey.precedence] as? [String] {
             rule.precedence = GrammarRule.Precedence(id: id, precedence)
         }
-        let metadata = createMetadata(for: id, from: attributes)
         rule.metadata = metadata
 
         return rule

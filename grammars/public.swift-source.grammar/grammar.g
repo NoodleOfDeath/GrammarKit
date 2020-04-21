@@ -1,6 +1,23 @@
 grammar public.source-code;
 import public.source-code;
 
+// Lexer Rule Fragments
+
+fragment OPTIONAL_WRAPPER:
+	'\?';
+fragment STRICT_WRAPPER:
+	'\!';
+
+fragment ONE_LINE_DOCUMENTATION:
+	'\/\/\/.*';
+fragment ONE_LINE_COMMENT:
+	'\/\/.*';
+
+fragment MULTILINE_DOCUMENTATION:
+	'\/\*(?s:.*?)(\*\/|\Z)';
+fragment MULTILINE_COMMENT:
+	'\/\*(?s:.*?)(\*\/|\Z)';
+
 // Lexer Rules
 
 DOCUMENTATION_BLOCK { "precedence": [ "<WHITESPACE", ">STRING" ], "options": [ "multiline" ] }:
@@ -26,7 +43,7 @@ NAMESPACE { "precedence": [ ">ID", "<KEYWORD" ], "options": [] }:
 ANNOTATION { "precedence": [ ">ID", "<KEYWORD" ], "options": [] }:
 	'@[\p{L}]+' (L_PAREN (STRING COMMA)* STRING R_PAREN)?;
 		
-KEYWORD { "precedence": [ "<TOKEN", "<OPERATOR", "<NUMBER" ], "options": [] }:
+KEYWORD { "precedence": [ "<TOKEN", "<OPERATOR", "<NUMBER" ], "options": [ "dictionary" ] }:
 [
     { "id" : "#available" },
     { "id" : "#colorLiteral" },
@@ -129,22 +146,73 @@ KEYWORD { "precedence": [ "<TOKEN", "<OPERATOR", "<NUMBER" ], "options": [] }:
     { "id" : "willSet" },
 ];
 
-// Lexer Rule Fragments
+// Parser Rule Fragments
 
-fragment OPTIONAL_WRAPPER:
-	'\?';
-fragment STRICT_WRAPPER:
-	'\!';
+fragment access_modifier:
+	'fileprivate' | 'final' | 'lazy' | 'private' | 'open' | 'override' | 'public' | 'static' | 'weak';
 
-fragment ONE_LINE_DOCUMENTATION:
-	'\/\/\/.*';
-fragment ONE_LINE_COMMENT:
-	'\/\/.*';
+fragment builtin_datatype:
+	'Bool' | 'Double' | 'Float' | 'String' | 'Int' | 'Void' | 'class';
 
-fragment MULTILINE_DOCUMENTATION:
-	'\/\*(?s:.*?)(\*\/|\Z)';
-fragment MULTILINE_COMMENT:
-	'\/\*(?s:.*?)(\*\/|\Z)';
+fragment builtin_value:
+	'false' | 'nil' | 'true';
+
+fragment variable_declaration_keyword:
+	'let' | 'var';
+
+fragment closure:
+    tuple RETURN_OPERATOR tuple;
+
+fragment datatype:
+	(builtin_datatype | (L_PAREN closure R_PAREN) | ID) NIL_WRAPPER_POSTFIX?;
+
+fragment datavalue:
+	builtin_value | literal_array | literal_range | tuple | method_invocation | KEYWORD | STRING | LITERAL_STRING | NUMBER | NAMESPACE | ID;
+
+fragment operator { "options": [ "extend" ] }:
+	NIL_COALESCING_OPERATOR;
+
+fragment type_extension:
+	COLON datatype (COMMA datatype)*;
+
+fragment variable_accessor:
+	datavalue (COLON datatype)?;
+
+fragment array_accessor:
+	datavalue L_BRACK datavalue R_BRACK;
+
+fragment lhs_assignment_clause:
+	array_accessor | variable_accessor;
+
+fragment rhs_assignment_clause:
+	(EQ_ASSIGNMENT_OPERATOR | INCREMENTAL_ASSIGNMENT_OPERATOR) expression;
+
+fragment simple_expression:
+	(datavalue (operator datavalue)?) | datatype;
+
+fragment opened_expression:
+	(closed_expression | simple_expression) typecast?;
+
+fragment closed_expression:
+	L_PAREN opened_expression R_PAREN;
+
+fragment typecast:
+	'as' NIL_WRAPPER_POSTFIX? datatype;
+
+fragment for_loop_expression:
+	(ID | tuple | UNDERSCORE) 'in' expression | expression;
+
+fragment parameter:
+	UNDERSCORE? ID COLON datatype;
+
+fragment parameters:
+	parameter (COMMA parameter)*;
+
+fragment argument:
+	(ID COLON)? datavalue;
+
+fragment arguments:
+	argument (COMMA argument)*;
 
 // Parser Rules
 
@@ -225,71 +293,3 @@ literal_range { "precedence" : [ ">expression" ] }:
 
 expression { "options": [] }:
 	opened_expression (operator opened_expression)*;
-
-// Parser Rule Fragments
-
-fragment access_modifier:
-	'fileprivate' | 'final' | 'lazy' | 'private' | 'open' | 'override' | 'public' | 'static' | 'weak';
-
-fragment builtin_datatype:
-	'Bool' | 'Double' | 'Float' | 'String' | 'Int' | 'Void' | 'class';
-
-fragment builtin_value:
-	'false' | 'nil' | 'true';
-
-fragment variable_declaration_keyword:
-	'let' | 'var';
-
-fragment closure:
-    tuple RETURN_OPERATOR tuple;
-
-fragment datatype:
-	(builtin_datatype | (L_PAREN closure R_PAREN) | ID) NIL_WRAPPER_POSTFIX?;
-
-fragment datavalue:
-	builtin_value | literal_array | literal_range | tuple | method_invocation | KEYWORD | STRING | LITERAL_STRING | NUMBER | NAMESPACE | ID;
-
-fragment operator { "options": [ "extend" ] }:
-	NIL_COALESCING_OPERATOR;
-
-fragment type_extension:
-	COLON datatype (COMMA datatype)*;
-
-fragment variable_accessor:
-	datavalue (COLON datatype)?;
-
-fragment array_accessor:
-	datavalue L_BRACK datavalue R_BRACK;
-
-fragment lhs_assignment_clause:
-	array_accessor | variable_accessor;
-
-fragment rhs_assignment_clause:
-	(EQ_ASSIGNMENT_OPERATOR | INCREMENTAL_ASSIGNMENT_OPERATOR) expression;
-
-fragment simple_expression:
-	(datavalue (operator datavalue)?) | datatype;
-
-fragment opened_expression:
-	(closed_expression | simple_expression) typecast?;
-
-fragment closed_expression:
-	L_PAREN opened_expression R_PAREN;
-
-fragment typecast:
-	'as' NIL_WRAPPER_POSTFIX? datatype;
-
-fragment for_loop_expression:
-	(ID | tuple | UNDERSCORE) 'in' expression | expression;
-
-fragment parameter:
-	UNDERSCORE? ID COLON datatype;
-
-fragment parameters:
-	parameter (COMMA parameter)*;
-
-fragment argument:
-	(ID COLON)? datavalue;
-
-fragment arguments:
-	argument (COMMA argument)*;

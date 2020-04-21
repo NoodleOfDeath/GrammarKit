@@ -52,6 +52,9 @@ extension Grammar {
         /// Indicates that the rule contains nested scopes.
         public static let nested = This("nested")
 
+        /// Indicates that the rule contains dictionary entries.
+        public static let dictionary = This("dictionary")
+
         public init(rawValue: RawValue) {
             self.rawValue = rawValue
         }

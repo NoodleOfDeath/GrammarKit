@@ -86,8 +86,6 @@ NUMBER { "precedence": [ "<OPERATOR", "<TOKEN" ], "options": [] }:
 
 ID { "precedence": [ "<NUMBER" ], "options": [] }:
 	'[\p{L}\_\$][\p{L}\_\$0-9]*';
-
-// Parser Rules
 	
 // Parser Fragments
 
@@ -97,3 +95,5 @@ fragment logic_operator;
 
 fragment operator:
 	BITWISE_OPERATOR | LOGIC_OPERATOR | LT_OPERATOR | GT_OPERATOR | EQ_OPERATOR | ADD_OPERATOR | SUB_OPERATOR | MLT_OPERATOR | DIV_OPERATOR | INCREMENTAL_ASSIGNMENT_OPERATOR;
+
+// Parser Rules
