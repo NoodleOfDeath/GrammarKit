@@ -25,7 +25,7 @@
 import Foundation
 
 /// Grammar matcher wrapper class that acts as both a lexer and parser.
-open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
+open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher, GrammaticalMatcherDelegate {
     
     /// Lexer of this compound grammar endine.
     open var lexer: Lexer? {
@@ -37,8 +37,8 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
         didSet { parser?.delegate = self }
     }
     
-    override public init(grammar: Grammar, options: GrammaticalMatcherOption = []) {
-        super.init(grammar: grammar, options: options)
+    override public init(grammar: Grammar) {
+        super.init(grammar: grammar)
         lexer = Lexer(grammar: grammar)
         lexer?.delegate = self
         parser = Parser(grammar: grammar)
@@ -51,8 +51,8 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     ///     - characterStream:
     ///     - offset:
     ///     - length:
-    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
-        lexer?.tokenize(characterStream, from: offset, length: length, parentTree: parentTree, rules: rules)
+    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, rules: [GrammarRule]? = nil) {
+        lexer?.tokenize(characterStream, from: offset, length: length, rules: rules)
     }
     
     ///
@@ -60,8 +60,8 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     /// - Parameters:
     ///     - characterStream:
     ///     - streamRange:
-    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
-        lexer?.tokenize(characterStream, within: streamRange, parentTree: parentTree, rules: rules)
+    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, rules: [GrammarRule]? = nil) {
+        lexer?.tokenize(characterStream, within: streamRange, rules: rules)
     }
     
     ///
@@ -70,8 +70,8 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     ///     - tokenStream:
     ///     - offset:
     ///     - length:
-    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
-        parser?.parse(tokenStream, from: offset, length: length, parentTree: parentTree, rules: rules)
+    public func parse(_ tokenStream: TokenStream<Token>?, from offset: Int, length: Int? = nil, rules: [GrammarRule]? = nil) {
+        parser?.parse(tokenStream, from: offset, length: length, rules: rules)
     }
     
     ///
@@ -79,28 +79,20 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher {
     /// - Parameters:
     ///     - tokenStream:
     ///     - streamRange:
-    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
-        parser?.parse(tokenStream, within: streamRange, parentTree: parentTree, rules: rules)
-    }
-    
-}
-
-// MARK: - GrammaticalMatcherDelegate Methods
-extension CompoundGrammaticalMatcher: GrammaticalMatcherDelegate {
-
-    @objc
-    open func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream, parentTree: SyntaxTree?) {
-        delegate?.matcher(matcher, didSkip: token, characterStream: characterStream, parentTree: parentTree)
+    public func parse(_ tokenStream: TokenStream<Token>?, within streamRange: NSRange? = nil, rules: [GrammarRule]? = nil) {
+        parser?.parse(tokenStream, within: streamRange, rules: rules)
     }
 
-    @objc
-    open func matcher(_ matcher: GrammaticalMatcher, didGenerate syntaxTree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?) {
-        delegate?.matcher(matcher, didGenerate: syntaxTree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
+    open func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream) {
+        delegate?.matcher(matcher, didSkip: token, characterStream: characterStream)
     }
 
-    @objc
-    open func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?) {
-        delegate?.matcher(matcher, didFinishMatching: characterStream, tokenStream: tokenStream, parentTree: parentTree)
+    open func matcher(_ matcher: GrammaticalMatcher, didGenerate matchChain: MatchChain, characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
+        delegate?.matcher(matcher, didGenerate: matchChain, characterStream: characterStream, tokenStream: tokenStream)
+    }
+
+    open func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
+        delegate?.matcher(matcher, didFinishMatching: characterStream, tokenStream: tokenStream)
     }
     
 }

@@ -25,16 +25,24 @@
 @objc
 public protocol GrammaticalMatcher: class {
 
+    typealias CharacterStream = IO.CharacterStream
+    typealias TokenStream = IO.TokenStream
+    typealias Token = Grammar.Token
+
     typealias Metadata = Grammar.Metadata
-    typealias SyntaxTree = Grammar.SyntaxTree
+    typealias MatchChain = Grammar.MatchChain
 
 }
 
 /// Specifications for a grammar matcher delegate.
 public protocol GrammaticalMatcherDelegate: class {
 
+    typealias CharacterStream = IO.CharacterStream
+    typealias TokenStream = IO.TokenStream
+    typealias Token = Grammar.Token
+
     typealias Metadata = Grammar.Metadata
-    typealias SyntaxTree = Grammar.SyntaxTree
+    typealias MatchChain = Grammar.MatchChain
     
     /// Called when a grammar matcher skips a token.
     ///
@@ -42,18 +50,16 @@ public protocol GrammaticalMatcherDelegate: class {
     ///     - matcher: that called this method.
     ///     - token: that was skipped.
     ///     - characterStream: `matcher` is matching.
-    ///     - parentTree: containing all tokenzied/parses information.
-    func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream, parentTree: SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream)
     
-    /// Called when a grammar matcher generates a syntax tree.
+    /// Called when a grammar matcher generates a match chain.
     ///
     /// - Parameters:
     ///     - matcher: that called this method.
-    ///     - syntaxTree: that was generated.
+    ///     - matchChain: that was generated.
     ///     - characterStream: `matcher` is matching.
     ///     - tokenStream: generated, or being parsed, by `matcher`.
-    ///     - parentTree: containing all tokenzied/parses information.
-    func matcher(_ matcher: GrammaticalMatcher, didGenerate syntaxTree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didGenerate matchChain: MatchChain, characterStream: CharacterStream, tokenStream: TokenStream<Token>?)
     
     /// Called when a grammar matcher finishes a job.
     ///
@@ -61,8 +67,7 @@ public protocol GrammaticalMatcherDelegate: class {
     ///     - matcher: that called this method.
     ///     - characterStream: `matcher` is matching.
     ///     - tokenStream: generated, or parsed, by `matcher`.
-    ///     - parentTree: containing all tokenzied/parses information.
-    func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree?)
+    func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream<Token>?)
     
 }
 
@@ -76,16 +81,12 @@ open class BaseGrammaticalMatcher: NSObject, GrammaticalMatcher {
     /// Grammar of this matcher.
     public let grammar: Grammar
     
-    /// Options of this grammar matcher.
-    open var options: GrammaticalMatcherOption = []
-    
     /// Constructs a new grammar matcher with an initial grammar.
     ///
     /// - Parameters:
     ///     - grammar: to initialize this matcher with.
-    public init(grammar: Grammar, options: GrammaticalMatcherOption = []) {
+    public init(grammar: Grammar) {
         self.grammar = grammar
-        self.options = options
     }
     
 }

@@ -29,53 +29,53 @@ class ExampleMatcher: CompoundGrammaticalMatcher {
     /// - parameter characterStream:
     /// - parameter offset:
     /// - parameter verbose:
-    func match(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
-        if options.contains(.verbose) {
-            print()
-            print("----- Tokenizing Character Stream -----")
-            print()
+    func match(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, rules: [GrammarRule]? = nil) {
+        print()
+        print("----- Tokenizing Character Stream (\(streamRange ?? .zero) -----")
+        print()
+        tokenize(characterStream, within: streamRange, rules: rules)
+    }
+    
+    override func matcher(_ matcher: GrammaticalMatcher, didGenerate matchChain: MatchChain, characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
+        super.matcher(matcher, didGenerate: matchChain, characterStream: characterStream, tokenStream: tokenStream)
+        print(">>> Match: \(matchChain)")
+        if let rule = matchChain.rule, rule.isRule == true, let subchain = matchChain.subchains.first {
+            subchain.subchains.enumerated().forEach({
+                let index = $0.0
+                if rule.suboptions["\(index)"]?.contains(.nested) == true {
+                    nestedRanges.append($0.1.range)
+                }
+            })
         }
-        tokenize(characterStream, within: streamRange, parentTree: parentTree, rules: rules)
     }
     
-    override func matcher(_ matcher: GrammaticalMatcher, didGenerate tree: SyntaxTree, characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
-        super.matcher(matcher, didGenerate: tree, characterStream: characterStream, tokenStream: tokenStream, parentTree: parentTree)
-        if options.contains(.verbose) { print(tree) }
-        guard let rule = tree.rule, rule.has(option: .nested) == true && tree.maxRange < characterStream.length else { return }
-        nestedRanges.append(tree.range[(1, -2)])
-    }
-    
-    override func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream?, parentTree: SyntaxTree? = nil) {
+    override func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
 
-        super.matcher(matcher, didFinishMatching: characterStream, tokenStream: tokenStream, parentTree: parentTree)
+        super.matcher(matcher, didFinishMatching: characterStream, tokenStream: tokenStream)
         
         switch matcher {
             
         case is Lexer:
             guard let tokenStream = tokenStream else { return }
-            if options.contains(.verbose) {
-                print()
-                print("Lexer did finish tokenizing character stream")
-                print(String(format: "%ld tokens were found", tokenStream.length))
-                print()
-                print("----- Parsing Token Stream -----")
-                print()
-            }
+            print()
+            print("Lexer did finish tokenizing character stream")
+            print(String(format: "%ld tokens were found", tokenStream.length))
+            print()
+            print("----- Parsing Token Stream (\(tokenStream.range) -----")
+            print()
             parser?.parse(tokenStream)
             break
             
         case is Parser:
-            if options.contains(.verbose) {
-                print()
-                print("Parser did finish parsing token stream")
-                print()
+            print()
+            print("Parser did finish parsing token stream")
+            print()
+            if nestedRanges.count > 0 {
+                let range = nestedRanges.removeFirst()
+                if range.max < characterStream.length {
+                    match(characterStream, within: range)
+                }
             }
-//            if nestedRanges.count > 0 {
-//                let range = nestedRanges.removeFirst()
-//                if range.max < characterStream.length {
-//                    match(characterStream, from: range.max)
-//                }
-//            }
 
         default:
             break

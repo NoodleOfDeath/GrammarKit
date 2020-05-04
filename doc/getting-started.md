@@ -1,6 +1,6 @@
 # GrammarKit - Getting Started
 
-In order to make the most of this matcher, the developer needs to be well educated on grammar theory, syntactical analysis, and abstract syntax trees. The matcher itself is only as powerful as the grammar library files it implements. The following is a simple outline of a possible workflow to incorporate this framework into an application; note that the steps are not listed in any particular order.
+In order to make the most of this matcher, the developer needs to be well educated on grammar theory, syntactical analysis, and abstract match chains. The matcher itself is only as powerful as the grammar library files it implements. The following is a simple outline of a possible workflow to incorporate this framework into an application; note that the steps are not listed in any particular order.
 
 ## Installation
 

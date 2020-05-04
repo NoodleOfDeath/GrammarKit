@@ -30,14 +30,13 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     enum CodingKeys: String, CodingKey {
         case next
         case children
-        case quantifier
+        case inverted
+        case type
         case id
         case value
-        case componentType
-        case inverted
-        case ruleClass
-        case precedence
+        case quantifier
         case metadata
+        case precedence
     }
     
     public typealias This = GrammarRule
@@ -45,41 +44,39 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     
     public typealias Metadata = Grammar.Metadata
     public typealias MetadataOption = Grammar.MetadataOption
-    
+
     override open var description: String {
+        return String(format: "%@ %@ [%@]\n\tDefinition: %@\n%@", id, String(describing: type), precedence, definition, metadata)
+    }
+    
+     open var definition: String {
         
         var strings = [String]()
         
-        switch componentType {
+        switch type {
             
         case .literal, .expression:
             strings.append(String(format: "'%@'%@", value, quantifier))
-            break
-            
-        case .composite:
+
+        case .composite, .lexerRule, .parserRule:
             break
             
         default:
             strings.append(String(format: "%@%@", value, quantifier))
-            break
-            
+
         }
         
         if subrules.count > 0 {
             var substrings = [String]()
-            subrules.forEach { substrings.append($0.description) }
+            subrules.forEach { substrings.append($0.definition) }
             strings.append(String(format: " (%@)%@", substrings.joined(separator: " | "), quantifier))
         }
         
-        if let next = next { strings.append(String(format: " %@", next)) }
+        if let next = next { strings.append(String(format: " %@", next.definition)) }
         if inverted { strings = [String(format: "~%@", strings.joined())] }
         
         return strings.joined().trimmed(true)
 
-    }
-    
-    open var treeDescription: String {
-        return String(format: "%@ [%@]\n\t%@\n%@", id, precedence, description, metadata)
     }
 
     // MARK: - Node Properties
@@ -108,6 +105,15 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     }
 
     // MARK: - Instance Properties
+
+    open var prefix: String {
+        guard let prefix = parent?.id else { return "" }
+        return "\(prefix)."
+    }
+
+    open var name: String {
+        return (inverted ? "~" : "") + (isRoot ? id : isReference ? value : prefix + String(depth))
+    }
     
     /// Mininum length of this rule in terms of node depth.
     open var minLength: Int {
@@ -135,32 +141,45 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     public let value: String
     
     /// Component type of this grammar rule.
-    open var componentType: ComponentType
+    open var type: RuleType
+
+    open var isValid: Bool { return type.isValid }
+
+    /// Returns `true` if, and only if, `type.isRule == true`.
+    open var isRule: Bool { return type.isRule }
+
+    /// Returns `true` if, and only if, `type.isReference == true`.
+    open var isReference: Bool { return type.isReference }
+
+    /// Returns `true` if, and only if, `type.isSubrule == true`.
+    open var isSubrule: Bool { return type.isSubrule || parent != nil }
+
+    /// `true` if `type == .lexerRule`.
+    open var isLexerRule: Bool { return type.isLexerRule }
+
+    /// `true` if `type == .parserRule`.
+    open var isParserRule: Bool { return type.isParserRule }
+
+    /// Returns `true` if, and only if, `has(option: .fragment) == true`; `false`, otherwise.
+    open var isFragment: Bool { return has(option: .fragment) }
     
-    /// Returns `true` if, and only if, `componentType == .composite || count > 0`.
-    open var isComposite: Bool { return componentType == .composite || count > 0 }
-    
-    /// Returns `true` if, and only if, `componentType != .unknown`.
-    open var isComponent: Bool {
-        return componentType != .unknown
-    }
+    /// Returns `true` if, and only if, `type == .composite || count > 0`.
+    open var isComposite: Bool { return type == .composite || count > 0 }
     
     /// Indicates if this rule has an inverted prefix "~" or not.
     open var inverted: Bool = false
-    
-    /// Rule type of this grammar rule.
-    public var ruleClass: Class = .unknown
     
     /// precedence of this grammar rule.
     open lazy var precedence = Precedence(id: id)
     
     /// Metadata of this grammar rule.
-    open var metadata: Metadata = Metadata() {
-        didSet { processMetadata() }
-    }
+    open var metadata: Metadata = Metadata()
     
     /// Options of this grammar rule.
     open var options: [MetadataOption] { return metadata.options }
+
+    /// Options of this grammar rule.
+    open var suboptions: [String: [MetadataOption]] { return metadata.suboptions }
     
     /// Category of this grammar rule.
     open var category: String? { return metadata.category }
@@ -200,52 +219,50 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     ///     - id: of this new rule.
     ///     - value: of this new rule.
     ///     - type: of this new rule.
-    required public init(grammar: Grammar? = nil,
-                         id: String,
-                         value: String = "",
-                         componentType: ComponentType = .unknown) {
+    required public init(grammar: Grammar? = nil, id: String, value: String = "", type: RuleType = .none) {
         self.grammar = grammar
         self.id = id
         self.value = value
-        self.componentType = componentType
+        self.type = type
     }
+
+    // MARK: - Decodable Constructor Methods
     
     public required init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        next = try values.decodeIfPresent(GrammarRule.self, forKey: CodingKeys.next)
-        children = try values.decode([GrammarRule].self, forKey: CodingKeys.children)
-        inverted = try values.decode(Bool.self, forKey: CodingKeys.inverted)
-        ruleClass = try values.decode(Class.self, forKey: CodingKeys.ruleClass)
-        id = try values.decode(String.self, forKey: CodingKeys.id)
-        value = try values.decode(String.self, forKey: CodingKeys.value)
-        quantifier = try values.decode(Quantifier.self, forKey: CodingKeys.quantifier)
-        componentType = try values.decode(ComponentType.self, forKey: CodingKeys.componentType)
-        metadata = try values.decode(Metadata.self, forKey: CodingKeys.metadata)
+        next = try values.decodeIfPresent(GrammarRule.self, forKey: .next)
+        children = try values.decode([GrammarRule].self, forKey: .children)
+        inverted = try values.decode(Bool.self, forKey: .inverted)
+        type = try values.decode(RuleType.self, forKey: .type)
+        id = try values.decode(String.self, forKey: .id)
+        value = try values.decode(String.self, forKey: .value)
+        quantifier = try values.decode(Quantifier.self, forKey: .quantifier)
+        metadata = try values.decode(Metadata.self, forKey: .metadata)
         super.init()
-        precedence ?= try values.decodeIfPresent(Precedence.self, forKey: CodingKeys.precedence)
+        precedence ?= try values.decodeIfPresent(Precedence.self, forKey: .precedence)
         updateChildren()
         updateNext()
-        processMetadata()
     }
 
-    public func encode(to encoder: Encoder) throws {
+    // MARK: - Static Methods
+
+    public static func == (lhs: GrammarRule, rhs: GrammarRule) -> Bool {
+        return (lhs.id, lhs.value) == (rhs.id, rhs.value)
+    }
+
+    // MARK: - Encodable Methods
+
+    open func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encodeIfPresent(next, forKey: .next)
         try container.encode(children, forKey: .children)
         try container.encode(quantifier, forKey: .quantifier)
         try container.encode(inverted, forKey: .inverted)
-        try container.encode(ruleClass, forKey: .ruleClass)
-        try container.encode(precedence, forKey: .precedence)
+        try container.encode(type, forKey: .type)
         try container.encode(id, forKey: .id)
         try container.encode(value, forKey: .value)
-        try container.encode(componentType, forKey: .componentType)
         try container.encode(metadata, forKey: .metadata)
-    }
-    
-    // MARK: - Static Methods
-    
-    public static func == (lhs: GrammarRule, rhs: GrammarRule) -> Bool {
-        return (lhs.id, lhs.value) == (rhs.id, rhs.value)
+        try container.encode(precedence, forKey: .precedence)
     }
     
     // MARK: - Instance Methods
@@ -264,16 +281,17 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
         queue.removeAll()
     }
     
-    /// Returns `true` if this grammar rule recursively references itself.
+    /// Returns `true` if this grammar rule recursively references itself;
+    /// `false`, othwerwise.
     ///
     /// - Parameters:
     ///     - ref:
-    /// - Returns: `true` if this grammar rule recursively references itself.
-    open func recursive(_ ref: GrammarRule? = nil) -> Bool {
-        let ref = ref ?? self
+    /// - Returns: `true` if this grammar rule recursively references itself;
+    /// `false`, othwerwise.
+    open func recursive(_ reference: GrammarRule? = nil) -> Bool {
+        let reference = reference ?? self
         for subrule in subrules {
-            if (subrule.componentType.equals(.lexerRuleReference, .lexerFragmentReference, .parserRuleReference) &&
-                subrule.value == (ref.id)) || subrule.recursive(ref) {
+            if (subrule.isReference && subrule.value == (reference.id)) || subrule.recursive(reference) {
                 return true
             }
         }
@@ -281,35 +299,22 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     }
     
     /// Returns `true` if this grammar rule recursively references itself and
-    /// would cause a potentially fatal infinite loop.
+    /// would cause a potentially reference infinite loop; `false`, otherwise.
     ///
     /// - Parameters:
-    ///     - ref:
-    /// - Returns:
-    open func recursiveFatal(_ ref: GrammarRule? = nil) -> Bool {
+    ///     - reference: that could be
+    /// - Returns: `true` if this grammar rule recursively references itself and
+    /// would cause a potentially reference infinite loop; `false`, otherwise.
+    open func infinitelyRecursive(_ reference: GrammarRule? = nil) -> Bool {
         if !recursive() { return false }
-        let ref = ref ?? self
-        var fatal = [Bool]()
+        let reference = reference ?? self
+        var isInfinite = [Bool]()
         for subrule in subrules {
-            fatal.append((subrule.componentType.equals(.lexerRuleReference, .lexerFragmentReference, .parserRuleReference) &&
-                subrule.value == (ref.id)) || subrule.recursive(ref))
+            if subrule.infinitelyRecursive(reference) { return true }
+            isInfinite.append((subrule.isReference && subrule.value == (reference.id)) || subrule.recursive(reference))
         }
-        return !(fatal.count > 0 && fatal.contains(false))
-    }
-    
-    open func processMetadata() {
-        for i in 0 ..< Swift.min(subrules.count, metadata.children.count) {
-            var rule: GrammarRule? = subrules[i]
-            var metadata: Metadata? = self.metadata[i]
-            while rule != nil, metadata != nil {
-                if let rule = rule, rule.value == "COLON", rule.next?.value == "datatype" {
-                    
-                }
-                rule?.metadata ?= metadata
-                rule = rule?.next
-                metadata = metadata?.next
-            }
-        }
+        guard isInfinite.count > 0 else { return false }
+        return !isInfinite.contains(false)
     }
     
 }

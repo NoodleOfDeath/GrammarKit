@@ -24,7 +24,7 @@
 
 import Foundation
 
-// MARK: - RawRepresentable Dictionary Extensions
+// MARK: - RawRepresentable Dictionary Extension
 
 extension Dictionary {
 
@@ -36,7 +36,7 @@ extension Dictionary {
 
 }
 
-// MARK: - RawRepresentable Equatable Operator Extensions
+// MARK: - RawRepresentable Equatable Operator Extension
 
 func == <EquatableType: Equatable, RawRepresentableType: RawRepresentable>
     (lhs: EquatableType, rhs: RawRepresentableType) -> Bool

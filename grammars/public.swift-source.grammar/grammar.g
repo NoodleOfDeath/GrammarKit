@@ -1,4 +1,4 @@
-grammar public.source-code;
+grammar public.swift-source;
 import public.source-code;
 
 // Lexer Rule Fragments
@@ -20,14 +20,15 @@ fragment MULTILINE_COMMENT:
 
 // Lexer Rules
 
-DOCUMENTATION_BLOCK { "precedence": [ "<WHITESPACE", ">STRING" ], "options": [ "multiline" ] }:
+DOCUMENTATION_BLOCK { "precedence": [ "<WHITESPACE", ">STRING" ], "options": [ "" ] }:
 	((ONE_LINE_DOCUMENTATION | MULTILINE_DOCUMENTATION) (WHITESPACE | NEWLINE)*)+;
 
-COMMENT_BLOCK { "precedence": [ "<DOCUMENTATION_BLOCK", ">STRING" ], "options": [ "multiline" ] }:
+COMMENT_BLOCK { "precedence": [ "<DOCUMENTATION_BLOCK", ">STRING" ], "options": [ "" ] }:
 	((ONE_LINE_COMMENT | MULTILINE_COMMENT) (WHITESPACE | NEWLINE)*)+;
 
 NIL_COALESCING_OPERATOR { "precedence": [ "=OPERATOR" ], "options": [] }:
 	'\?\?';
+    
 NIL_WRAPPER_POSTFIX { "precedence": [ "<NIL_COALESCING_OPERATOR" ], "options": [] }:
 	OPTIONAL_WRAPPER | STRICT_WRAPPER;
 
@@ -37,10 +38,10 @@ RETURN_OPERATOR { "precedence": [ "<STRING", ">GT_OPERATOR", ">SUB_OPERATOR" ], 
 RANGE_OPERATOR { "precedence": [ "<STRING", ">LT_OPERATOR" ], "options": [] }:
     '\.\.[.<]';
 
-NAMESPACE { "precedence": [ ">ID", "<KEYWORD" ], "options": [] }:
-	(ID '\.')+ ID;
+EXTENDED_ID { "precedence": [ ">ID", ">KEYWORD" ], "options": [] }:
+	(('self' | ID) '\.')+ ID;
 
-ANNOTATION { "precedence": [ ">ID", "<KEYWORD" ], "options": [] }:
+ANNOTATION { "precedence": [ ">ID", ">KEYWORD" ], "options": [] }:
 	'@[\p{L}]+' (L_PAREN (STRING COMMA)* STRING R_PAREN)?;
 		
 KEYWORD { "precedence": [ "<TOKEN", "<OPERATOR", "<NUMBER" ], "options": [ "dictionary" ] }:
@@ -164,10 +165,10 @@ fragment closure:
     tuple RETURN_OPERATOR tuple;
 
 fragment datatype:
-	(builtin_datatype | (L_PAREN closure R_PAREN) | ID) NIL_WRAPPER_POSTFIX?;
+	(builtin_datatype | (L_PAREN closure R_PAREN) | EXTENDED_ID | ID) NIL_WRAPPER_POSTFIX?;
 
 fragment datavalue:
-	builtin_value | literal_array | literal_range | tuple | method_invocation | KEYWORD | STRING | LITERAL_STRING | NUMBER | NAMESPACE | ID;
+	builtin_value | literal_array | literal_range | tuple | method_invocation | STRING | LITERAL_STRING | NUMBER | EXTENDED_ID | ID | KEYWORD;
 
 fragment operator { "options": [ "extend" ] }:
 	NIL_COALESCING_OPERATOR;
@@ -188,7 +189,7 @@ fragment rhs_assignment_clause:
 	(EQ_ASSIGNMENT_OPERATOR | INCREMENTAL_ASSIGNMENT_OPERATOR) expression;
 
 fragment simple_expression:
-	(datavalue (operator datavalue)?) | datatype;
+	(datavalue | datatype) (operator (datavalue | datatype))?;
 
 fragment opened_expression:
 	(closed_expression | simple_expression) typecast?;
@@ -203,7 +204,7 @@ fragment for_loop_expression:
 	(ID | tuple | UNDERSCORE) 'in' expression | expression;
 
 fragment parameter:
-	UNDERSCORE? ID COLON datatype;
+	UNDERSCORE? ID COLON datatype rhs_assignment_clause?;
 
 fragment parameters:
 	parameter (COMMA parameter)*;
@@ -217,7 +218,7 @@ fragment arguments:
 // Parser Rules
 
 import_statement { "precedence": [ ">expression" ], "options": [] }:
-	'import' (NAMESPACE | ID);
+	'import' (EXTENDED_ID | ID);
 
 // Declarations
 
@@ -275,7 +276,7 @@ repeat_loop { "precedence": [ "=for_loop" ], "options": [] }:
 // Invocations
 
 method_invocation { "precedence": [ ">expression" ], "options": [] }:
-	(NAMESPACE | ID) L_PAREN arguments? R_PAREN;
+	(EXTENDED_ID | ID) L_PAREN arguments? R_PAREN;
 
 assignment_clause { "precedence": [ ">expression" ], "options": [] }:
 	lhs_assignment_clause rhs_assignment_clause;

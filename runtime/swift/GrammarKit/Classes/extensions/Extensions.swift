@@ -85,7 +85,7 @@ func + <NumericType: Numeric>(lhs: Bool, rhs: NumericType) -> NumericType {
     return (lhs ? 1 : 0) + rhs
 }
 
-// MARK: - CGFloat Extensions
+// MARK: - CGFloat Extension
 extension CGFloat {
     
     /// Legacy alias for `leastNormalMagnitude`.
@@ -111,7 +111,7 @@ extension Dictionary {
 
 }
 
-// MARK: - NSRange Extensions
+// MARK: - NSRange Extension
 extension NSRange {
     
     /// A range with location and length set to `0`.
@@ -149,7 +149,7 @@ extension NSRange {
 
 }
 
-// MARK: - NSRange Shifting Extensions
+// MARK: - NSRange Shifting Extension
 extension NSRange {
     
     /// Shifts the location of this range by a specified offset and adjusts
@@ -235,7 +235,7 @@ extension NSRange {
 }
 
 #if os(iOS)
-// MARK: - NSShadow Extensions
+// MARK: - NSShadow Extension
 extension NSShadow {
 
     /// UI type casted color of this shadow.
@@ -256,7 +256,7 @@ extension NSShadow {
 }
 #endif
 
-// MARK: - Range Property Extensions
+// MARK: - Range Property Extension
 extension Range where Bound == Int {
     
     /// Length of this range.
@@ -310,7 +310,7 @@ extension String {
 
 }
 
-// MARK: - String Property Extensions (NSString Bridging Properties)
+// MARK: - String Property Extension (NSString Bridging Properties)
 extension String {
     
     /// This string casted as a `NSString`.
@@ -373,7 +373,7 @@ extension String {
     
 }
 
-// MARK: - String Method Extensions (NSString Bridging Methods)
+// MARK: - String Method Extension (NSString Bridging Methods)
 extension String {
 
     var trimmed: String {
@@ -744,7 +744,7 @@ extension String {
     
 }
 
-// MARK: - UIImage Method Extensions
+// MARK: - UIImage Method Extension
 extension UIImage {
 
     /// Width of this image.
@@ -877,7 +877,7 @@ func +/ (lhs: URL?, rhs: String) -> URL? {
     return lhs.appendingPathComponent(rhs)
 }
 
-// MARK: - URL Property Extensions
+// MARK: - URL Property Extension
 extension URL {
     
     ///

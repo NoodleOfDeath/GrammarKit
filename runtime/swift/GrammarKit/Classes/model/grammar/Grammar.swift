@@ -43,11 +43,11 @@ open class Grammar: NSObject, Codable {
         strings.append("")
         strings.append(String(format: "--- Lexer Rules (%d) ---", lexerRules.count))
         strings.append("")
-        lexerRules.forEach { strings.append($0.treeDescription) }
+        lexerRules.forEach { strings.append($0.description) }
         strings.append("")
         strings.append(String(format: "--- Parser Rules (%d) ---", parserRules.count))
         strings.append("")
-        parserRules.forEach { strings.append($0.treeDescription) }
+        parserRules.forEach { strings.append($0.description) }
         strings.append("")
         strings.append(String(format: "--- Words (%d) ---", words.count))
         words.forEach { strings.append($0.description) }
@@ -73,11 +73,21 @@ open class Grammar: NSObject, Codable {
     
     /// Parser rules of this grammar.
     open lazy var parserRules: [GrammarRule] = [GrammarRule]()
-    
+
+    /// Lexer rule fragments of this grammar.
+    open var lexerFragments: [GrammarRule] {
+        return rules.map { $1 }.filter( { $0.isLexerRule && $0.isFragment })
+    }
+
+    /// Parser rule fragments of this grammar.
+    open var parserFragments: [GrammarRule] {
+       return rules.map { $1 }.filter( { $0.isParserRule && $0.isFragment })
+   }
+
     /// Unmatched rule of this grammar. Used only for lexer grammars.
     open var unmatchedRule: GrammarRule {
-        let rule = GrammarRule(grammar: self, id: This.unmatchedRuleId, value: This.unmatchedRuleExpr, componentType: .literal)
-        rule.ruleClass = .lexerRule
+        let rule = GrammarRule(grammar: self, id: This.unmatchedRuleId, value: This.unmatchedRuleExpr, type: .literal)
+        rule.type = .lexerRule
         rule.precedence = GrammarRule.Precedence(id: This.unmatchedRuleId, This.unmatchedRuleOrder)
         return rule
     }
@@ -126,8 +136,8 @@ open class Grammar: NSObject, Codable {
     /// `rules` map.
     open func deriveRuleSets() {
         let flatMap = rules.map { $1 }
-        lexerRules = flatMap.filter { !$0.has(option: .fragment) && $0.ruleClass == .lexerRule }
-        parserRules = flatMap.filter { !$0.has(option: .fragment) && $0.ruleClass == .parserRule }
+        lexerRules = flatMap.filter { $0.isLexerRule && !$0.isFragment }
+        parserRules = flatMap.filter { $0.isParserRule && !$0.isFragment }
         sortRules()
     }
     
@@ -137,6 +147,11 @@ open class Grammar: NSObject, Codable {
         parserRules = sort(rules: parserRules)
     }
 
+    /// Sorts and returns a set of grammar rules by rule precedence.
+    ///
+    /// - Parameters:
+    ///     - rules: to sort
+    /// - Returns: `rules` sorted by rule precedence.
     fileprivate func sort(rules: [GrammarRule]) -> [GrammarRule] {
         let graph = ComparisonGraph(nodes: rules)
         // Load weighted rules first.
@@ -148,7 +163,8 @@ open class Grammar: NSObject, Codable {
                 graph.connect(rule.id, $0, $1)
             }
         }
-        graph.resolveEqualRelations()
+        graph.deriveEqualRelations()
+        // Adjusts each precedence for logging purposes.
         for rule in rules {
             if rule.precedence.weight == nil, let weight = graph.weights[rule.id] {
                 rule.precedence.weight = weight

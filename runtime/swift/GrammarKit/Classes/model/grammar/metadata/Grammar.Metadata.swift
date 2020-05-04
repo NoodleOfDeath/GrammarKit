@@ -41,6 +41,7 @@ extension Grammar {
             case id
             case description
             case options
+            case suboptions
             case categories
             case references
             case directives
@@ -49,6 +50,7 @@ extension Grammar {
         override open var description: String {
             var strings = [String]()
             strings.append("- Options: \(options)")
+            strings.append("- Suboptions: \(suboptions)")
             strings.append("- Categories: \(categories)")
             if let description = detailedDescription {
                 strings.append("- Description: \(description)")
@@ -89,6 +91,9 @@ extension Grammar {
         
         /// Options of this component.
         public var options: [MetadataOption]
+
+        /// Suboptions of this component.
+        public var suboptions: [String: [MetadataOption]]
         
         /// Categories of this component.
         public var categories: [String]
@@ -117,6 +122,7 @@ extension Grammar {
         public required init(id: String,
                              detailedDescription: String?,
                              options: [MetadataOption],
+                             suboptions: [String: [MetadataOption]],
                              categories: [String],
                              references: [Reference],
                              directives: [Directive]) {
@@ -124,6 +130,7 @@ extension Grammar {
             self.id = id
             self.detailedDescription = detailedDescription
             self.options = options
+            self.suboptions = suboptions
             self.categories = categories
             self.references = references
             self.directives = directives
@@ -138,12 +145,17 @@ extension Grammar {
             let id = dict?[CodingKeys.id] as? String ?? String(This.nodeCount)
             let detailedDescription = dict?[CodingKeys.description] as? String
             let options = (dict?[CodingKeys.options] as? [String])?.map({ MetadataOption($0) }) ?? []
+            var suboptions = [String: [MetadataOption]]()
+            if let subopts = (dict?[CodingKeys.suboptions] as? [String: [String]]) {
+                subopts.forEach({ suboptions[$0.key] = $0.value.map({ MetadataOption($0) }) })
+            }
             let categories = (dict?[CodingKeys.categories] as? [String]) ?? []
             let references = (dict?[CodingKeys.references] as? [String])?.map({ Reference(string: $0) }).filter({ $0 != nil }) as? [Reference] ?? []
             let directives = (dict?[CodingKeys.directives] as? [String])?.map({ Directive(string: $0) }).filter({ $0 != nil }) as? [Directive] ?? []
             self.init(id: id,
                       detailedDescription: detailedDescription,
                       options: options,
+                      suboptions: suboptions,
                       categories: categories,
                       references: references,
                       directives: directives)
@@ -157,6 +169,7 @@ extension Grammar {
             id = try values.decode(String.self, forKey: .id)
             detailedDescription = try values.decodeIfPresent(String.self, forKey: .description)
             options = try values.decode([MetadataOption].self, forKey: .options)
+            suboptions = try values.decode([String: [MetadataOption]].self, forKey: .options)
             categories = try values.decode([String].self, forKey: .categories)
             references = try values.decode([Reference].self, forKey: .references)
             directives = try values.decode([Directive].self, forKey: .directives)
@@ -173,6 +186,7 @@ extension Grammar {
             try container.encode(id, forKey: .id)
             try container.encodeIfPresent(detailedDescription, forKey: .description)
             try container.encode(options, forKey: .options)
+            try container.encode(suboptions, forKey: .suboptions)
             try container.encode(categories, forKey: .categories)
             try container.encode(references, forKey: .references)
             try container.encode(directives, forKey: .directives)

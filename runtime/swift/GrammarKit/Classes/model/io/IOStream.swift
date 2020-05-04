@@ -24,8 +24,11 @@
 
 import Foundation
 
+/// IO Module
+open class IO {}
+
 /// Specifications for a stream that is composed of a sequence of atoms.
-public protocol Stream {
+public protocol IOStream {
     
     /// Smallest singular unit type of this stream.
     associatedtype Atom: Any
@@ -35,6 +38,9 @@ public protocol Stream {
     
     /// Total number of atoms in this stream.
     var length: Int { get }
+
+    /// Range of this stream.
+    var range: NSRange { get }
     
     /// Returns the atom of this stream at a specified index.
     ///
@@ -52,11 +58,7 @@ public protocol Stream {
     
 }
 
-extension Stream {
-    
-    /// Range of this stream.
-    /// Shorthand for `NSMakeRange(0, length)`.
-    public var range: NSRange { return NSMakeRange(0, length) }
+extension IOStream {
 
     /// Returns a subrange of atoms in this stream.
     ///

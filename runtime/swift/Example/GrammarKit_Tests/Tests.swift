@@ -10,24 +10,29 @@ import SwiftyUTType
 import GrammarKit
 
 class Tests: XCTestCase {
-    
-    func testExample() {
+
+    func testTokenizing() {
         guard
             let grammarsDirectory = Bundle(for: type(of: self)).resourcePath +/ "grammars",
-            let sampleFile = Bundle(for: type(of: self)).resourcePath +/ "samples/Sample.swift"
+            let sampleDirectory = Bundle(for: type(of: self)).resourcePath +/ "samples"
             else { XCTFail(); return }
         let loader = GrammarLoader(searchPaths: grammarsDirectory)
-        do {
-            guard let grammar = loader.loadGrammar(for: sampleFile.fileURL.uttype.rawValue) else { XCTFail(); return }
-            print(grammar)
-            print("------------")
-            let text = try String(contentsOfFile: sampleFile)
-            let matcher = ExampleMatcher(grammar: grammar, options: .verbose)
-            matcher.tokenize(CharacterStream(text))
-        } catch {
-            print(error)
-            XCTFail()
-        }
+        guard let sampleFiles = try? FileManager.default.contentsOfDirectory(atPath: sampleDirectory) else { XCTFail(); return }
+        sampleFiles.forEach({
+            let sampleFile = sampleDirectory +/ $0
+            do {
+                print("----- Testing \(sampleFile.fileURL.uttype.rawValue) -----")
+                guard let grammar = loader.loadGrammar(for: sampleFile.fileURL.uttype.rawValue) else { XCTFail(); return }
+                print(grammar)
+                print("------------")
+                let text = try String(contentsOfFile: sampleFile)
+                let matcher = ExampleMatcher(grammar: grammar)
+                matcher.tokenize(IO.CharacterStream(text))
+            } catch {
+                print(error)
+                XCTFail()
+            }
+        })
     }
     
 }

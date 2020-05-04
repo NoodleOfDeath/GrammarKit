@@ -22,7 +22,6 @@ Support to import and convert ANTLR4 grammar files to GrammarKit grammar file fo
 
   s.source_files = 'runtime/swift/GrammarKit/Classes/**/*{h,m,swift}'
 
-  s.dependency 'SwiftyXMLParser', '~>5.0'
   s.dependency 'SwiftyUTType', '~>1.0'
   
 end

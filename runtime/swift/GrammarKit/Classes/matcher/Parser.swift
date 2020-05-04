@@ -31,12 +31,12 @@ open class Parser: BaseGrammaticalMatcher {
     ///     - tokenStream:
     ///     - offset:
     ///     - length:
-    ///     - parentTree:
-    public func parse(_ tokenStream: TokenStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
+    ///     - parentChain:
+    public func parse(_ tokenStream: TokenStream<Token>?, from offset: Int, length: Int? = nil, rules: [GrammarRule]? = nil) {
         if let length = length {
-            parse(tokenStream, within: NSMakeRange(offset, length), parentTree: parentTree, rules: rules)
+            parse(tokenStream, within: NSMakeRange(offset, length), rules: rules)
         } else {
-            parse(tokenStream, within: tokenStream?.range.shiftingLocation(by: offset), parentTree: parentTree, rules: rules)
+            parse(tokenStream, within: tokenStream?.range.shiftingLocation(by: offset), rules: rules)
         }
     }
     
@@ -45,39 +45,32 @@ open class Parser: BaseGrammaticalMatcher {
     /// - Parameters:
     ///     - tokenStream:
     ///     - streamRange:
-    ///     - parentTree:
-    public func parse(_ tokenStream: TokenStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
+    ///     - parentChain:
+    public func parse(_ tokenStream: TokenStream<Token>?, within streamRange: NSRange? = nil, rules: [GrammarRule]? = nil) {
         guard let tokenStream = tokenStream else { return }
         let characterStream = tokenStream.characterStream
-        var streamRange = streamRange ?? tokenStream.range
-        while streamRange.location < tokenStream.length {
-            var syntaxTree = SyntaxTree(treeClass: .parserTree)
+        var streamRange = streamRange ?? NSMakeRange(0, tokenStream.tokenCount)
+        while streamRange.location < tokenStream.tokenCount {
+            var matchChain = MatchChain()
             for rule in (rules ?? grammar.parserRules) {
-                syntaxTree = parse(tokenStream, rule: rule, within: streamRange, parentTree: parentTree)
-                if syntaxTree.matches {
-                    syntaxTree.rule = rule
+                matchChain = parse(tokenStream, rule: rule, within: streamRange)
+                if matchChain.matches {
+                    matchChain.rule = rule
                     break
                 }
             }
-            if syntaxTree.matches && syntaxTree.rule?.has(option: .skip) == false {
-                delegate?.matcher(self,
-                                  didGenerate: syntaxTree,
+            
+            if matchChain.matches && matchChain.has(option: .skip) == false {
+                delegate?.matcher(self, didGenerate: matchChain,
                                   characterStream: characterStream,
-                                  tokenStream: tokenStream,
-                                  parentTree: parentTree)
+                                  tokenStream: tokenStream)
             } else {
                 let token = tokenStream[streamRange.location]
-                delegate?.matcher(self,
-                                  didSkip: token,
-                                  characterStream: characterStream,
-                                  parentTree: parentTree)
+                delegate?.matcher(self, didSkip: token, characterStream: characterStream)
             }
-            streamRange.shiftLocation(by: syntaxTree.matches ? syntaxTree.count : 1)
+            streamRange.shiftLocation(by: matchChain.matches ? matchChain.tokenCount : 1)
         }
-        delegate?.matcher(self,
-                          didFinishMatching: characterStream,
-                          tokenStream: tokenStream,
-                          parentTree: parentTree)
+        delegate?.matcher(self, didFinishMatching: characterStream, tokenStream: tokenStream)
     }
     
     ///
@@ -86,100 +79,106 @@ open class Parser: BaseGrammaticalMatcher {
     ///     - tokenStream:
     ///     - rule:
     ///     - streamRange:
-    ///     - syntaxTree:
-    ///     - parentTree:
+    ///     - matchChain:
+    ///     - parentChain:
     ///     - metadata:
     /// - Returns:
-    public func parse(_ tokenStream: TokenStream, rule: GrammarRule, within streamRange: NSRange, syntaxTree: SyntaxTree? = nil, parentTree: SyntaxTree? = nil, metadata: Metadata? = nil) -> SyntaxTree {
+    public func parse(_ tokenStream: TokenStream<Token>, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil) -> MatchChain {
         
-        let syntaxTree = syntaxTree ?? SyntaxTree(treeClass: .parserTree)
+        let matchChain = matchChain ?? MatchChain()
+        matchChain.rule = rule
         
-        syntaxTree.rule = rule
+        guard rule.isValid, streamRange.length > 0, streamRange.location <= tokenStream.tokenCount else { return matchChain }
         
-        guard rule.isComponent, streamRange.length > 0, streamRange.location < tokenStream.length else { return syntaxTree }
-        
-        var subscope = SyntaxTree(treeClass: .parserTree)
+        let subchain = MatchChain(rule: rule)
+        var tmpChain = MatchChain(rule: rule)
         var matchCount = 0
         var dx = 0
         
-        switch rule.componentType {
+        switch rule.type {
             
         case .parserRuleReference:
             
             guard let ruleRef = grammar[rule.value] else {
                 print(String(format: "No parser rule was defined for id \"%@\"", rule.value))
-                return syntaxTree
+                return matchChain
             }
             
-            subscope = parse(tokenStream,
-                             rule: ruleRef,
-                             within: streamRange,
-                             metadata: rule.metadata)
-            while rule.inverted != subscope.absoluteMatch {
+            tmpChain = parse(tokenStream, rule: ruleRef, within: streamRange)
+            while rule.inverted != tmpChain.absoluteMatch {
                 if rule.inverted {
-                    subscope = SyntaxTree(treeClass: .parserTree)
                     let token = tokenStream[streamRange.location + dx]
-                    token.metadata = metadata ?? rule.metadata
-                    subscope.add(token: token)
+                    tmpChain = MatchChain(rule: rule)
+                    tmpChain.rule = rule
+                    tmpChain.add(token: token)
                 }
-                syntaxTree.add(tokens: subscope.tokens)
+                subchain.add(subchain: tmpChain)
+                subchain.add(tokens: tmpChain.tokens)
                 matchCount += 1
-                dx += subscope.count
+                dx += tmpChain.tokenCount
                 if !rule.quantifier.greedy { break }
-                subscope = parse(tokenStream,
-                                 rule: ruleRef,
-                                 within: streamRange.shiftingLocation(by: dx),
-                                 metadata: rule.metadata)
+                tmpChain = parse(tokenStream, rule: ruleRef,
+                                 within: streamRange.shiftingLocation(by: dx))
             }
-            
-        case .composite:
+
+        case .parserRule, .composite:
             
             if rule.subrules.count > 0 {
-                
+
                 for subrule in rule.subrules {
-                    subscope = parse(tokenStream,
-                                     rule: subrule,
-                                     within: streamRange,
-                                     metadata: metadata)
-                    if rule.inverted != subscope.absoluteMatch { break }
+                    tmpChain = parse(tokenStream, rule: subrule, within: streamRange)
+                    if rule.inverted != tmpChain.absoluteMatch { break }
                 }
-                
-                while rule.inverted != subscope.absoluteMatch {
+
+                var subtokens = [Token]()
+                while rule.inverted != tmpChain.absoluteMatch {
                     if rule.inverted {
-                        subscope = SyntaxTree(treeClass: .parserTree)
                         let token = tokenStream[streamRange.location + dx]
-                        token.metadata = metadata ?? rule.metadata
-                        subscope.add(token: token)
+                        tmpChain = MatchChain(rule: rule)
+                        tmpChain.rule = rule
+                        tmpChain.add(token: token)
                     }
-                    syntaxTree.add(tokens: subscope.tokens)
+                    if rule.type == .parserRule {
+                        subchain.add(subchain: tmpChain)
+                        subchain.add(tokens: tmpChain.tokens)
+                    } else {
+                        subtokens.append(contentsOf: tmpChain.tokens)
+                    }
                     matchCount += 1
-                    dx += subscope.count
+                    dx += tmpChain.tokenCount
                     if !rule.quantifier.greedy { break }
                     for subrule in rule.subrules {
-                        subscope = parse(tokenStream,
-                                         rule: subrule,
-                                         within: streamRange.shiftingLocation(by: dx),
-                                         metadata: metadata)
-                        if rule.inverted != subscope.absoluteMatch { break }
+                        tmpChain = parse(tokenStream, rule: subrule,
+                                         within: streamRange.shiftingLocation(by: dx))
+                        if rule.inverted != tmpChain.absoluteMatch { break }
                     }
                 }
-                
+                if rule.type == .composite {
+                    tmpChain = MatchChain(rule: rule, tokens: subtokens)
+                    subchain.add(subchain: tmpChain)
+                    subchain.add(tokens: tmpChain.tokens)
+                }
+
             }
             
-        case .lexerRuleReference, .lexerFragmentReference:
+        case .lexerRuleReference:
             
             var token = tokenStream[streamRange.location]
             
-            var matches = rule.value == token.rule?.id
+            var matches = token.contains(rule.value)
             while rule.inverted != matches {
-                token.metadata = metadata ?? rule.metadata
-                syntaxTree.add(token: token)
+                tmpChain.add(token: token)
+                if token.value == "options" {
+
+                }
                 matchCount += 1
                 dx += 1
-                if !rule.quantifier.greedy || streamRange.location + dx >= tokenStream.length { break }
+                if !rule.quantifier.greedy || streamRange.location + dx > tokenStream.tokenCount { break }
                 token = tokenStream[streamRange.location + dx]
-                matches = rule.value == token.rule?.id
+                matches = token.contains(rule.value)
             }
+            subchain.add(subchain: tmpChain)
+            subchain.add(tokens: tmpChain.tokens)
             
         default:
             // .literal, .expression
@@ -192,30 +191,31 @@ open class Parser: BaseGrammaticalMatcher {
             var token = tokenStream[streamRange.location]
             var matches = pattern.doesMatch(token.value, options: .anchored)
             while rule.inverted != matches {
-                token.metadata = metadata ?? rule.metadata
-                syntaxTree.add(token: token)
+                tmpChain.add(token: token)
                 matchCount += 1
                 dx += 1
-                if !rule.quantifier.greedy || streamRange.location + dx >= tokenStream.length { break }
+                if !rule.quantifier.greedy || streamRange.location + dx > tokenStream.tokenCount { break }
                 token = tokenStream[streamRange.location + dx]
                 matches = pattern.doesMatch(token.value, options: .anchored)
             }
+            subchain.add(subchain: tmpChain)
+            subchain.add(tokens: tmpChain.tokens)
             
         }
+
+        matchChain.add(subchains: subchain.subchains)
+        matchChain.add(tokens: subchain.tokens)
         
         if (!rule.quantifier.hasRange && matchCount > 0) || rule.quantifier.optional || rule.quantifier.matches(matchCount) {
             if let next = rule.next {
-                return parse(tokenStream,
-                             rule: next,
+                return parse(tokenStream, rule: next,
                              within: streamRange.shiftingLocation(by: dx),
-                             syntaxTree: syntaxTree,
-                             parentTree: parentTree)
+                             matchChain: matchChain)
             }
-            syntaxTree.matches = true
-            parentTree?.add(child: syntaxTree)
+            matchChain.matches = true
         }
 
-        return syntaxTree
+        return matchChain
 
     }
     

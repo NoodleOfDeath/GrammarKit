@@ -24,7 +24,7 @@
 
 import Foundation
 
-// MARK: - RawRepresentable Dictionary Extensions
+// MARK: - RawRepresentable Dictionary Extension
 
 extension Dictionary {
 
@@ -36,7 +36,7 @@ extension Dictionary {
 
 }
 
-// MARK: - RawRepresentable Equatable Operator Extensions
+// MARK: - RawRepresentable Equatable Operator Extension
 
 func == <EquatableType: Equatable, RawRepresentableType: RawRepresentable>
     (lhs: EquatableType, rhs: RawRepresentableType) -> Bool
@@ -108,6 +108,15 @@ func != <EquatableType: Equatable, RawRepresentableType: RawRepresentable>
     (lhs: RawRepresentableType, rhs: EquatableType?) -> Bool
     where EquatableType == RawRepresentableType.RawValue {
         return lhs.rawValue != rhs
+}
+
+// MARK: - RawRepresentable Extension
+extension RawRepresentable where Self: Equatable {
+
+    func isOneOf(_ possibleValues: Self...) -> Bool {
+        return possibleValues.contains(self)
+    }
+
 }
 
 // MARK: - BaseRawRepresentable Protocol

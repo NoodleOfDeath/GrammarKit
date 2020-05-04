@@ -24,18 +24,18 @@
 
 /// Grammar matcher used to tokenize character streams.
 open class Lexer: BaseGrammaticalMatcher {
-    
+
     ///
     ///
     /// - Parameters:
     ///     - characterStream:
     ///     - offset:
     ///     - length:
-    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
+    public func tokenize(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, rules: [GrammarRule]? = nil) {
         if let length = length {
-            tokenize(characterStream, within: NSMakeRange(offset, length), parentTree: parentTree, rules: rules)
+            tokenize(characterStream, within: NSMakeRange(offset, length), rules: rules)
         } else {
-            tokenize(characterStream, within: characterStream?.range.shiftingLocation(by: offset), parentTree: parentTree, rules: rules)
+            tokenize(characterStream, within: characterStream?.range.shiftingLocation(by: offset), rules: rules)
         }
     }
     
@@ -44,44 +44,39 @@ open class Lexer: BaseGrammaticalMatcher {
     /// - Parameters:
     ///     - characterStream:
     ///     - streamRange:
-    ///     - parentTree:
+    ///     - parentChain:
     ///     - rules:
-    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, parentTree: SyntaxTree? = nil, rules: [GrammarRule]? = nil) {
+    public func tokenize(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, rules: [GrammarRule]? = nil) {
         guard let characterStream = characterStream else { return }
         var streamRange = streamRange ?? characterStream.range
-        let tokenStream = TokenStream(characterStream: characterStream)
+        let tokenStream = TokenStream<Token>(characterStream: characterStream)
         while streamRange.location < characterStream.length {
-            var syntaxTree = SyntaxTree(treeClass: .lexerTree)
+            var matchChain = MatchChain()
             for rule in (rules ?? grammar.lexerRules) {
-                syntaxTree = tokenize(characterStream, rule: rule, within: streamRange, parentTree: parentTree)
-                if syntaxTree.matches || rule == grammar.unmatchedRule {
-                    syntaxTree.rule = rule
+                matchChain = tokenize(characterStream, rule: rule, within: streamRange)
+                if matchChain.matches || rule == grammar.unmatchedRule {
+                    matchChain.rule = rule
                     break
                 }
             }
-            if syntaxTree.matches && syntaxTree.rule?.has(option: .skip) == false {
-                let token = syntaxTree.generatedToken
-                token.rule = syntaxTree.rule
+            if matchChain.matches && matchChain.has(option: .skip) == false {
+                let token = matchChain.asToken
+                if let rule = matchChain.rule {
+                    token.add(rule: rule)
+                }
                 tokenStream.add(token: token)
-                if syntaxTree.rule == grammar.unmatchedRule {
-                    delegate?.matcher(self,
-                                      didSkip: token,
-                                      characterStream: characterStream,
-                                      parentTree: parentTree)
+                if matchChain.rule == grammar.unmatchedRule {
+                    delegate?.matcher(self, didSkip: token,
+                                      characterStream: characterStream)
                 } else {
-                    delegate?.matcher(self,
-                                      didGenerate: syntaxTree,
+                    delegate?.matcher(self, didGenerate: matchChain,
                                       characterStream: characterStream,
-                                      tokenStream: nil,
-                                      parentTree: parentTree)
+                                      tokenStream: nil)
                 }
             }
-            streamRange.shiftLocation(by: (syntaxTree.matches ? syntaxTree.length : 1))
+            streamRange.shiftLocation(by: (matchChain.matches ? matchChain.length : 1))
         }
-        delegate?.matcher(self,
-                          didFinishMatching: characterStream,
-                          tokenStream: tokenStream,
-                          parentTree: parentTree)
+        delegate?.matcher(self, didFinishMatching: characterStream, tokenStream: tokenStream)
     }
     
     ///
@@ -90,91 +85,93 @@ open class Lexer: BaseGrammaticalMatcher {
     ///     - characterStream:
     ///     - rule:
     ///     - offset:
-    ///     - syntaxTree:
-    ///     - parentTree:
+    ///     - matchChain:
     ///     - metadata:
     /// - Returns:
-    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, syntaxTree: SyntaxTree? = nil, parentTree: SyntaxTree? = nil, metadata: Metadata? = nil) -> SyntaxTree {
+    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil) -> MatchChain {
         
-        let syntaxTree = syntaxTree ?? SyntaxTree(treeClass: .lexerTree)
+        let matchChain = matchChain ?? MatchChain()
         
-        syntaxTree.rule = rule
+        matchChain.rule = rule
         
-        guard rule.isComponent, streamRange.length > 0, streamRange.location < characterStream.length else { return syntaxTree }
+        guard rule.isValid, streamRange.length > 0, streamRange.location < characterStream.length else { return matchChain }
         let stream = characterStream[streamRange]
-        
-        var subscope = SyntaxTree(treeClass: .lexerTree)
+
+        let subchain = MatchChain(rule: rule)
+        var tmpChain = MatchChain(rule: rule)
         var matchCount = 0
         var dx = 0
         
-        switch rule.componentType {
+        switch rule.type {
             
-        case .lexerRuleReference, .lexerFragmentReference:
+        case .lexerRuleReference:
             
             guard let ruleRef = grammar[rule.value]  else {
-                print(String(format: "No lexer rule was defined for id \"%@\"", rule.value))
-                return syntaxTree
+                print(String(format: "WARNING: No lexer rule was defined for id \"%@\"", rule.value))
+                return matchChain
             }
 
-            subscope = tokenize(characterStream,
-                                rule: ruleRef,
-                                within: streamRange,
-                                metadata: rule.metadata)
-            while rule.inverted != subscope.absoluteMatch {
+            tmpChain = tokenize(characterStream, rule: ruleRef,
+                                within: streamRange)
+            while rule.inverted != tmpChain.absoluteMatch {
                 if rule.inverted {
-                    let token = Token(rule: rule,
-                                      value: stream.firstCharacter,
-                                      start: streamRange.location + dx,
-                                      length: 1)
-                    token.metadata = metadata ?? rule.metadata
-                    subscope = SyntaxTree(treeClass: .lexerTree)
-                    subscope.add(token: token)
+                    let token = Token(value: stream.firstCharacter,
+                                      start: streamRange.location + dx, length: 1,
+                                      rules: [rule])
+                    tmpChain = MatchChain(rule: rule)
+                    tmpChain.rule = rule
+                    tmpChain.add(token: token)
                 }
-                syntaxTree.add(tokens: subscope.tokens)
+                subchain.add(subchain: tmpChain)
+                subchain.add(tokens: tmpChain.tokens)
                 matchCount += 1
-                dx += subscope.length
+                dx += tmpChain.length
                 if !rule.quantifier.greedy { break }
-                subscope = tokenize(characterStream,
-                                    rule: ruleRef,
-                                    within: streamRange.shiftingLocation(by: dx),
-                                    metadata: rule.metadata)
+                tmpChain = tokenize(characterStream, rule: ruleRef,
+                                    within: streamRange.shiftingLocation(by: dx))
             }
-            
-        case .composite:
+
+        case .lexerRule, .composite:
             
             if rule.subrules.count > 0 {
                 
                 for subrule in rule.subrules {
-                    subscope = tokenize(characterStream,
-                                        rule: subrule,
-                                        within: streamRange,
-                                        metadata: metadata)
-                    if rule.inverted != subscope.absoluteMatch { break }
+                    tmpChain = tokenize(characterStream, rule: subrule,
+                                        within: streamRange)
+                    if rule.inverted != tmpChain.absoluteMatch { break }
                 }
-                
-                while rule.inverted != subscope.absoluteMatch {
+
+                while rule.inverted != tmpChain.absoluteMatch {
                     if rule.inverted {
-                        let token = Token(rule: rule,
-                                          value: stream.firstCharacter,
+                        let token = Token(value: stream.firstCharacter,
                                           start: streamRange.location + dx,
-                                          length: 1)
-                        token.metadata = metadata ?? rule.metadata
-                        subscope = SyntaxTree(treeClass: .lexerTree)
-                        subscope.add(token: token)
+                                          length: 1,
+                                          rules: [rule])
+                        tmpChain = MatchChain(rule: rule)
+                        tmpChain.rule = rule
+                        tmpChain.add(token: token)
                     }
-                    syntaxTree.add(tokens: subscope.tokens)
+                    if rule.type == .lexerRule {
+                        subchain.add(subchain: tmpChain)
+                        subchain.add(tokens: tmpChain.tokens)
+                    }
                     matchCount += 1
-                    dx += subscope.length
+                    dx += tmpChain.length
                     if !rule.quantifier.greedy { break }
                     for subrule in rule.subrules {
-                        subscope = tokenize(characterStream,
-                                            rule: subrule,
-                                            within: streamRange.shiftingLocation(by: dx),
-                                            metadata: metadata)
-                        if rule.inverted != subscope.absoluteMatch { break }
+                        tmpChain = tokenize(characterStream, rule: subrule,
+                                            within: streamRange.shiftingLocation(by: dx))
+                        if rule.inverted != tmpChain.absoluteMatch { break }
                     }
                 }
-                
+                if rule.type == .composite {
+                    let token = Token(value: stream.substring(with: NSMakeRange(stream.range.location, dx)),
+                                      start: streamRange.location, length: dx, rules: [rule])
+                    tmpChain = MatchChain(rule: rule, tokens: [token])
+                    subchain.add(subchain: tmpChain)
+                    subchain.add(tokens: tmpChain.tokens)
+                }
+
             }
                 
         default:
@@ -186,48 +183,45 @@ open class Lexer: BaseGrammaticalMatcher {
             }
             
             var range = stream.range
-            var match = pattern.firstMatch(in: stream,
-                                           options: .anchored,
-                                           range: range)
+            var match = pattern.firstMatch(in: stream, options: .anchored, range: range)
             while rule.inverted != (match != nil) {
-                var token: Token
                 if !rule.inverted, let match = match {
-                    token = Token(rule: rule,
-                                  value: stream.substring(with: match.range),
-                                  start: streamRange.location + dx,
-                                  length: match.range.length)
+                    dx += match.range.length
                 } else {
-                    token = Token(rule: rule,
-                                  value: stream.firstCharacter,
-                                  start: streamRange.location + dx,
-                                  length: 1)
+                    dx += 1
                 }
-                token.metadata = metadata ?? rule.metadata
-                syntaxTree.add(token: token)
                 matchCount += 1
-                dx += token.value.length
                 if !rule.quantifier.greedy { break }
                 range = NSMakeRange(dx, stream.length - dx)
-                match = pattern.firstMatch(in: stream,
-                                           options: .anchored,
-                                           range: range)
+                match = pattern.firstMatch(in: stream, options: .anchored, range: range)
             }
-                
+            let token = Token(value: stream.substring(with: NSMakeRange(stream.range.location, dx)),
+                              start: streamRange.location, length: dx, rules: [rule])
+            tmpChain.add(token: token)
+            tmpChain.rule = rule
+            subchain.add(subchain: tmpChain)
+            subchain.add(tokens: tmpChain.tokens)
+
         }
+
+        matchChain.add(subchains: subchain.subchains)
+        matchChain.add(tokens: subchain.tokens)
         
         if (!rule.quantifier.hasRange && matchCount > 0) || rule.quantifier.optional || rule.quantifier.matches(matchCount) {
             if let next = rule.next {
-                return tokenize(characterStream,
-                                rule: next,
+                return tokenize(characterStream, rule: next,
                                 within: streamRange.shiftingLocation(by: dx),
-                                syntaxTree: syntaxTree,
-                                parentTree: parentTree)
+                                matchChain: matchChain)
             }
-            syntaxTree.matches = true
-            parentTree?.add(child: syntaxTree)
+            matchChain.matches = true
+        }
+
+        if matchChain.subchains.count > 1 {
+
         }
         
-        return syntaxTree
+        return matchChain
+
     }
     
 }

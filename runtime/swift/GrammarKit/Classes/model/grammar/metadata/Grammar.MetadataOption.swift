@@ -33,7 +33,7 @@ extension Grammar {
         public typealias RawValue = String
         
         public let rawValue: RawValue
-        
+
         /// Indicates that this rule should not be added to the
         /// rule map of enumerated rules of this container grammar.
         public static let fragment = This("fragment")
@@ -45,9 +45,6 @@ extension Grammar {
         /// Indicates that this rule should extend off of inherited
         /// implementation(s) as an alternative clause.
         public static let extend = This("extend")
-        
-        /// Indicates that the rule can span over multiple lines.
-        public static let multiline = This("multiline")
         
         /// Indicates that the rule contains nested scopes.
         public static let nested = This("nested")

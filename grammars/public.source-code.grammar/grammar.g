@@ -1,7 +1,5 @@
 grammar public.source-code;
 
-// Lexer Rules
-
 // Whitespaces
 WHITESPACE { "precedence": [ "max" ], "options": [ "skip" ] }:
 	'[ \t]+';
@@ -9,7 +7,7 @@ NEWLINE { "precedence": [ "=WHITESPACE" ], "options": [ "skip" ] }:
 	'\r?\n';
 
 // Code Blocks
-BLOCK { "precedence": [ "=WHITESPACE" ], "options": [ "multiline", "nested" ] }:
+BLOCK { "precedence": [ "=WHITESPACE" ], "options": [], "suboptions": { "1": [ "nested" ] } }:
 	L_BRACE (BLOCK | ~R_BRACE)* (R_BRACE | '\Z');
 
 // Strings

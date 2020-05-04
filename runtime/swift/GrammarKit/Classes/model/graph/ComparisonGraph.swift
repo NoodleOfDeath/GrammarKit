@@ -26,10 +26,16 @@ import Foundation
 
 extension ComparisonResult {
 
+    ///
     static var lessThan: ComparisonResult { return .orderedAscending }
+
+    ///
     static var equalTo: ComparisonResult { return .orderedSame }
+
+    ///
     static var greaterThan: ComparisonResult { return .orderedDescending }
 
+    ///
     var inverse: ComparisonResult {
         switch self {
         case .lessThan: return .greaterThan
@@ -38,6 +44,7 @@ extension ComparisonResult {
         }
     }
 
+    ///
     init(_ stringValue: String) {
         switch stringValue {
         case "<": self = .lessThan
@@ -48,8 +55,10 @@ extension ComparisonResult {
 
 }
 
+// MARK: - Codable Extension
 extension ComparisonResult: Codable {}
 
+// MARK: - CustomStringConvertible Extension
 extension ComparisonResult: CustomStringConvertible {
 
     public var description: String {
@@ -62,30 +71,54 @@ extension ComparisonResult: CustomStringConvertible {
 
 }
 
+///
 public protocol ComparisonGraphNode {
 
     var id: String { get }
 
 }
 
+///
 public class ComparisonGraph<T: ComparisonGraphNode> {
 
+    ///
     public var nodes = [T]()
+
+    ///
     public var weights = [String: Int]()
+
+    ///
     public var relations = [String: [String: ComparisonResult]]()
 
+    ///
     var equalRelations = [(String, String)]()
 
+    ///
+    ///
+    /// - Parameters:
+    ///     - nodes:
     public init(nodes: [T] = []) {
         self.nodes = nodes
     }
 
+    ///
+    ///
+    /// - Parameters:
+    ///     - a:
+    ///     - b:
+    ///     - relation:
     public func connect(_ a: String, _ b: String, _ relation: ComparisonResult) {
         oneWayConnect(a, b, relation)
         if relation == .equalTo { return }
         oneWayConnect(b, a, relation.inverse)
     }
 
+    ///
+    ///
+    /// - Parameters:
+    ///     - a:
+    ///     - b:
+    ///     - relation:
     public func connect(_ a: String, _ b: String, _ relation: String) {
         switch relation {
         case "<": connect(a, b, .lessThan)
@@ -94,10 +127,22 @@ public class ComparisonGraph<T: ComparisonGraphNode> {
         }
     }
 
+    /// Sets the weight for a node with the specified id.
+    ///
+    /// - Parameters:
+    ///     - weight: to set for a node.
+    ///     - id: of the node to set the weight for.
     public func set(weight: Int, for id: String) {
         weights[id] = weight
     }
 
+    ///
+    ///
+    /// - Parameters:
+    ///     - a:
+    ///     - b:
+    ///     - excluding:
+    /// - Returns:
     public func compare(_ a: String, _ b: String, _ excluding: [String] = []) -> ComparisonResult {
         if let a = weights[a] {
             if  let b = weights[b] {
@@ -115,10 +160,25 @@ public class ComparisonGraph<T: ComparisonGraphNode> {
         return .equalTo
     }
 
+    ///
+    ///
+    /// - Parameters:
+    ///     - a:
+    ///     - b:
+    /// - Returns:
     public func compare(_ a: T, _ b: T) -> ComparisonResult {
         return compare(a.id, b.id)
     }
 
+    /// Returns the nodes of this graph in sorted order based on relation and
+    /// weight constraints.
+    ///
+    /// - Parameters:
+    ///     - reversed: `true` if the nodes should be sorted in
+    ///     `.orderedDescending` order (i.e. largest to smallest); default
+    ///     value is `false`.
+    /// - Returns: the nodes of this graph in sorted order based on relation and
+    /// weight constraints.
     func sorted(reversed: Bool = false) -> [T] {
         return nodes.sorted {
             if reversed { return self.compare($0.id, $1.id) != .lessThan }
@@ -126,7 +186,9 @@ public class ComparisonGraph<T: ComparisonGraphNode> {
         }
     }
 
-    func resolveEqualRelations() {
+    /// Connects all nodes that are equal to each other and any respective
+    /// relations they should share.
+    func deriveEqualRelations() {
         for (a, b) in equalRelations {
             if let relations = self.relations[b] {
                 for (id, relation) in relations.filter({ $0.1 != .equalTo }) {
@@ -136,6 +198,12 @@ public class ComparisonGraph<T: ComparisonGraphNode> {
         }
     }
 
+    ///
+    ///
+    /// - Parameters:
+    ///     - a:
+    ///     - b:
+    ///     - relation:
     fileprivate func oneWayConnect(_ a: String, _ b: String, _ relation: ComparisonResult) {
         var relations = self.relations[a] ?? [:]
         relations[b] = relation
@@ -150,6 +218,7 @@ public class ComparisonGraph<T: ComparisonGraphNode> {
 
 }
 
+// MARK: - CustomStringConvertible Extension
 extension ComparisonGraph: CustomStringConvertible {
 
    public var description: String {
