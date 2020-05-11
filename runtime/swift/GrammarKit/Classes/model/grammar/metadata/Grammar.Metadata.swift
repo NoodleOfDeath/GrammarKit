@@ -41,22 +41,18 @@ extension Grammar {
             case id
             case description
             case options
-            case suboptions
-            case categories
+            case groups
             case references
-            case directives
         }
 
         override open var description: String {
             var strings = [String]()
             strings.append("- Options: \(options)")
-            strings.append("- Suboptions: \(suboptions)")
-            strings.append("- Categories: \(categories)")
+            groups.forEach({ strings.append("- Group: \($0.key) = \($0.value.options)")})
             if let description = detailedDescription {
                 strings.append("- Description: \(description)")
             }
             references.forEach({ strings.append("- Reference: \($0)") })
-            directives.forEach({ strings.append("- Directive: \($0)") })
             return strings.joined(separator: "\n")
         }
 
@@ -92,20 +88,11 @@ extension Grammar {
         /// Options of this component.
         public var options: [MetadataOption]
 
-        /// Suboptions of this component.
-        public var suboptions: [String: [MetadataOption]]
+        /// groups of this component.
+        public var groups: [String: Metadata]
         
-        /// Categories of this component.
-        public var categories: [String]
-        
-        /// Category of this component.
-        public var category: String? { return categories.first }
-
         /// References of this metadata.
         public var references = [Reference]()
-
-        /// Additional directives for the lexer/parser to handle upon matching.
-        public var directives = [Directive]()
 
         // MARK: - Constructor Methods
 
@@ -116,24 +103,18 @@ extension Grammar {
         ///     - id: of this metadata.
         ///     - detailedDescription: of this metadata.
         ///     - options: of this metadata.
-        ///     - categories: of this metadata.
         ///     - references: of this metadata.
-        ///     - directives: of this metadata.
         public required init(id: String,
                              detailedDescription: String?,
                              options: [MetadataOption],
-                             suboptions: [String: [MetadataOption]],
-                             categories: [String],
-                             references: [Reference],
-                             directives: [Directive]) {
+                             groups: [String: Metadata],
+                             references: [Reference]) {
             self.baseId = id
             self.id = id
             self.detailedDescription = detailedDescription
             self.options = options
-            self.suboptions = suboptions
-            self.categories = categories
+            self.groups = groups
             self.references = references
-            self.directives = directives
             This.nodeCount += 1
         }
 
@@ -145,20 +126,16 @@ extension Grammar {
             let id = dict?[CodingKeys.id] as? String ?? String(This.nodeCount)
             let detailedDescription = dict?[CodingKeys.description] as? String
             let options = (dict?[CodingKeys.options] as? [String])?.map({ MetadataOption($0) }) ?? []
-            var suboptions = [String: [MetadataOption]]()
-            if let subopts = (dict?[CodingKeys.suboptions] as? [String: [String]]) {
-                subopts.forEach({ suboptions[$0.key] = $0.value.map({ MetadataOption($0) }) })
+            var groups = [String: Metadata]()
+            if let subopts = (dict?[CodingKeys.groups] as? [String: [String: Any]]) {
+                subopts.forEach({ groups[$0.key] = Metadata(from: $0.value) })
             }
-            let categories = (dict?[CodingKeys.categories] as? [String]) ?? []
             let references = (dict?[CodingKeys.references] as? [String])?.map({ Reference(string: $0) }).filter({ $0 != nil }) as? [Reference] ?? []
-            let directives = (dict?[CodingKeys.directives] as? [String])?.map({ Directive(string: $0) }).filter({ $0 != nil }) as? [Directive] ?? []
             self.init(id: id,
                       detailedDescription: detailedDescription,
                       options: options,
-                      suboptions: suboptions,
-                      categories: categories,
-                      references: references,
-                      directives: directives)
+                      groups: groups,
+                      references: references)
         }
         
         public required init(from decoder: Decoder) throws {
@@ -169,10 +146,8 @@ extension Grammar {
             id = try values.decode(String.self, forKey: .id)
             detailedDescription = try values.decodeIfPresent(String.self, forKey: .description)
             options = try values.decode([MetadataOption].self, forKey: .options)
-            suboptions = try values.decode([String: [MetadataOption]].self, forKey: .options)
-            categories = try values.decode([String].self, forKey: .categories)
+            groups = try values.decode([String: Metadata].self, forKey: .options)
             references = try values.decode([Reference].self, forKey: .references)
-            directives = try values.decode([Directive].self, forKey: .directives)
             super.init()
             updateChildren()
             updateNext()
@@ -186,10 +161,8 @@ extension Grammar {
             try container.encode(id, forKey: .id)
             try container.encodeIfPresent(detailedDescription, forKey: .description)
             try container.encode(options, forKey: .options)
-            try container.encode(suboptions, forKey: .suboptions)
-            try container.encode(categories, forKey: .categories)
+            try container.encode(groups, forKey: .groups)
             try container.encode(references, forKey: .references)
-            try container.encode(directives, forKey: .directives)
         }
         
         // MARK: - Instance Methods
@@ -216,17 +189,6 @@ extension Grammar {
             return options.contains(MetadataOption(option))
         }
         
-        /// Returns `true` if, and only if, `self.categories` contains any
-        /// element in `categories`; `false`, otherwise.
-        ///
-        /// - Parameters:
-        ///     - categories: to test for membership
-        /// - Returns: `true` if, and only if, `self.categories` contains any
-        /// element in `categories`; `false`, otherwise.
-        public func isMemberOf(_ categories: String...) -> Bool {
-            return self.categories.first { categories.contains($0) } != nil
-        }
-        
     }
     
 }
@@ -236,9 +198,7 @@ extension Grammar.Metadata {
 
     public static func + (lhs: Grammar.Metadata, rhs: Grammar.Metadata) -> Grammar.Metadata {
         lhs.options += rhs.options
-        lhs.categories += rhs.categories
         lhs.references += rhs.references
-        lhs.directives += rhs.directives
         return lhs
     }
 

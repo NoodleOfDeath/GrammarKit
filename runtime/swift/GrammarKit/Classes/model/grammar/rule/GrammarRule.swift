@@ -46,37 +46,9 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     public typealias MetadataOption = Grammar.MetadataOption
 
     override open var description: String {
-        return String(format: "%@ %@ [%@]\n\tDefinition: %@\n%@", id, String(describing: type), precedence, definition, metadata)
-    }
-    
-     open var definition: String {
-        
-        var strings = [String]()
-        
-        switch type {
-            
-        case .literal, .expression:
-            strings.append(String(format: "'%@'%@", value, quantifier))
-
-        case .composite, .lexerRule, .parserRule:
-            break
-            
-        default:
-            strings.append(String(format: "%@%@", value, quantifier))
-
-        }
-        
-        if subrules.count > 0 {
-            var substrings = [String]()
-            subrules.forEach { substrings.append($0.definition) }
-            strings.append(String(format: " (%@)%@", substrings.joined(separator: " | "), quantifier))
-        }
-        
-        if let next = next { strings.append(String(format: " %@", next.definition)) }
-        if inverted { strings = [String(format: "~%@", strings.joined())] }
-        
-        return strings.joined().trimmed(true)
-
+        return String(format: "%@ %@ [%@]\n\tDefinition: %@\n%@",
+                      id, String(describing: type), precedence,
+                      definition, metadata)
     }
 
     // MARK: - Node Properties
@@ -106,15 +78,49 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
 
     // MARK: - Instance Properties
 
-    open var prefix: String {
-        guard let prefix = parent?.id else { return "" }
-        return "\(prefix)."
+    open var isEmpty: Bool { return value.length == 0 || count == 0 }
+
+     open var definition: String {
+
+        var strings = [String]()
+
+        switch type {
+
+        case .literal, .expression:
+            strings.append(String(format: "'%@'%@", value, quantifier))
+
+        case .composite, .lexerRule, .parserRule:
+            break
+
+        case .captureGroupReference:
+            strings.append(String(format: "%%%@%@", value, quantifier))
+
+        default:
+            strings.append(String(format: "%@%@", value, quantifier))
+
+        }
+
+        if subrules.count > 0 {
+            var substrings = [String]()
+            subrules.forEach { substrings.append($0.definition) }
+            strings.append(String(format: " (%@%@)%@", groupName != nil ? "?<\(groupName!)> " : "", substrings.joined(separator: " | "), quantifier))
+        }
+
+        if let next = next { strings.append(String(format: " %@", next.definition)) }
+        if inverted { strings = [String(format: "~%@", strings.joined())] }
+
+        return strings.joined().trimmed(true)
+
     }
 
-    open var name: String {
-        return (inverted ? "~" : "") + (isRoot ? id : isReference ? value : prefix + String(depth))
+    open var derivedId: String {
+        let localId = (isRoot ? id : isRuleReference ? value : groupName ?? String(depth - 1))
+        guard let prefix = parent?.derivedId else { return (inverted ? "~" : "") + localId }
+        return (inverted ? "~" : "") + prefix + "." + localId
     }
-    
+
+    open var groupName: String?
+
     /// Mininum length of this rule in terms of node depth.
     open var minLength: Int {
         var length = 0
@@ -148,8 +154,8 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     /// Returns `true` if, and only if, `type.isRule == true`.
     open var isRule: Bool { return type.isRule }
 
-    /// Returns `true` if, and only if, `type.isReference == true`.
-    open var isReference: Bool { return type.isReference }
+    /// Returns `true` if, and only if, `type.isRuleReference == true`.
+    open var isRuleReference: Bool { return type.isRuleReference }
 
     /// Returns `true` if, and only if, `type.isSubrule == true`.
     open var isSubrule: Bool { return type.isSubrule || parent != nil }
@@ -179,13 +185,7 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     open var options: [MetadataOption] { return metadata.options }
 
     /// Options of this grammar rule.
-    open var suboptions: [String: [MetadataOption]] { return metadata.suboptions }
-    
-    /// Category of this grammar rule.
-    open var category: String? { return metadata.category }
-    
-    /// Categories of this grammar rule.
-    open var categories: [String] { return metadata.categories }
+    open var groups: [String: Metadata] { return metadata.groups }
     
     /// Returns `true` if, and only if, `options` contains `option`.
     ///
@@ -206,7 +206,7 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     }
     
     ///
-    open var queue = [GrammarRule]()
+    open var queue = [NodeType]()
     
     // MARK: - Constructor Methods
     
@@ -272,7 +272,7 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
         clearQueue()
     }
     
-    open func enqueue(_ rule: GrammarRule?) {
+    open func enqueue(_ rule: NodeType?) {
         guard let rule = rule else { return }
         queue.append(rule)
     }
@@ -288,10 +288,10 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     ///     - ref:
     /// - Returns: `true` if this grammar rule recursively references itself;
     /// `false`, othwerwise.
-    open func recursive(_ reference: GrammarRule? = nil) -> Bool {
+    open func recursive(_ reference: NodeType? = nil) -> Bool {
         let reference = reference ?? self
         for subrule in subrules {
-            if (subrule.isReference && subrule.value == (reference.id)) || subrule.recursive(reference) {
+            if (subrule.isRuleReference && subrule.value == (reference.id)) || subrule.recursive(reference) {
                 return true
             }
         }
@@ -305,13 +305,13 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
     ///     - reference: that could be
     /// - Returns: `true` if this grammar rule recursively references itself and
     /// would cause a potentially reference infinite loop; `false`, otherwise.
-    open func infinitelyRecursive(_ reference: GrammarRule? = nil) -> Bool {
+    open func infinitelyRecursive(_ reference: NodeType? = nil) -> Bool {
         if !recursive() { return false }
         let reference = reference ?? self
         var isInfinite = [Bool]()
         for subrule in subrules {
             if subrule.infinitelyRecursive(reference) { return true }
-            isInfinite.append((subrule.isReference && subrule.value == (reference.id)) || subrule.recursive(reference))
+            isInfinite.append((subrule.isRuleReference && subrule.value == (reference.id)) || subrule.recursive(reference))
         }
         guard isInfinite.count > 0 else { return false }
         return !isInfinite.contains(false)

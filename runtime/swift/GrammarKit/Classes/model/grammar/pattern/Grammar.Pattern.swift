@@ -30,79 +30,34 @@ extension Grammar {
     /// definitions.
     public struct Pattern {
 
-        public struct Structure {
+        public static var patterns: [String: String] = {
+            var patterns = [String: String]()
+            if let patternFile = Bundle.main.path(forResource: "strings/patterns", ofType: "strings"),
+                let contents = (try? String(contentsOfFile: patternFile))?.replacingOccurrences(of: "(//|#).*/\\*.*?\\*/", with: "", options: .regularExpression) {
+                "(\\w+)\\s*=\\s*(.*)\\r?\\n".enumerateMatches(in: contents) { (match, _, _) in
+                    guard let match = match else { return }
+                    let key = contents.substring(with: match.range(at: 1))
+                    let pattern = contents.substring(with: match.range(at: 2))
+                    patterns[key] = pattern
+                }
+            }
+            for (key, pattern) in patterns {
+                var pattern = pattern
+                var match = "\\\\\\((\\w+)\\)".firstMatch(in: pattern)
+                while match != nil {
+                    let id = pattern.substring(with: match!.range(at: 1))
+                    guard let subpattern = patterns[id] else { continue }
+                    pattern = (pattern as NSString).replacingCharacters(in: match!.range, with: subpattern)
+                    match = "\\\\\\((\\w+)\\)".firstMatch(in: pattern)
+                }
+                patterns[key] = pattern
+            }
+            return patterns
+        }()
 
-            /// Regular expression that denotes a grammar header.
-            public static let grammar = "grammar\\s+((?:[\\\\];|[^;])*?)\\s*?;"
-
-            /// Regular expression that denotes a grammar import.
-            public static let `import` = "import\\s+((?:[\\\\];|[^;])*?)\\s*?;"
-
-            /// Regular expression that denotes a grammar rule.
-            public static let rule = "^(?=\\s*)(?:(fragment)\\s+)?(\\w+)\\s*(\\{.*?\\})?\\s*(?::\\s*((?:[\\\\];|[^;])*?))?\\s*;"
-
+        public static subscript(key: String) -> String? {
+            return patterns[key]
         }
-        
-        /// Regular expression for a `empty` grammar rule definition token.
-        public static let empty = "(?:\\s*;\\s*)"
-        
-        /// Regular expression for a `literal` grammar rule definition token.
-        public static let literal = "(?<!\\\\)'(?:\\\\'|[^'])*'(?:\\s*(?:\\.\\.)(?<!\\\\)'(?:\\\\'|[^'])*')?"
-        
-        /// Regular expression for a `expression` grammar rule definition token.
-        public static let expression = "(?:\\s*\\^?(?:\\[.*?\\]|\\(\\?\\!.*\\)|\\.)\\$?)"
-        
-        /// Regular expression for a `word` grammar rule definition token.
-        public static let word = "(?:[_\\p{L}]+)"
-        
-        /// Regular expression for a `group` grammar rule definition token.
-        public static let group = "(?:\\(.*)"
-        
-        /// Regular expression for a `atom` grammar rule definition token.
-        public static let atom = "(?:\(empty)|\(literal)|\(expression)|\(word)|\(group))"
-        
-        /// Regular expression for a `quantifier` grammar rule definition token.
-        public static let quantifier = "(?:[\\*\\+\\?]\\??|\\{\\s*\\d\\s*(?:,\\d)?\\}|\\{,\\d\\})"
-        
-        /// Regular expression for a `cgFragment` grammar rule definition
-        /// token with capture groups.
-        public static let cgFragment = "(?:fragment\\s+(\\w+))"
-        
-        /// Regular expression for a `cgDefinition` grammar rule definition
-        /// token withcapture groups.
-        public static let cgDefinition = "(.*?)(?:\\s*->\\s*([^']*))?(?:\\s*\\{(.*?)\\})?$"
-        
-        /// Regular expression for a `cgCommand` grammar rule definition
-        /// token with capture groups.
-        public static let cgCommand = "(\\w+)\\s*(?:\\((.*?)\\))?"
-        
-        /// Regular expression for a `cgParserAction` grammar rule definition
-        /// token with capture groups.
-        public static let cgParserAction = "(\\w+)\\s*(?:\\((.*?)\\))?"
-        
-        /// Regular expression for a `cgAlternative` grammar rule definition
-        /// token with capture groups.
-        public static let cgAlternative = "((?:(~)?\(atom)\\s*\(quantifier)?\\s*)+)"
-        
-        /// Regular expression for a `cgGroup` grammar rule definition token
-        /// with capture groups.
-        public static let cgGroup = "\\s*(\\(.*)\\s*"
-        
-        /// Regular expression for a `cgGreedyGroup` grammar rule definition
-        /// token with capture groups.
-        public static let cgGreedyGroup = "\\((.*)\\)"
-        
-        /// Regular expression for a `cgLiteral` grammar rule definition
-        /// token with capture groups.
-        public static let cgLiteral = "\\s*(?<!\\\\)'((?:\\\\'|[^'])*)'(?:\\s*(?:\\.\\.)(?<!\\\\)'((?:\\\\'|[^'])*)')?\\s*"
-        
-        /// Regular expression for a `cgExpression` grammar rule definition
-        /// token with capture groups.
-        public static let cgExpression = "(?:\\s*(\(expression)))\\s*"
-        
-        /// Regular expression for a `cgAtom` grammar rule definition token with
-        /// capture groups.
-        public static let cgAtom = "(~)?\\s*(\(atom))\\s*(\(quantifier)?)"
         
     }
 

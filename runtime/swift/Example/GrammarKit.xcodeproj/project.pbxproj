@@ -13,6 +13,7 @@
 		04015965243F52EE00C96B98 /* Extensions.RawRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04015962243F506700C96B98 /* Extensions.RawRepresentable.swift */; };
 		040330B7221F0EF3008E9C99 /* ExampleMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleMatcher.swift */; };
 		040330BC221F4F2A008E9C99 /* ExampleMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleMatcher.swift */; };
+		04A3343224630FA7005D91C0 /* strings in Resources */ = {isa = PBXBuildFile; fileRef = 04A3343124630FA7005D91C0 /* strings */; };
 		04E17A1B21A337670082A529 /* samples in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A1921A337670082A529 /* samples */; };
 		04E17A1C21A337670082A529 /* grammars in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A1A21A337670082A529 /* grammars */; };
 		04E17A2421A35BF80082A529 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E17A2321A35BF80082A529 /* AppDelegate.swift */; };
@@ -43,6 +44,7 @@
 		0432A6AA243CD13D000736F5 /* .travis.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = .travis.yml; path = ../../../.travis.yml; sourceTree = "<group>"; };
 		04784FFF21AC8F4B0092D095 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../../README.md; sourceTree = "<group>"; };
 		0490F32C243A8A6100B107A4 /* GrammarKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GrammarKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		04A3343124630FA7005D91C0 /* strings */ = {isa = PBXFileReference; lastKnownFileType = folder; name = strings; path = ../../../strings; sourceTree = "<group>"; };
 		04E17A1921A337670082A529 /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; name = samples; path = ../../../samples; sourceTree = "<group>"; };
 		04E17A1A21A337670082A529 /* grammars */ = {isa = PBXFileReference; lastKnownFileType = folder; name = grammars; path = ../../../grammars; sourceTree = "<group>"; };
 		04E17A2121A35BF80082A529 /* GrammarKit_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrammarKit_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -180,6 +182,7 @@
 				04E17A1A21A337670082A529 /* grammars */,
 				04784FFF21AC8F4B0092D095 /* README.md */,
 				04E17A1921A337670082A529 /* samples */,
+				04A3343124630FA7005D91C0 /* strings */,
 			);
 			name = Documents;
 			sourceTree = "<group>";
@@ -273,6 +276,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				04E17A2E21A35BF90082A529 /* LaunchScreen.storyboard in Resources */,
+				04A3343224630FA7005D91C0 /* strings in Resources */,
 				04E17A2B21A35BF90082A529 /* Assets.xcassets in Resources */,
 				04E17A2921A35BF80082A529 /* Main.storyboard in Resources */,
 			);
@@ -343,13 +347,11 @@
 				"${PODS_ROOT}/Target Support Files/Pods-GrammarKit_Example/Pods-GrammarKit_Example-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/GrammarKit/GrammarKit.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyUTType/SwiftyUTType.framework",
-				"${BUILT_PRODUCTS_DIR}/SwiftyXMLParser/SwiftyXMLParser.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GrammarKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyUTType.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyXMLParser.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

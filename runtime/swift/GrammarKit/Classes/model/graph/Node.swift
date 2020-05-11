@@ -72,7 +72,11 @@ public protocol NodeChain: Node where NodeType: NodeChain {
 }
 
 extension NodeChain {
-    
+
+    public var olderSiblings: Int {
+        return (previous?.olderSiblings ?? 0) + 1
+    }
+
     /// Length of this node chain with this node as the start offset. A value
     /// of `0` indicates this node chain has no younger siblings.
     public var chainLength: Int {

@@ -41,10 +41,11 @@ class ExampleMatcher: CompoundGrammaticalMatcher {
         print(">>> Match: \(matchChain)")
         if let rule = matchChain.rule, rule.isRule == true, let subchain = matchChain.subchains.first {
             subchain.subchains.enumerated().forEach({
-                let index = $0.0
-                if rule.suboptions["\(index)"]?.contains(.nested) == true {
-                    nestedRanges.append($0.1.range)
-                }
+                guard
+                    let groupName = $0.1.rule?.groupName,
+                    let metadata = rule.groups[groupName],
+                    metadata.options.contains(.nested) else { return }
+                nestedRanges.append($0.1.range)
             })
         }
     }
@@ -61,11 +62,10 @@ class ExampleMatcher: CompoundGrammaticalMatcher {
             print("Lexer did finish tokenizing character stream")
             print(String(format: "%ld tokens were found", tokenStream.length))
             print()
-            print("----- Parsing Token Stream (\(tokenStream.range) -----")
+            print("----- Parsing Token Stream (\(tokenStream.tokenCount) tokens) \(tokenStream.range) -----")
             print()
             parser?.parse(tokenStream)
-            break
-            
+
         case is Parser:
             print()
             print("Parser did finish parsing token stream")

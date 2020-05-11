@@ -59,7 +59,7 @@ open class Lexer: BaseGrammaticalMatcher {
                     break
                 }
             }
-            if matchChain.matches && matchChain.has(option: .skip) == false {
+            if (matchChain.matches && matchChain.has(option: .skip) == false) {
                 let token = matchChain.asToken
                 if let rule = matchChain.rule {
                     token.add(rule: rule)
@@ -88,16 +88,15 @@ open class Lexer: BaseGrammaticalMatcher {
     ///     - matchChain:
     ///     - metadata:
     /// - Returns:
-    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil) -> MatchChain {
+    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil, captureGroups: [String: MatchChain]? = nil) -> MatchChain {
         
-        let matchChain = matchChain ?? MatchChain()
-        
-        matchChain.rule = rule
-        
+        let matchChain = matchChain ?? MatchChain(rule: rule)
+        var captureGroups = captureGroups ?? [:]
+
         guard rule.isValid, streamRange.length > 0, streamRange.location < characterStream.length else { return matchChain }
         let stream = characterStream[streamRange]
 
-        let subchain = MatchChain(rule: rule)
+        var subchain = MatchChain(rule: rule)
         var tmpChain = MatchChain(rule: rule)
         var matchCount = 0
         var dx = 0
@@ -111,13 +110,12 @@ open class Lexer: BaseGrammaticalMatcher {
                 return matchChain
             }
 
-            tmpChain = tokenize(characterStream, rule: ruleRef,
-                                within: streamRange)
+            tmpChain = tokenize(characterStream, rule: ruleRef, within: streamRange, captureGroups: captureGroups)
             while rule.inverted != tmpChain.absoluteMatch {
                 if rule.inverted {
                     let token = Token(value: stream.firstCharacter,
-                                      start: streamRange.location + dx, length: 1,
-                                      rules: [rule])
+                                      start: streamRange.location + dx,
+                                      length: 1, rules: [rule])
                     tmpChain = MatchChain(rule: rule)
                     tmpChain.rule = rule
                     tmpChain.add(token: token)
@@ -128,7 +126,8 @@ open class Lexer: BaseGrammaticalMatcher {
                 dx += tmpChain.length
                 if !rule.quantifier.greedy { break }
                 tmpChain = tokenize(characterStream, rule: ruleRef,
-                                    within: streamRange.shiftingLocation(by: dx))
+                                    within: streamRange.shiftingLocation(by: dx),
+                                    captureGroups: captureGroups)
             }
 
         case .lexerRule, .composite:
@@ -136,8 +135,7 @@ open class Lexer: BaseGrammaticalMatcher {
             if rule.subrules.count > 0 {
                 
                 for subrule in rule.subrules {
-                    tmpChain = tokenize(characterStream, rule: subrule,
-                                        within: streamRange)
+                    tmpChain = tokenize(characterStream, rule: subrule, within: streamRange, captureGroups: captureGroups)
                     if rule.inverted != tmpChain.absoluteMatch { break }
                 }
 
@@ -145,13 +143,12 @@ open class Lexer: BaseGrammaticalMatcher {
                     if rule.inverted {
                         let token = Token(value: stream.firstCharacter,
                                           start: streamRange.location + dx,
-                                          length: 1,
-                                          rules: [rule])
+                                          length: 1, rules: [rule])
                         tmpChain = MatchChain(rule: rule)
                         tmpChain.rule = rule
                         tmpChain.add(token: token)
                     }
-                    if rule.type == .lexerRule {
+                    if rule.isRule {
                         subchain.add(subchain: tmpChain)
                         subchain.add(tokens: tmpChain.tokens)
                     }
@@ -160,7 +157,8 @@ open class Lexer: BaseGrammaticalMatcher {
                     if !rule.quantifier.greedy { break }
                     for subrule in rule.subrules {
                         tmpChain = tokenize(characterStream, rule: subrule,
-                                            within: streamRange.shiftingLocation(by: dx))
+                                            within: streamRange.shiftingLocation(by: dx),
+                                            captureGroups: captureGroups)
                         if rule.inverted != tmpChain.absoluteMatch { break }
                     }
                 }
@@ -173,7 +171,30 @@ open class Lexer: BaseGrammaticalMatcher {
                 }
 
             }
-                
+
+        case .captureGroupReference:
+            if let captureGroup = captureGroups[rule.value] {
+                var range = stream.range
+                var match = captureGroup.string.firstMatch(in: stream, options: .anchored, range: range)
+                while rule.inverted != (match != nil) {
+                    if !rule.inverted, let match = match {
+                        dx += match.range.length
+                    } else {
+                        dx += 1
+                    }
+                    matchCount += 1
+                    if !rule.quantifier.greedy { break }
+                    range = NSMakeRange(dx, stream.length - dx)
+                    match = captureGroup.string.firstMatch(in: stream, options: .anchored, range: range)
+                }
+            }
+            let token = Token(value: stream.substring(with: NSMakeRange(stream.range.location, dx)),
+                              start: streamRange.location, length: dx, rules: [rule])
+            tmpChain.add(token: token)
+            tmpChain.rule = rule
+            subchain.add(subchain: tmpChain)
+            subchain.add(tokens: tmpChain.tokens)
+
         default:
             // .literal, .expression
             
@@ -204,20 +225,28 @@ open class Lexer: BaseGrammaticalMatcher {
 
         }
 
-        matchChain.add(subchains: subchain.subchains)
+        if let s = matchChain.add(subchains: subchain.subchains) {
+            subchain = s
+        }
         matchChain.add(tokens: subchain.tokens)
-        
-        if (!rule.quantifier.hasRange && matchCount > 0) || rule.quantifier.optional || rule.quantifier.matches(matchCount) {
-            if let next = rule.next {
-                return tokenize(characterStream, rule: next,
-                                within: streamRange.shiftingLocation(by: dx),
-                                matchChain: matchChain)
-            }
-            matchChain.matches = true
+
+        if let groupName = rule.groupName, subchain.length > 0 {
+            captureGroups[groupName] = subchain
         }
 
-        if matchChain.subchains.count > 1 {
-
+        if (!rule.quantifier.hasRange && matchCount > 0) || rule.quantifier.optional || rule.quantifier.matches(matchCount) {
+            if let next = rule.next {
+                let remainingRange = streamRange.shiftingLocation(by: dx)
+                if remainingRange.length > 0 {
+                    return tokenize(characterStream, rule: next,
+                                    within: remainingRange, matchChain: matchChain,
+                                    captureGroups: captureGroups)
+                }
+                if !next.quantifier.optional {
+                    return matchChain
+                }
+            }
+            matchChain.matches = true
         }
         
         return matchChain

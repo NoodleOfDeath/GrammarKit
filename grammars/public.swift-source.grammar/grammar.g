@@ -1,7 +1,7 @@
 grammar public.swift-source;
 import public.source-code;
 
-// Lexer Rule Fragments
+# Lexer Rule Fragments
 
 fragment OPTIONAL_WRAPPER:
 	'\?';
@@ -18,7 +18,7 @@ fragment MULTILINE_DOCUMENTATION:
 fragment MULTILINE_COMMENT:
 	'\/\*(?s:.*?)(\*\/|\Z)';
 
-// Lexer Rules
+# Lexer Rules
 
 DOCUMENTATION_BLOCK { "precedence": [ "<WHITESPACE", ">STRING" ], "options": [ "" ] }:
 	((ONE_LINE_DOCUMENTATION | MULTILINE_DOCUMENTATION) (WHITESPACE | NEWLINE)*)+;
@@ -28,20 +28,20 @@ COMMENT_BLOCK { "precedence": [ "<DOCUMENTATION_BLOCK", ">STRING" ], "options": 
 
 NIL_COALESCING_OPERATOR { "precedence": [ "=OPERATOR" ], "options": [] }:
 	'\?\?';
-    
-NIL_WRAPPER_POSTFIX { "precedence": [ "<NIL_COALESCING_OPERATOR" ], "options": [] }:
+
+NIL_WRAPPER_POSTFIX { "precedence": [ "<NIL_COALESCING_OPERATOR", "=OPERATOR" ], "options": [] }:
 	OPTIONAL_WRAPPER | STRICT_WRAPPER;
 
-RETURN_OPERATOR { "precedence": [ "<STRING", ">GT_OPERATOR", ">SUB_OPERATOR" ], "options": [] }:
+RETURN_OPERATOR { "precedence": [ "<STRING", ">GT_OPERATOR", ">SUB_OPERATOR", "=OPERATOR" ], "options": [] }:
 	'\->';
 
-RANGE_OPERATOR { "precedence": [ "<STRING", ">LT_OPERATOR" ], "options": [] }:
+RANGE_OPERATOR { "precedence": [ "<STRING", ">LT_OPERATOR", "=OPERATOR" ], "options": [] }:
     '\.\.[.<]';
 
-EXTENDED_ID { "precedence": [ ">ID", ">KEYWORD" ], "options": [] }:
+EXTENDED_ID { "precedence": [ ">ID", ">KEYWORD", "<OPERATOR" ], "options": [] }:
 	(('self' | ID) '\.')+ ID;
 
-ANNOTATION { "precedence": [ ">ID", ">KEYWORD" ], "options": [] }:
+ANNOTATION { "precedence": [ ">ID", ">KEYWORD", "<OPERATOR" ], "options": [] }:
 	'@[\p{L}]+' (L_PAREN (STRING COMMA)* STRING R_PAREN)?;
 		
 KEYWORD { "precedence": [ "<TOKEN", "<OPERATOR", "<NUMBER" ], "options": [ "dictionary" ] }:
@@ -147,7 +147,7 @@ KEYWORD { "precedence": [ "<TOKEN", "<OPERATOR", "<NUMBER" ], "options": [ "dict
     { "id" : "willSet" },
 ];
 
-// Parser Rule Fragments
+# Parser Rule Fragments
 
 fragment access_modifier:
 	'fileprivate' | 'final' | 'lazy' | 'private' | 'open' | 'override' | 'public' | 'static' | 'weak';
@@ -165,10 +165,10 @@ fragment closure:
     tuple RETURN_OPERATOR tuple;
 
 fragment datatype:
-	(builtin_datatype | (L_PAREN closure R_PAREN) | EXTENDED_ID | ID) NIL_WRAPPER_POSTFIX?;
+	(EXTENDED_ID | ID | builtin_datatype | (L_PAREN closure R_PAREN)) NIL_WRAPPER_POSTFIX?;
 
 fragment datavalue:
-	builtin_value | literal_array | literal_range | tuple | method_invocation | STRING | LITERAL_STRING | NUMBER | EXTENDED_ID | ID | KEYWORD;
+	EXTENDED_ID | ID | builtin_value | literal_array | literal_range | tuple | method_invocation | STRING | LITERAL_STRING | NUMBER | KEYWORD;
 
 fragment operator { "options": [ "extend" ] }:
 	NIL_COALESCING_OPERATOR;
@@ -186,7 +186,7 @@ fragment lhs_assignment_clause:
 	array_accessor | variable_accessor;
 
 fragment rhs_assignment_clause:
-	(EQ_ASSIGNMENT_OPERATOR | INCREMENTAL_ASSIGNMENT_OPERATOR) expression;
+	ASSIGNMENT_OPERATOR expression;
 
 fragment simple_expression:
 	(datavalue | datatype) (operator (datavalue | datatype))?;
@@ -215,12 +215,12 @@ fragment argument:
 fragment arguments:
 	argument (COMMA argument)*;
 
-// Parser Rules
+# Parser Rules
 
 import_statement { "precedence": [ ">expression" ], "options": [] }:
 	'import' (EXTENDED_ID | ID);
 
-// Declarations
+# Declarations
 
 declaration { "precedence": [ ">expression" ], "options": [ "skip" ] };
 
@@ -248,7 +248,7 @@ function_declaration { "precedence": [ "=declaration" ], "options": [] }:
 variable_declaration { "precedence": [ "=declaration" ], "options": [] }:
     (ANNOTATION | DOCUMENTATION_BLOCK)* access_modifier* variable_declaration_keyword ID rhs_assignment_clause?;
 
-// Logic Control Structures
+# Logic Control Structures
 
 if_block { "precedence": [ ">expression" ] }:
     'else'? 'if' expression BLOCK;
@@ -262,7 +262,7 @@ do_block { "precedence": [ ">expression" ] }:
 catch_block { "precedence": [ ">expression" ] }:
     'catch' (variable_declaration | expression)? BLOCK;
 
-// Flow Control Structures
+# Flow Control Structures
 
 for_loop { "precedence": [ ">expression" ], "options": [] }:
 	'for' for_loop_expression BLOCK;
@@ -273,7 +273,7 @@ while_loop { "precedence": [ "=for_loop" ], "options": [] }:
 repeat_loop { "precedence": [ "=for_loop" ], "options": [] }:
 	'repeat' BLOCK 'while' expression;
 
-// Invocations
+# Invocations
 
 method_invocation { "precedence": [ ">expression" ], "options": [] }:
 	(EXTENDED_ID | ID) L_PAREN arguments? R_PAREN;
@@ -281,7 +281,7 @@ method_invocation { "precedence": [ ">expression" ], "options": [] }:
 assignment_clause { "precedence": [ ">expression" ], "options": [] }:
 	lhs_assignment_clause rhs_assignment_clause;
 
-// Data Structures
+# Data Structures
 
 literal_array { "precedence" : [ ">expression" ] }:
     L_BRACK (variable_accessor (COMMA variable_accessor)*)? R_BRACK;

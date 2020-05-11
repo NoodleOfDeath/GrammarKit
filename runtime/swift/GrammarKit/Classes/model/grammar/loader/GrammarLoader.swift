@@ -143,17 +143,17 @@ open class GrammarLoader: NSObject {
         rules[Grammar.unmatchedRuleId] = grammar.unmatchedRule
 
         let string = string
-            .replacingOccurrences(of: "//.*|/\\*.*?\\*/", with: "", options: .regularExpression)
+            .replacingOccurrences(of: "(//|#).*/\\*.*?\\*/", with: "", options: .regularExpression)
             .replacingOccurrences(of: "[ \\t]+", with: " ", options: .regularExpression)
 
-        if let match = Pattern.Structure.grammar.firstMatch(in: string) {
+        if let match = Pattern["grammar"]?.firstMatch(in: string) {
             grammar.name = string.substring(with: match.range(at: 1))
         } else {
             print("ERROR: Unable to find grammar header")
            return nil
         }
 
-        Pattern.Structure.import.enumerateMatches(in: string) { (match, _, _) in
+        Pattern["import"]?.enumerateMatches(in: string) { (match, _, _) in
             guard let match = match else { return }
             let parentName = string.substring(with: match.range(at: 1))
             if let parentGrammar = self.loadGrammar(for: parentName) {
@@ -161,7 +161,7 @@ open class GrammarLoader: NSObject {
             }
         }
 
-        Pattern.Structure.rule.enumerateMatches(in: string, options: ([.anchorsMatchLines, .dotMatchesLineSeparators], [.withTransparentBounds])) { (match, _, _) in
+        Pattern["rule"]?.enumerateMatches(in: string, options: ([.anchorsMatchLines, .dotMatchesLineSeparators], [.withTransparentBounds])) { (match, _, _) in
             guard let match = match else { return }
             let range1 = match.range(at: 1)
             let range2 = match.range(at: 2)
@@ -242,16 +242,23 @@ open class GrammarLoader: NSObject {
         var atom = atom
         var quantifier = quantifier
         var type: RuleType = .atom
+        var inverted = false
         var rule: GrammarRule?
         
-        if let match = Pattern.cgExpression.firstMatch(in: atom, options: ([], .anchored)) {
+        if let match = Pattern["cgExpression"]?.firstMatch(in: atom, options: ([], .anchored)) {
             atom = atom.substring(with: match.range(at: 1))
             type = .expression
-        } else if let match = Pattern.cgLiteral.firstMatch(in: atom, options: ([], .anchored)) {
+        } else if let match = Pattern["cgLiteral"]?.firstMatch(in: atom, options: ([], .anchored)) {
             atom = atom.substring(with: match.range(at: 1))
             type = .literal
-        } else if let match = Pattern.cgGroup.firstMatch(in: atom, options: ([], .anchored)) {
+        } else if let match = Pattern["cgGroupReference"]?.firstMatch(in: atom, options: ([], .anchored)) {
             atom = atom.substring(with: match.range(at: 1))
+            type = .captureGroupReference
+        } else if let match = Pattern["cgGroup"]?.firstMatch(in: atom, options: ([], .anchored)) {
+            if atom.substring(with: match.range(at: 1)) == "~" {
+
+            }
+            atom = atom.substring(with: match.range(at: 2))
             type = .composite
         }
 
@@ -261,9 +268,11 @@ open class GrammarLoader: NSObject {
             type = atom.isCapitalized ? .lexerRuleReference : .parserRuleReference
         }
 
+        var groupName: String?
+
         // If rule is composite (i.e. contains parenthesis), search for nests.
         if type == .composite {
-            
+
             var slice = ""
             var remainder = ""
             
@@ -271,15 +280,24 @@ open class GrammarLoader: NSObject {
             var nextChild: GrammarRule?
             
             var depth = 0
-            var cursor = 0
+            var dx = 0
             var ignore = false
-            
+
+            if let match = Pattern["cgGroupName"]?.firstMatch(in: atom, options: ([], [])) {
+                let range = match.range(at: 1)
+                if range.isValid {
+                    groupName = atom.substring(with: range)
+                    depth += 1
+                    dx += match.range.length + 1
+                }
+            }
+
             repeat {
                 
-                let ch = atom.char(at: cursor)
-                slice += ch
+                let char = atom.char(at: dx)
+                slice += char
                 
-                switch ch {
+                switch char {
                     
                 case "'", "\"":
                     // Toggle ignore flag inside strings.
@@ -300,19 +318,19 @@ open class GrammarLoader: NSObject {
                     
                 }
                 
-                cursor += 1
+                dx += 1
                 
-            } while depth > 0 && cursor < atom.length
+            } while depth > 0 && dx < atom.length
             
             if depth > 0 {
                 print(String(format: "WARNING: Encountered fatal unmatched parenthesis in rule definition for rule named: %@. Skipping rule.", id))
                 return nil
             }
             
-            if cursor < atom.length {
+            if dx < atom.length {
                 
-                remainder = atom.substring(from: cursor)
-                if let match = Pattern.quantifier.firstMatch(in: remainder, options: ([], .anchored)) {
+                remainder = atom.substring(from: dx)
+                if let match = Pattern["quantifier"]?.firstMatch(in: remainder, options: ([], .anchored)) {
                     quantifier = remainder.substring(with: match.range)
                     remainder = remainder.substring(from: quantifier.length)
                 }
@@ -328,15 +346,18 @@ open class GrammarLoader: NSObject {
                 tail = parseCompositeRule(for: grammar, id: id, definition: remainder)
                 
             }
-            
-            if slice.count > 0 {
-                if let match = Pattern.cgGreedyGroup.firstMatch(in: slice) {
-                    slice = slice.substring(with: match.range(at: 1))
+
+            var inverted = false
+            if slice.length > 0 {
+                if let match = Pattern["cgGreedyGroup"]?.firstMatch(in: slice, options: ([], .anchored)) {
+                    inverted = slice.substring(with: match.range(at: 1)) == "~"
+                    slice = slice.substring(with: match.range(at: 2))
                 }
             }
             
             rule = parseCompositeRule(for: grammar, id: id, definition: slice, type: .composite)
             rule?.next ?= tail
+            rule?.inverted = inverted
             if let nextChild = nextChild {
                 parent?.enqueue(nextChild)
             }
@@ -350,6 +371,7 @@ open class GrammarLoader: NSObject {
         }
         
         rule?.type = type
+        rule?.groupName = groupName
         rule?.quantifier = Quantifier(quantifier)
         
         return rule
@@ -368,16 +390,14 @@ open class GrammarLoader: NSObject {
         var orig: GrammarRule?
         var last: GrammarRule?
         var rule: GrammarRule?
-        for match in Pattern.cgAtom.matches(in: definition) {
-            let pRange = match.range(at: 1) // prefix
-            let aRange = match.range(at: 2) // atom
-            let qRange = match.range(at: 3) // quantifier
-            let prefix = pRange.location < Int.max ? definition.substring(with: match.range(at: 1)) : ""
-            let atom = aRange.location < Int.max ? definition.substring(with: match.range(at: 2)) : ""
-            let quantifier = qRange.location < Int.max ? definition.substring(with: match.range(at: 3)) : ""
-            rule = parseAtom(for: grammar, id: id,
-                             definition: atom, quantifier: quantifier, parent: parent)
-            rule?.inverted = prefix == "~"
+        guard let expr = Pattern["cgAtom"] else { return nil }
+        for match in expr.matches(in: definition) {
+            let inverted    = definition.substring(with: match.range(at: 1))
+            let atom        = definition.substring(with: match.range(at: 2))
+            let quantifier  = definition.substring(with: match.range(at: 3))
+            rule = parseAtom(for: grammar, id: id, definition: atom,
+                             quantifier: quantifier, parent: parent)
+            rule?.inverted = (inverted == "~")
             last?.next = rule
             last = rule
             if orig == nil { orig = rule }
@@ -404,8 +424,9 @@ open class GrammarLoader: NSObject {
 
             rule = GrammarRule(grammar: grammar, id: id, value: "", type: type)
             parent = rule
-            
-            for match in Pattern.cgAlternative.matches(in: definition) {
+
+            guard let expr  = Pattern["cgAlternative"] else { return nil }
+            for match in expr.matches(in: definition) {
                 let alternative = definition.substring(with: match.range).trimmed(true)
                 if let simpleRule = parseSimpleRule(for: grammar, id: id,
                                                     definition: alternative, parent: parent) {
@@ -418,8 +439,7 @@ open class GrammarLoader: NSObject {
             
         } else {
             
-            rule = parseSimpleRule(for: grammar, id: id,
-                                   definition: definition, parent: parent)
+            rule = parseSimpleRule(for: grammar, id: id, definition: definition, parent: parent)
             rule?.grammar = grammar
             parent?.next = rule
             

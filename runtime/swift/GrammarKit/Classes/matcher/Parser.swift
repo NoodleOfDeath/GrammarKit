@@ -59,7 +59,6 @@ open class Parser: BaseGrammaticalMatcher {
                     break
                 }
             }
-            
             if matchChain.matches && matchChain.has(option: .skip) == false {
                 delegate?.matcher(self, didGenerate: matchChain,
                                   characterStream: characterStream,
@@ -85,10 +84,11 @@ open class Parser: BaseGrammaticalMatcher {
     /// - Returns:
     public func parse(_ tokenStream: TokenStream<Token>, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil) -> MatchChain {
         
-        let matchChain = matchChain ?? MatchChain()
-        matchChain.rule = rule
-        
-        guard rule.isValid, streamRange.length > 0, streamRange.location <= tokenStream.tokenCount else { return matchChain }
+        let matchChain = matchChain ?? MatchChain(rule: rule)
+
+        guard rule.isValid, streamRange.length > 0, streamRange.location <= tokenStream.tokenCount else {
+            return matchChain
+        }
         
         let subchain = MatchChain(rule: rule)
         var tmpChain = MatchChain(rule: rule)
@@ -103,7 +103,6 @@ open class Parser: BaseGrammaticalMatcher {
                 print(String(format: "No parser rule was defined for id \"%@\"", rule.value))
                 return matchChain
             }
-            
             tmpChain = parse(tokenStream, rule: ruleRef, within: streamRange)
             while rule.inverted != tmpChain.absoluteMatch {
                 if rule.inverted {
@@ -121,7 +120,34 @@ open class Parser: BaseGrammaticalMatcher {
                                  within: streamRange.shiftingLocation(by: dx))
             }
 
-        case .parserRule, .composite:
+        case .lexerRuleReference:
+
+            var isRef = false
+            if let ruleRef = grammar.rules[rule.value], ruleRef.isFragment {
+                isRef = true
+                tmpChain = parse(tokenStream, rule: ruleRef, within: streamRange)
+            }
+
+            var token = tokenStream[streamRange.location]
+            var matches = token.matches(rule.value) || tmpChain.matches
+
+            while rule.inverted != matches {
+                if !isRef { tmpChain.add(token: token) }
+                matchCount += 1
+                dx += tmpChain.tokenCount
+                if !rule.quantifier.greedy || streamRange.location + dx >= tokenStream.tokenCount { break }
+                isRef = false
+                if let ruleRef = grammar.rules[rule.value], ruleRef.isFragment {
+                    isRef = true
+                    tmpChain = parse(tokenStream, rule: ruleRef, within: streamRange)
+                }
+                token = tokenStream[streamRange.location + dx]
+                matches = token.matches(rule.value) || tmpChain.matches
+            }
+            subchain.add(subchain: tmpChain)
+            subchain.add(tokens: tmpChain.tokens)
+
+        case .parserRule, .lexerRule, .composite:
             
             if rule.subrules.count > 0 {
 
@@ -138,7 +164,7 @@ open class Parser: BaseGrammaticalMatcher {
                         tmpChain.rule = rule
                         tmpChain.add(token: token)
                     }
-                    if rule.type == .parserRule {
+                    if rule.isRule {
                         subchain.add(subchain: tmpChain)
                         subchain.add(tokens: tmpChain.tokens)
                     } else {
@@ -160,25 +186,9 @@ open class Parser: BaseGrammaticalMatcher {
                 }
 
             }
-            
-        case .lexerRuleReference:
-            
-            var token = tokenStream[streamRange.location]
-            
-            var matches = token.contains(rule.value)
-            while rule.inverted != matches {
-                tmpChain.add(token: token)
-                if token.value == "options" {
 
-                }
-                matchCount += 1
-                dx += 1
-                if !rule.quantifier.greedy || streamRange.location + dx > tokenStream.tokenCount { break }
-                token = tokenStream[streamRange.location + dx]
-                matches = token.contains(rule.value)
-            }
-            subchain.add(subchain: tmpChain)
-            subchain.add(tokens: tmpChain.tokens)
+        case .captureGroupReference:
+            break
             
         default:
             // .literal, .expression
@@ -194,7 +204,7 @@ open class Parser: BaseGrammaticalMatcher {
                 tmpChain.add(token: token)
                 matchCount += 1
                 dx += 1
-                if !rule.quantifier.greedy || streamRange.location + dx > tokenStream.tokenCount { break }
+                if !rule.quantifier.greedy || streamRange.location + dx >= tokenStream.tokenCount { break }
                 token = tokenStream[streamRange.location + dx]
                 matches = pattern.doesMatch(token.value, options: .anchored)
             }
@@ -208,9 +218,13 @@ open class Parser: BaseGrammaticalMatcher {
         
         if (!rule.quantifier.hasRange && matchCount > 0) || rule.quantifier.optional || rule.quantifier.matches(matchCount) {
             if let next = rule.next {
-                return parse(tokenStream, rule: next,
-                             within: streamRange.shiftingLocation(by: dx),
-                             matchChain: matchChain)
+                let remainingRange = streamRange.shiftingLocation(by: dx)
+                if remainingRange.length > 0 {
+                    return parse(tokenStream, rule: next, within: remainingRange, matchChain: matchChain)
+                }
+                if !next.quantifier.optional {
+                    return matchChain
+                }
             }
             matchChain.matches = true
         }

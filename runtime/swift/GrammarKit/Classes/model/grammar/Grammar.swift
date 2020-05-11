@@ -23,7 +23,6 @@
 // THE SOFTWARE.
 
 import Foundation
-import SwiftyXMLParser
 
 /// Base implementation of a grammar.
 open class Grammar: NSObject, Codable {

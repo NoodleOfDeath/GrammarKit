@@ -37,6 +37,14 @@
                BlueprintName = "GrammarKit_Tests"
                ReferencedContainer = "container:GrammarKit.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "Tests/testHTML()">
+               </Test>
+               <Test
+                  Identifier = "Tests/testJava()">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

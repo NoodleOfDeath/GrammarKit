@@ -34,9 +34,9 @@ extension Grammar {
 
         override open var description: String {
             return String(format: "%@ { %ld tokens, %ld chains } (%ld, %ld)[%ld]:\n\n%@",
-                          (rule?.name ?? "unnamed"),
+                          (rule?.derivedId ?? "unnamed") + "#\(indexString)",
                           tokenCount, subchains.count, start, start + length, length,
-                          subchainStrings().joined(separator: "\n"))
+                          subchainStrings.joined(separator: "\n"))
         }
 
         // MARK: - Constructors
@@ -49,18 +49,18 @@ extension Grammar {
 
         // MARK: - Instance Properties
 
-        open func subchainStrings(with prefix: String = "") -> [String] {
-            return subchains.enumerated().map({
+        open var subchainStrings: [String] {
+            return subchains.map({
                 String(format: "%@ <%@> { %ld tokens, %ld chains } (%ld, %ld)[%ld]:\n%@\n%@",
-                       "Subchain \(prefix)\($0.0 + 1)",
-                       $0.1.rule?.name ?? "unnamed",
-                       $0.1.tokenCount,
-                       $0.1.subchains.count,
-                       $0.1.start,
-                       $0.1.end,
-                       $0.1.length,
-                       $0.1.tokenStrings.joined(separator: "\n"),
-                       $0.1.subchainStrings(with: "\(prefix)\($0.0 + 1).").joined(separator: "\n"))
+                       "Subchain \(indexString)",
+                       $0.rule?.derivedId ?? "unnamed",
+                       $0.tokenCount,
+                       $0.subchains.count,
+                       $0.start,
+                       $0.end,
+                       $0.length,
+                       $0.tokenStrings.joined(separator: "\n"),
+                       $0.subchainStrings.joined(separator: "\n"))
             })
         }
 
@@ -77,21 +77,25 @@ extension Grammar {
         }
 
         /// Index of this match chain
-        open var index: Int = 0
+        open var index: Int {
+            return parent?.subchains.firstIndex(of: self) ?? 0
+        }
 
         open var indexString: String {
-            guard let indexString = parent?.index else { return "\(index)" }
-            return "\(indexString).\(index)"
+            if let parent = parent {
+                return "\(parent.index + 1).\(index + 1)"
+            }
+            return "\(index + 1)"
         }
 
         /// Rules associated with this match chain.
         open weak var rule: GrammarRule?
 
-        /// Leaf rule of this match chain.
-        open var leafRule: GrammarRule? {
-            guard subchains.count == 1 else { return nil }
-            return subchains.first?.leafRule
+        open var root: MatchChain {
+            return self
         }
+
+        open var captureGroups = [String: MatchChain]()
 
         /// Indicates whether or not this match chain matches its grammar rule.
         open var matches = false
@@ -149,12 +153,13 @@ extension Grammar {
 
         open func add(subchain: MatchChain) {
             subchain.parent = self
-            subchain.index = subchains.count
             subchains.append(subchain)
         }
 
-        open func add(subchains: [MatchChain]) {
+        @discardableResult
+        open func add(subchains: [MatchChain]) -> MatchChain? {
             subchains.forEach({ add(subchain: $0) })
+            return subchains.last
         }
 
         open func has(option: Grammar.MetadataOption) -> Bool {

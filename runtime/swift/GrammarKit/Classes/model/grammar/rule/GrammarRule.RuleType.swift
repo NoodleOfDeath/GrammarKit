@@ -55,6 +55,9 @@ extension GrammarRule {
         /// Parser rule subrule type.
         case parserRuleReference
 
+        /// Capture group rule reference.
+        case captureGroupReference
+
         /// `true` if `self == .lexerRule`.
         public var isLexerRule: Bool { return self == .lexerRule }
 
@@ -68,7 +71,7 @@ extension GrammarRule {
         public var isRule: Bool { return isLexerRule || isParserRule }
 
         /// Returns `true` if, and only if, `self == .lexerRuleReference || self == .parserRuleReference`; `false`, otherwise.
-        public var isReference: Bool { return self == .lexerRuleReference || self == .parserRuleReference }
+        public var isRuleReference: Bool { return self == .lexerRuleReference || self == .parserRuleReference }
 
         /// Returns `true` if, and only if, `isValid && !isRule == true`; `false`, otherwise.
         public var isSubrule: Bool { return isValid && !isRule }

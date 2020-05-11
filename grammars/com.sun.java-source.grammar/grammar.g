@@ -1,7 +1,7 @@
 grammar com.sun.java-source;
 import public.source-code;
 
-// Lexer Rule Fragments
+# Lexer Rule Fragments
 
 fragment ONE_LINE_DOCUMENTATION:
     '\/\/\/.*';
@@ -13,7 +13,7 @@ fragment MULTILINE_DOCUMENTATION:
 fragment MULTILINE_COMMENT:
     '\/\*(?s:.*?)(\*\/|\Z)';
 
-// Lexer Rules
+# Lexer Rules
 
 DOCUMENTATION_BLOCK { "precedence": [ "<WHITESPACE", ">STRING" ], "options": [ "" ] }:
     ((ONE_LINE_DOCUMENTATION | MULTILINE_DOCUMENTATION) (WHITESPACE | NEWLINE)*)+;
@@ -82,9 +82,9 @@ KEYWORD { "precedence": [ "<TOKEN", "<OPERATOR", "<NUMBER" ], "options": [ "dict
     { "id" : "while" },
 ];
 
-// Parser Rule Fragments
+# Parser Rule Fragments
 
-// Parser Rules
+# Parser Rules
 
 package_declaration:
     'package' (EXTENDED_ID | ID) COLON;

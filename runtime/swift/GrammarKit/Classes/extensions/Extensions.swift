@@ -118,7 +118,7 @@ extension NSRange {
     static var zero: NSRange { return NSMakeRange(0, 0) }
     
     /// Any range with a negative length is invalid.
-    static var invalid: NSRange { return NSMakeRange(0, -1) }
+    static var invalid: NSRange { return NSMakeRange(NSNotFound, NSNotFound) }
     
     /// Returns the sum of the `location` and `length` of this range.
     /// Shorthand for `NSMaxRange(self)`.
@@ -127,8 +127,8 @@ extension NSRange {
     /// Range struct representatin of this range.
     var bridgedRange: Range<Int> { return location ..< max }
     
-    /// Returns `true` if, and only if, `length > -1`.
-    var valid: Bool { return length > -1 }
+    /// Returns `true` if, and only if, `location != NSNotFound && length != NSNotFound`.
+    var isValid: Bool { return location < NSNotFound && length < NSNotFound }
     
 }
 
@@ -424,6 +424,7 @@ extension String {
     /// - Returns: A string object containing the characters of the receiver
     /// that lie within `range`.
     func substring(with range: NSRange) -> String {
+        guard range.isValid else { return "" }
         return ns.substring(with: range)
     }
     
@@ -436,6 +437,7 @@ extension String {
     /// - Returns: A string object containing the characters of the receiver
     /// that lie within `range`.
     func substring(with range: Range<Int>) -> String {
+        guard range.bridgedRange.isValid else { return "" }
         return ns.substring(with: range.bridgedRange)
     }
     
@@ -448,6 +450,7 @@ extension String {
     /// - Returns: A string object containing the characters of the receiver
     /// that lie within `range`.
     subscript (range: Range<Int>) -> String {
+        guard range.bridgedRange.isValid else { return "" }
         return ns.substring(with: range.bridgedRange)
     }
     
@@ -665,8 +668,7 @@ extension String {
     func firstMatch(in string: String, options: (NSRegularExpression.Options, NSRegularExpression.MatchingOptions) = ([],[]), range: NSRange? = nil) -> NSTextCheckingResult? {
         do {
             return (try NSRegularExpression(pattern: self, options: options.0))
-                .firstMatch(in: string,
-                            options: options.1,
+                .firstMatch(in: string, options: options.1,
                             range: range ?? string.range)
         } catch {
             print(error.localizedDescription)

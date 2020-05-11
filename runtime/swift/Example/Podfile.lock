@@ -1,9 +1,7 @@
 PODS:
-  - GrammarKit (1.0.3):
+  - GrammarKit (1.0.2):
     - SwiftyUTType (~> 1.0)
-    - SwiftyXMLParser (~> 5.0)
   - SwiftyUTType (1.0.3)
-  - SwiftyXMLParser (5.0.0)
 
 DEPENDENCIES:
   - GrammarKit (from `../../../`)
@@ -11,16 +9,14 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - SwiftyUTType
-    - SwiftyXMLParser
 
 EXTERNAL SOURCES:
   GrammarKit:
     :path: "../../../"
 
 SPEC CHECKSUMS:
-  GrammarKit: 34bc607111e4e925618455569156ec15b468b220
+  GrammarKit: 11521d0d80aeafd27f9be43fc08745f65cfc6200
   SwiftyUTType: 865cf090ab1a58a0fe8c5e9cbbcf56749e67abdd
-  SwiftyXMLParser: 5ebb8793192f403fa8cc691045143906122a7a75
 
 PODFILE CHECKSUM: b17df77fd1fbb838f9f7494acef530549d25ede1
 

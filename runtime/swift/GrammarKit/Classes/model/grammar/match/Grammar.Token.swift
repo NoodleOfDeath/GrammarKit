@@ -111,11 +111,11 @@ extension Grammar {
             rules.forEach({ add(rule: $0 )})
         }
 
-        open func contains(_ rule: GrammarRule) -> Bool {
-            return contains(rule.id)
+        open func matches(_ rule: GrammarRule) -> Bool {
+            return matches(rule.id)
         }
 
-        open func contains(_ id: String) -> Bool {
+        open func matches(_ id: String) -> Bool {
             return rules.keys.contains(id)
         }
 
