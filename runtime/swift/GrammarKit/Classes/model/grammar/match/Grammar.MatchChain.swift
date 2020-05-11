@@ -33,9 +33,10 @@ extension Grammar {
         public typealias NodeType = Grammar.MatchChain
 
         override open var description: String {
-            return String(format: "%@ { %ld tokens, %ld chains } (%ld, %ld)[%ld]:\n\n%@",
+            return String(format: "%@ { %ld tokens, %ld chains } (%ld, %ld)[%ld]:\n%@\n%@",
                           (rule?.derivedId ?? "unnamed") + "#\(indexString)",
                           tokenCount, subchains.count, start, start + length, length,
+                          subchains.count == 0 ? tokenStrings.joined(separator: "\n") : "",
                           subchainStrings.joined(separator: "\n"))
         }
 

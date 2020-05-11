@@ -39,10 +39,10 @@
             </BuildableReference>
             <SkippedTests>
                <Test
-                  Identifier = "Tests/testHTML()">
+                  Identifier = "Tests/testJava()">
                </Test>
                <Test
-                  Identifier = "Tests/testJava()">
+                  Identifier = "Tests/testSwift()">
                </Test>
             </SkippedTests>
          </TestableReference>

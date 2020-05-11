@@ -21,5 +21,5 @@ fragment ATTRIBUTE:
 	ATTRIBUTE_NAME '=' (STRING | LITERAL_STRING);
 
 # Elements
-ELEMENT { "precedence" : ["<WHITESPACE"], "options": [], "groups": { "a": {}, "b": {}, "c": {} } }:
-	'<' (?<a> TAG_NAME) ATTRIBUTE* '>' (?<b> @ELEMENT | ~('<' '/' %a '>'))* '<' '/' (?<c> %a) '>';
+ELEMENT { "precedence" : ["<WHITESPACE"], "options": [], "groups": { "a": {}, "b": { "options": [ "nested" ] }, "c": {} } }:
+	'<' (?<a> TAG_NAME) ATTRIBUTE* '>' (?<b> ELEMENT | ~('<' '/' %a '>'))* '<' '/' (?<c> %a) '>';
