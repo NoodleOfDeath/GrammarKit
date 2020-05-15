@@ -12,9 +12,9 @@ NEWLINE { "precedence": [ "=WHITESPACE" ], "options": [ "skip" ] }:
 
 # Strings
 STRING { "precedence": [ "<WHITESPACE" ], "options": [] }:
-	'\"(?s:.*?)(\"|\Z)';
+	'\"(?s:.*?)(?:\"|\Z)';
 LITERAL_STRING { "precedence": [ "=STRING" ], "options": [] }:
-	'\'(?s:.*?)(\'|\Z)';
+	'\'(?s:.*?)(?:\'|\Z)';
 
 # Token Precedence
 TOKEN { "precedence": [ "<STRING" ], "options": [ "skip" ] };

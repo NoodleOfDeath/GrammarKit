@@ -88,7 +88,7 @@ open class Lexer: BaseGrammaticalMatcher {
     ///     - matchChain:
     ///     - metadata:
     /// - Returns:
-    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil, captureGroups: [String: MatchChain]? = nil, depth: Int = 0) -> MatchChain {
+    public func tokenize(_ characterStream: CharacterStream, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil, captureGroups: [String: MatchChain]? = nil, iteration: Int = 0) -> MatchChain {
         
         let matchChain = matchChain ?? MatchChain(rule: rule)
         var captureGroups = captureGroups ?? [:]
@@ -108,9 +108,9 @@ open class Lexer: BaseGrammaticalMatcher {
             guard let ruleRef = grammar[rule.value]  else {
                 print(String(format: "WARNING: No lexer rule was defined for id \"%@\"", rule.value))
                 return matchChain
-            }
+            };
 
-            tmpChain = tokenize(characterStream, rule: ruleRef, within: streamRange, captureGroups: captureGroups, depth: depth + (rule.rootAncestor?.id == ruleRef.id ? 1 : 0))
+            tmpChain = tokenize(characterStream, rule: ruleRef, within: streamRange, captureGroups: captureGroups, iteration: iteration + (rule.rootAncestor?.id == ruleRef.id ? 1 : 0))
             while rule.inverted != tmpChain.absoluteMatch {
                 if rule.inverted {
                     let token = Token(value: stream.firstCharacter,
@@ -127,7 +127,7 @@ open class Lexer: BaseGrammaticalMatcher {
                 if !rule.quantifier.greedy { break }
                 tmpChain = tokenize(characterStream, rule: ruleRef,
                                     within: streamRange.shiftingLocation(by: dx),
-                                    captureGroups: captureGroups, depth: depth)
+                                    captureGroups: captureGroups, iteration: iteration)
             }
 
         case .lexerRule, .composite:
@@ -135,7 +135,7 @@ open class Lexer: BaseGrammaticalMatcher {
             if rule.subrules.count > 0 {
                 
                 for subrule in rule.subrules {
-                    tmpChain = tokenize(characterStream, rule: subrule, within: streamRange, captureGroups: captureGroups, depth: depth)
+                    tmpChain = tokenize(characterStream, rule: subrule, within: streamRange, captureGroups: captureGroups, iteration: iteration)
                     if rule.inverted != tmpChain.absoluteMatch { break }
                 }
 
@@ -158,7 +158,7 @@ open class Lexer: BaseGrammaticalMatcher {
                     for subrule in rule.subrules {
                         tmpChain = tokenize(characterStream, rule: subrule,
                                             within: streamRange.shiftingLocation(by: dx),
-                                            captureGroups: captureGroups, depth: depth)
+                                            captureGroups: captureGroups, iteration: iteration)
                         if rule.inverted != tmpChain.absoluteMatch { break }
                     }
                 }
@@ -173,7 +173,7 @@ open class Lexer: BaseGrammaticalMatcher {
             }
 
         case .captureGroupReference:
-            let key = "\(depth).\(rule.value)"
+            let key = "\(iteration).\(rule.value)"
             if let captureGroup = captureGroups[key] {
                 var range = stream.range
                 var match = captureGroup.string.firstMatch(in: stream, options: .anchored, range: range)
@@ -232,7 +232,7 @@ open class Lexer: BaseGrammaticalMatcher {
         matchChain.add(tokens: subchain.tokens)
 
         if let groupName = rule.groupName, subchain.length > 0 {
-            let key = "\(depth).\(groupName)"
+            let key = "\(iteration).\(groupName)"
             captureGroups[key] = subchain
         }
 
@@ -242,7 +242,7 @@ open class Lexer: BaseGrammaticalMatcher {
                 if remainingRange.length > 0 {
                     return tokenize(characterStream, rule: next,
                                     within: remainingRange, matchChain: matchChain,
-                                    captureGroups: captureGroups, depth: depth)
+                                    captureGroups: captureGroups, iteration: iteration)
                 }
                 if !next.quantifier.optional {
                     return matchChain
