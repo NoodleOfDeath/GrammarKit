@@ -5,17 +5,11 @@ import public.text;
 # Lexer Rules
 # --------------------------------------------------
 
-# Whitespaces
-WHITESPACE { "precedence": [ "max" ], "options": [ "skip" ] }:
-	'[ \t]+';
-NEWLINE { "precedence": [ "=WHITESPACE" ], "options": [ "skip" ] }:
-	'\r?\n';
-
 fragment TAG_NAME:
 	'[\p{L}][\p{L}\-0-9]*[\p{L}]?';
 
 fragment END_TAG:
-	'<' '\/' %tag '>';
+	'<' '\/' %tagName '>';
 
 fragment ATTRIBUTE_NAME:
 	'[\p{L}][\p{L}\-0-9]*[\p{L}]?';
@@ -25,8 +19,8 @@ fragment ATTRIBUTE:
 
 # Elements
 
-CLOSED_ELEMENT { "precedence" : ["<WHITESPACE"], "options": [], "groups": { "tag": {}, "b": {}, "c": { "options": [ "nested" ] } } }:
-	'<' (?<tag> TAG_NAME) (?<b> '\s+' ATTRIBUTE)* '>' (?<c> CLOSED_ELEMENT | ~END_TAG)* END_TAG;
+CLOSED_ELEMENT { "precedence" : ["<WHITESPACE"], "options": [], "groups": { "tagName": {}, "attributes": {}, "innerHtml": { "options": [ "nested" ] } } }:
+	'<' (?<tagName> TAG_NAME) (?<attributes> '\s+' ATTRIBUTE)* '>' (?<innerHtml> CLOSED_ELEMENT | ~END_TAG)* END_TAG;
 
-SINGLE_ELEMENT { "precedence" : [ "<WHITESPACE", "<ELEMENT" ] }:
-	'<' (?<tag> TAG_NAME) (?<b> '\s+' ATTRIBUTE)* '\s*\/\s*'? '>';
+SINGLE_ELEMENT { "precedence" : [ "<WHITESPACE", "<CLOSED_ELEMENT" ], "options": [], "groups": { "tagName": {}, "attributes": {} } }:
+	'<[\?!]?' (?<tagName> TAG_NAME) (?<attributes> '\s+' ATTRIBUTE)* '\s*\/\s*'? '\??>';

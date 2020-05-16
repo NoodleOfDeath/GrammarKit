@@ -54,24 +54,24 @@ open class Lexer: BaseGrammaticalMatcher {
             var matchChain = MatchChain()
             for rule in (rules ?? grammar.lexerRules) {
                 matchChain = tokenize(characterStream, rule: rule, within: streamRange)
-                if matchChain.matches || rule == grammar.unmatchedRule {
+                if matchChain.matches {
                     matchChain.rule = rule
                     break
                 }
             }
-            if (matchChain.matches && matchChain.has(option: .skip) == false) {
+            if (matchChain.matches) {
                 let token = matchChain.asToken
                 if let rule = matchChain.rule {
                     token.add(rule: rule)
                 }
-                tokenStream.add(token: token)
-                if matchChain.rule == grammar.unmatchedRule {
-                    delegate?.matcher(self, didSkip: token,
-                                      characterStream: characterStream)
-                } else {
+                if !matchChain.has(option: .skip) {
+                    tokenStream.add(token: token)
                     delegate?.matcher(self, didGenerate: matchChain,
                                       characterStream: characterStream,
-                                      tokenStream: nil)
+                                      tokenStream: tokenStream)
+                } else {
+                    delegate?.matcher(self, didSkip: token,
+                    characterStream: characterStream)
                 }
             }
             streamRange.shiftLocation(by: (matchChain.matches ? matchChain.length : 1))
@@ -200,7 +200,7 @@ open class Lexer: BaseGrammaticalMatcher {
             // .literal, .expression
             
             var pattern = rule.value
-            if rule != grammar.unmatchedRule && "^\\w+$".doesMatch(rule.value) {
+            if "^\\w+$".doesMatch(rule.value) {
                 pattern = String(format: "\\b%@\\b", rule.value)
             }
             
@@ -226,9 +226,7 @@ open class Lexer: BaseGrammaticalMatcher {
 
         }
 
-        if let s = matchChain.add(subchains: subchain.subchains) {
-            subchain = s
-        }
+        subchain ?= matchChain.add(subchains: subchain.subchains)
         matchChain.add(tokens: subchain.tokens)
 
         if let groupName = rule.groupName, subchain.length > 0 {

@@ -39,6 +39,9 @@
             </BuildableReference>
             <SkippedTests>
                <Test
+                  Identifier = "Tests/testHTML()">
+               </Test>
+               <Test
                   Identifier = "Tests/testJava()">
                </Test>
                <Test

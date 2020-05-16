@@ -59,7 +59,7 @@ open class Parser: BaseGrammaticalMatcher {
                     break
                 }
             }
-            if matchChain.matches && matchChain.has(option: .skip) == false {
+            if matchChain.matches && !matchChain.has(option: .skip) {
                 delegate?.matcher(self, didGenerate: matchChain,
                                   characterStream: characterStream,
                                   tokenStream: tokenStream)
@@ -82,15 +82,16 @@ open class Parser: BaseGrammaticalMatcher {
     ///     - parentChain:
     ///     - metadata:
     /// - Returns:
-    public func parse(_ tokenStream: TokenStream<Token>, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil) -> MatchChain {
+    public func parse(_ tokenStream: TokenStream<Token>, rule: GrammarRule, within streamRange: NSRange, matchChain: MatchChain? = nil, captureGroups: [String: MatchChain]? = nil, iteration: Int = 0) -> MatchChain {
         
         let matchChain = matchChain ?? MatchChain(rule: rule)
+        var captureGroups = captureGroups ?? [:]
 
-        guard rule.isValid, streamRange.length > 0, streamRange.location <= tokenStream.tokenCount else {
+        guard rule.isValid, streamRange.length > 0, streamRange.location < tokenStream.tokenCount else {
             return matchChain
         }
         
-        let subchain = MatchChain(rule: rule)
+        var subchain = MatchChain(rule: rule)
         var tmpChain = MatchChain(rule: rule)
         var matchCount = 0
         var dx = 0
@@ -103,7 +104,9 @@ open class Parser: BaseGrammaticalMatcher {
                 print(String(format: "No parser rule was defined for id \"%@\"", rule.value))
                 return matchChain
             }
-            tmpChain = parse(tokenStream, rule: ruleRef, within: streamRange)
+            tmpChain = parse(tokenStream, rule: ruleRef, within: streamRange,
+                             captureGroups: captureGroups,
+                             iteration: iteration + (rule.rootAncestor?.id == ruleRef.id ? 1 : 0))
             while rule.inverted != tmpChain.absoluteMatch {
                 if rule.inverted {
                     let token = tokenStream[streamRange.location + dx]
@@ -117,7 +120,8 @@ open class Parser: BaseGrammaticalMatcher {
                 dx += tmpChain.tokenCount
                 if !rule.quantifier.greedy { break }
                 tmpChain = parse(tokenStream, rule: ruleRef,
-                                 within: streamRange.shiftingLocation(by: dx))
+                                 within: streamRange.shiftingLocation(by: dx),
+                                 captureGroups: captureGroups, iteration: iteration)
             }
 
         case .lexerRuleReference:
@@ -125,7 +129,8 @@ open class Parser: BaseGrammaticalMatcher {
             var isRef = false
             if let ruleRef = grammar.rules[rule.value], ruleRef.isFragment {
                 isRef = true
-                tmpChain = parse(tokenStream, rule: ruleRef, within: streamRange)
+                tmpChain = parse(tokenStream, rule: ruleRef, within: streamRange,
+                                 captureGroups: captureGroups, iteration: iteration)
             }
 
             var token = tokenStream[streamRange.location]
@@ -152,7 +157,7 @@ open class Parser: BaseGrammaticalMatcher {
             if rule.subrules.count > 0 {
 
                 for subrule in rule.subrules {
-                    tmpChain = parse(tokenStream, rule: subrule, within: streamRange)
+                    tmpChain = parse(tokenStream, rule: subrule, within: streamRange, captureGroups: captureGroups, iteration: iteration)
                     if rule.inverted != tmpChain.absoluteMatch { break }
                 }
 
@@ -175,7 +180,8 @@ open class Parser: BaseGrammaticalMatcher {
                     if !rule.quantifier.greedy { break }
                     for subrule in rule.subrules {
                         tmpChain = parse(tokenStream, rule: subrule,
-                                         within: streamRange.shiftingLocation(by: dx))
+                                         within: streamRange.shiftingLocation(by: dx),
+                                         captureGroups: captureGroups, iteration: iteration)
                         if rule.inverted != tmpChain.absoluteMatch { break }
                     }
                 }
@@ -188,7 +194,28 @@ open class Parser: BaseGrammaticalMatcher {
             }
 
         case .captureGroupReference:
-            break
+
+            let key = "\(iteration).\(rule.value)"
+            if let captureGroup = captureGroups[key] {
+                var range = streamRange
+                var match = captureGroup.string.format(using: .escapeRegex).firstMatch(in: tokenStream.reduce(over: range), options: ([], .anchored))
+                var subtokens = [Token]()
+                while rule.inverted != (match != nil) {
+                    if !rule.inverted, let _ = match {
+                        dx += range.length
+                    } else {
+                        dx += 1
+                    }
+                    matchCount += 1
+                    subtokens.append(contentsOf: tokenStream[range.bridgedRange])
+                    if !rule.quantifier.greedy { break }
+                    range = NSMakeRange(dx, range.length - dx)
+                    match = captureGroup.string.format(using: .escapeRegex).firstMatch(in: tokenStream.reduce(over: range), options: ([], .anchored))
+                }
+                tmpChain = MatchChain(rule: rule, tokens: subtokens)
+                subchain.add(subchain: tmpChain)
+                subchain.add(tokens: tmpChain.tokens)
+            }
             
         default:
             // .literal, .expression
@@ -213,14 +240,19 @@ open class Parser: BaseGrammaticalMatcher {
             
         }
 
-        matchChain.add(subchains: subchain.subchains)
+        subchain ?= matchChain.add(subchains: subchain.subchains)
         matchChain.add(tokens: subchain.tokens)
+
+        if let groupName = rule.groupName, subchain.length > 0 {
+            let key = "\(iteration).\(groupName)"
+            captureGroups[key] = subchain
+        }
         
         if (!rule.quantifier.hasRange && matchCount > 0) || rule.quantifier.optional || rule.quantifier.matches(matchCount) {
             if let next = rule.next {
                 let remainingRange = streamRange.shiftingLocation(by: dx)
                 if remainingRange.length > 0 {
-                    return parse(tokenStream, rule: next, within: remainingRange, matchChain: matchChain)
+                    return parse(tokenStream, rule: next, within: remainingRange, matchChain: matchChain, captureGroups: captureGroups, iteration: iteration)
                 }
                 if !next.quantifier.optional {
                     return matchChain

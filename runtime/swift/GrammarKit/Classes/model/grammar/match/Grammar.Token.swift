@@ -122,3 +122,17 @@ extension Grammar {
     }
 
 }
+
+extension IO.TokenStream where Atom: Grammar.Token {
+
+    open func reduce(over range: Range<Int>) -> String {
+        return reduce(over: range, "", { (a, b) -> String in
+            "\(a)\(b.value)"
+        })
+    }
+
+    open func reduce(over range: NSRange) -> String {
+        return reduce(over: range.bridgedRange)
+    }
+
+}

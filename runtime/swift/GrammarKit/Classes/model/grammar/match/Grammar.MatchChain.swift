@@ -66,7 +66,7 @@ extension Grammar {
         }
 
         open var tokenStrings: [String] {
-            return tokens.enumerated().map({ "Token #\($0.0 + 1) \($0.1.descriptionWith(format: .escaped))" })
+            return tokens.enumerated().map({ "Token #\($0.0 + 1) \($0.1.descriptionWith(format: .escapeWhitespaces))" })
         }
 
         /// Parent chain of this match chain.

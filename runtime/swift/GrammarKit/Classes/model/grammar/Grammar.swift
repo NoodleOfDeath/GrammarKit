@@ -28,13 +28,7 @@ import Foundation
 open class Grammar: NSObject, Codable {
     
     public typealias This = Grammar
-    
-    // MARK: - Static Properties
-    
-    public static let unmatchedRuleId = "UNMATCHED"
-    public static let unmatchedRuleExpr = "."
-    public static let unmatchedRuleOrder = ["min"]
-    
+
     // MARK: - CustomStringConvertible Properties
     
     open override var description: String {
@@ -82,14 +76,6 @@ open class Grammar: NSObject, Codable {
     open var parserFragments: [GrammarRule] {
        return rules.map { $1 }.filter( { $0.isParserRule && $0.isFragment })
    }
-
-    /// Unmatched rule of this grammar. Used only for lexer grammars.
-    open var unmatchedRule: GrammarRule {
-        let rule = GrammarRule(grammar: self, id: This.unmatchedRuleId, value: This.unmatchedRuleExpr, type: .literal)
-        rule.type = .lexerRule
-        rule.precedence = GrammarRule.Precedence(id: This.unmatchedRuleId, This.unmatchedRuleOrder)
-        return rule
-    }
     
     /// Words of this grammar.
     open var words = [Identifier]()

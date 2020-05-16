@@ -140,7 +140,6 @@ open class GrammarLoader: NSObject {
         let grammar = Grammar()
 
         var rules = [String: GrammarRule]()
-        rules[Grammar.unmatchedRuleId] = grammar.unmatchedRule
 
         let string = string
             .replacingOccurrences(of: "(//|#).*/\\*.*?\\*/", with: "", options: .regularExpression)
@@ -242,7 +241,6 @@ open class GrammarLoader: NSObject {
         var atom = atom
         var quantifier = quantifier
         var type: RuleType = .atom
-        var inverted = false
         var rule: GrammarRule?
         
         if let match = Pattern["cgExpression"]?.firstMatch(in: atom, options: ([], .anchored)) {
@@ -255,10 +253,7 @@ open class GrammarLoader: NSObject {
             atom = atom.substring(with: match.range(at: 1))
             type = .captureGroupReference
         } else if let match = Pattern["cgGroup"]?.firstMatch(in: atom, options: ([], .anchored)) {
-            if atom.substring(with: match.range(at: 1)) == "~" {
-
-            }
-            atom = atom.substring(with: match.range(at: 2))
+            atom = atom.substring(with: match.range(at: 1))
             type = .composite
         }
 

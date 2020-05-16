@@ -23,6 +23,10 @@ class Tests: XCTestCase {
         self.resourcePath = resourcePath
     }
 
+    func testXML() {
+        test(sample: "Sample.xml")
+    }
+
     func testHTML() {
         test(sample: "Sample.html")
     }

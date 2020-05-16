@@ -273,15 +273,9 @@ public struct StringFormattingOption: BaseOptionSet {
     public typealias This = StringFormattingOption
     public typealias RawValue = Int
     
-    public static let escaped = This(1 << 0)
-    
-    public static let stripOuterBraces = This(1 << 1)
-    
-    public static let stripOuterBrackets = This(1 << 2)
-    
-    public static let stripOuterParentheses = This(1 << 3)
-    
-    public static let truncate = This(1 << 4)
+    public static let escapeWhitespaces = This(1 << 0)
+
+    public static let escapeRegex = This(1 << 1)
     
     public let rawValue: RawValue
     
@@ -384,7 +378,7 @@ extension String {
     func trimmed(_ includingNewlines: Bool = false)  -> String {
         return trimmingCharacters(in: (includingNewlines ? .whitespacesAndNewlines : .whitespaces))
     }
-    
+
     /// Returns a new string containing the characters of the receiver up to,
     /// but not including, the one at a given index.
     ///
@@ -726,20 +720,14 @@ extension String {
     ///
     init(with arg: CVarArg, options: StringFormattingOption = []) {
         var text = String(format: "%@", arg)
-        switch options {
-            
-        case _ where options.contains(.stripOuterBraces):
-            break
-            
-        default:
-            break
-            
+        if options.contains(.escapeWhitespaces) {
+            text = text.replacingOccurrences(of: "\\r", with: "\\\\r", options: .regularExpression)
+                .replacingOccurrences(of: "\\n", with: "\\\\n", options: .regularExpression, range: text.range)
+                .replacingOccurrences(of: "\\t", with: "\\\\t", options: .regularExpression, range: text.range)
+                .replacingOccurrences(of: "\\s", with: "\\\\s", options: .regularExpression, range: text.range)
         }
-        if options.contains(.escaped) {
-            text = text.ns.replacingOccurrences(of: "\\r", with: "\\\\r", options: .regularExpression, range: text.range)
-            text = text.ns.replacingOccurrences(of: "\\n", with: "\\\\n", options: .regularExpression, range: text.range)
-            text = text.ns.replacingOccurrences(of: "\\t", with: "\\\\t", options: .regularExpression, range: text.range)
-            text = text.ns.replacingOccurrences(of: "\\s", with: "\\\\s", options: .regularExpression, range: text.range)
+        if options.contains(.escapeRegex) {
+            text = text.replacingOccurrences(of: "[?!{}()^<>=.*\\[\\]]", with: "\\\\$0", options: .regularExpression)
         }
         self = text
     }

@@ -21,7 +21,7 @@ expression = (?:\s*\^?(?:\[.*?\]|\(\?\!.*\)|\.)\$?)
 
 word = (?:[_\p{L}]+)
 
-group = (?:\s*(?:[~])?\(.*\s*)
+group = (?:\s*\(.*\s*)
 
 groupReference = (?:%\w+)
 
@@ -35,7 +35,7 @@ quantifier = (?:[\*\+\?]\??|\{\s*\d\s*(?:,\d)?\}|\{,\d\})
 
 cgAlternative = ((?:([~])?\(atom)\s*\(quantifier)?\s*)+)
 
-cgGroup = \s*([~])?(\(.*)\s*
+cgGroup = \s*(\(.*)\s*
 
 cgGroupName = (?:\?\s*<(\w+)>\s*)
 

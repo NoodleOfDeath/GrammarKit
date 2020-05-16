@@ -42,3 +42,6 @@ COLON { "precedence": [ "=TOKEN" ], "options": [] }:
 	':';
 UNDERSCORE { "precedence": [ "=TOKEN" ], "options": [] }:
 	'_';
+
+NO_MATCH { "precedence": ["min"], "options": [ ] }:
+	'.';

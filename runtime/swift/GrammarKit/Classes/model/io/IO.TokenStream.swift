@@ -76,8 +76,12 @@ extension IO {
 
         open subscript(range: Range<Int>) -> AtomSequence {
             var subtokens = AtomSequence()
-            for i in range.lowerBound ... range.upperBound { subtokens.append(tokens[i]) }
+            for i in range.lowerBound ..< range.upperBound { subtokens.append(tokens[i]) }
             return subtokens
+        }
+
+        open func reduce<Result>(over range: Range<Int>, _ prefix: Result, _ lambda: ((Result, Atom) -> Result)) -> Result {
+            return self[range].reduce(prefix, lambda)
         }
 
         /// Adds a token to this token stream.
@@ -92,3 +96,10 @@ extension IO {
 
 }
 
+extension IO.TokenStream {
+
+    public func reduce<Result>(over range: NSRange, _ prefix: Result, _ lambda: ((Result, Atom) -> Result)) -> Result {
+        return reduce(over: range.bridgedRange, prefix, lambda)
+    }
+
+}

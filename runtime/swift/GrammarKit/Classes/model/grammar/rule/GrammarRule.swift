@@ -109,7 +109,7 @@ open class GrammarRule: NSObject, TreeChain, Quantifiable, ComparisonGraphNode, 
         if let next = next { strings.append(String(format: " %@", next.definition)) }
         if inverted { strings = [String(format: "~%@", strings.joined())] }
 
-        return strings.joined().trimmed(true)
+        return strings.joined()
 
     }
 
