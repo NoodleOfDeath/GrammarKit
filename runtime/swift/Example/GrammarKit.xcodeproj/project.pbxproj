@@ -11,18 +11,21 @@
 		04015963243F506700C96B98 /* Extensions.RawRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04015962243F506700C96B98 /* Extensions.RawRepresentable.swift */; };
 		04015964243F52EC00C96B98 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04015960243F504600C96B98 /* Extensions.swift */; };
 		04015965243F52EE00C96B98 /* Extensions.RawRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04015962243F506700C96B98 /* Extensions.RawRepresentable.swift */; };
-		040330B7221F0EF3008E9C99 /* ExampleMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleMatcher.swift */; };
-		040330BC221F4F2A008E9C99 /* ExampleMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleMatcher.swift */; };
-		04A3343224630FA7005D91C0 /* strings in Resources */ = {isa = PBXBuildFile; fileRef = 04A3343124630FA7005D91C0 /* strings */; };
-		04E17A1B21A337670082A529 /* samples in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A1921A337670082A529 /* samples */; };
-		04E17A1C21A337670082A529 /* grammars in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A1A21A337670082A529 /* grammars */; };
+		040330BC221F4F2A008E9C99 /* ExampleScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 040330B6221F0EF3008E9C99 /* ExampleScanner.swift */; };
+		04CA0B422471713F0025451A /* grammars in Resources */ = {isa = PBXBuildFile; fileRef = 04CA0B3F2471713F0025451A /* grammars */; };
+		04CA0B432471713F0025451A /* samples in Resources */ = {isa = PBXBuildFile; fileRef = 04CA0B402471713F0025451A /* samples */; };
+		04CA0B442471713F0025451A /* doc in Resources */ = {isa = PBXBuildFile; fileRef = 04CA0B412471713F0025451A /* doc */; };
+		04CA0B49247171DC0025451A /* doc in Resources */ = {isa = PBXBuildFile; fileRef = 04CA0B412471713F0025451A /* doc */; };
+		04CA0B4A247171DC0025451A /* grammars in Resources */ = {isa = PBXBuildFile; fileRef = 04CA0B3F2471713F0025451A /* grammars */; };
+		04CA0B4B247171DC0025451A /* samples in Resources */ = {isa = PBXBuildFile; fileRef = 04CA0B402471713F0025451A /* samples */; };
+		04CA0B4D24718C970025451A /* GrammarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04CA0B4C24718C970025451A /* GrammarTests.swift */; };
 		04E17A2421A35BF80082A529 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E17A2321A35BF80082A529 /* AppDelegate.swift */; };
 		04E17A2621A35BF80082A529 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04E17A2521A35BF80082A529 /* ViewController.swift */; };
 		04E17A2921A35BF80082A529 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A2721A35BF80082A529 /* Main.storyboard */; };
 		04E17A2B21A35BF90082A529 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A2A21A35BF90082A529 /* Assets.xcassets */; };
 		04E17A2E21A35BF90082A529 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 04E17A2C21A35BF90082A529 /* LaunchScreen.storyboard */; };
 		252056BEBBE88DDE67043A65 /* Pods_GrammarKit_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D53C6200A069FFBAF19B4202 /* Pods_GrammarKit_Tests.framework */; };
-		607FACEC1AFB9204008FA782 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACEB1AFB9204008FA782 /* Tests.swift */; };
+		607FACEC1AFB9204008FA782 /* SampleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACEB1AFB9204008FA782 /* SampleTests.swift */; };
 		A10A7A0F7205FD63AB8EA98D /* Pods_GrammarKit_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 42CA404A9C1BAA8185A9B2B5 /* Pods_GrammarKit_Example.framework */; };
 /* End PBXBuildFile section */
 
@@ -39,14 +42,14 @@
 /* Begin PBXFileReference section */
 		04015960243F504600C96B98 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		04015962243F506700C96B98 /* Extensions.RawRepresentable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.RawRepresentable.swift; sourceTree = "<group>"; };
-		040330B6221F0EF3008E9C99 /* ExampleMatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleMatcher.swift; sourceTree = "<group>"; };
+		040330B6221F0EF3008E9C99 /* ExampleScanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExampleScanner.swift; sourceTree = "<group>"; };
 		0432A6A9243CD13D000736F5 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; name = .gitignore; path = ../../../.gitignore; sourceTree = "<group>"; };
 		0432A6AA243CD13D000736F5 /* .travis.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; name = .travis.yml; path = ../../../.travis.yml; sourceTree = "<group>"; };
-		04784FFF21AC8F4B0092D095 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../../../README.md; sourceTree = "<group>"; };
 		0490F32C243A8A6100B107A4 /* GrammarKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GrammarKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		04A3343124630FA7005D91C0 /* strings */ = {isa = PBXFileReference; lastKnownFileType = folder; name = strings; path = ../../../strings; sourceTree = "<group>"; };
-		04E17A1921A337670082A529 /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; name = samples; path = ../../../samples; sourceTree = "<group>"; };
-		04E17A1A21A337670082A529 /* grammars */ = {isa = PBXFileReference; lastKnownFileType = folder; name = grammars; path = ../../../grammars; sourceTree = "<group>"; };
+		04CA0B3F2471713F0025451A /* grammars */ = {isa = PBXFileReference; lastKnownFileType = folder; name = grammars; path = ../../../../grammars; sourceTree = "<group>"; };
+		04CA0B402471713F0025451A /* samples */ = {isa = PBXFileReference; lastKnownFileType = folder; name = samples; path = ../../../../samples; sourceTree = "<group>"; };
+		04CA0B412471713F0025451A /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../../../../doc; sourceTree = "<group>"; };
+		04CA0B4C24718C970025451A /* GrammarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrammarTests.swift; sourceTree = "<group>"; };
 		04E17A2121A35BF80082A529 /* GrammarKit_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrammarKit_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		04E17A2321A35BF80082A529 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		04E17A2521A35BF80082A529 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -59,11 +62,10 @@
 		42CA404A9C1BAA8185A9B2B5 /* Pods_GrammarKit_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GrammarKit_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACE51AFB9204008FA782 /* GrammarKit_Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GrammarKit_Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACEA1AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		607FACEB1AFB9204008FA782 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
+		607FACEB1AFB9204008FA782 /* SampleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleTests.swift; sourceTree = "<group>"; };
 		671EBD72162001EA27BD4AFB /* Pods-GrammarKit_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GrammarKit_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-GrammarKit_Example/Pods-GrammarKit_Example.release.xcconfig"; sourceTree = "<group>"; };
 		766458068727A9554A76D8AB /* Pods-GrammarKit_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GrammarKit_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-GrammarKit_Tests/Pods-GrammarKit_Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		91BE418F4C753DA66C3FB843 /* Pods-GrammarKit_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GrammarKit_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-GrammarKit_Example/Pods-GrammarKit_Example.debug.xcconfig"; sourceTree = "<group>"; };
-		CDCACB9821B43FDA00F3081C /* doc */ = {isa = PBXFileReference; lastKnownFileType = folder; name = doc; path = ../../../doc; sourceTree = "<group>"; };
 		D53C6200A069FFBAF19B4202 /* Pods_GrammarKit_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GrammarKit_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F8D5E761823D13A73188D7F7 /* GrammarKit.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = GrammarKit.podspec; path = ../../../GrammarKit.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 /* End PBXFileReference section */
@@ -88,12 +90,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		04CA0B45247171460025451A /* Documents */ = {
+			isa = PBXGroup;
+			children = (
+				04CA0B412471713F0025451A /* doc */,
+				04CA0B3F2471713F0025451A /* grammars */,
+				04CA0B402471713F0025451A /* samples */,
+			);
+			name = Documents;
+			sourceTree = "<group>";
+		};
 		04E17A2221A35BF80082A529 /* GrammarKit_Example */ = {
 			isa = PBXGroup;
 			children = (
+				04CA0B45247171460025451A /* Documents */,
 				04E17A2321A35BF80082A529 /* AppDelegate.swift */,
 				04E17A2A21A35BF90082A529 /* Assets.xcassets */,
-				040330B6221F0EF3008E9C99 /* ExampleMatcher.swift */,
 				04E17A2F21A35BF90082A529 /* Info.plist */,
 				04E17A2C21A35BF90082A529 /* LaunchScreen.storyboard */,
 				04E17A2721A35BF80082A529 /* Main.storyboard */,
@@ -107,7 +119,6 @@
 		607FACC71AFB9204008FA782 = {
 			isa = PBXGroup;
 			children = (
-				CDCACB9921B43FE900F3081C /* Documents */,
 				6BA50102F59039408B4A8B39 /* Frameworks */,
 				04E17A2221A35BF80082A529 /* GrammarKit_Example */,
 				607FACE81AFB9204008FA782 /* GrammarKit_Tests */,
@@ -129,7 +140,9 @@
 		607FACE81AFB9204008FA782 /* GrammarKit_Tests */ = {
 			isa = PBXGroup;
 			children = (
-				607FACEB1AFB9204008FA782 /* Tests.swift */,
+				040330B6221F0EF3008E9C99 /* ExampleScanner.swift */,
+				04CA0B4C24718C970025451A /* GrammarTests.swift */,
+				607FACEB1AFB9204008FA782 /* SampleTests.swift */,
 				607FACE91AFB9204008FA782 /* Supporting Files */,
 			);
 			path = GrammarKit_Tests;
@@ -173,18 +186,6 @@
 				26A77A36166F2792E02915C4 /* Pods-GrammarKit_Tests.release.xcconfig */,
 			);
 			name = Pods;
-			sourceTree = "<group>";
-		};
-		CDCACB9921B43FE900F3081C /* Documents */ = {
-			isa = PBXGroup;
-			children = (
-				CDCACB9821B43FDA00F3081C /* doc */,
-				04E17A1A21A337670082A529 /* grammars */,
-				04784FFF21AC8F4B0092D095 /* README.md */,
-				04E17A1921A337670082A529 /* samples */,
-				04A3343124630FA7005D91C0 /* strings */,
-			);
-			name = Documents;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -276,8 +277,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				04E17A2E21A35BF90082A529 /* LaunchScreen.storyboard in Resources */,
-				04A3343224630FA7005D91C0 /* strings in Resources */,
 				04E17A2B21A35BF90082A529 /* Assets.xcassets in Resources */,
+				04CA0B432471713F0025451A /* samples in Resources */,
+				04CA0B442471713F0025451A /* doc in Resources */,
+				04CA0B422471713F0025451A /* grammars in Resources */,
 				04E17A2921A35BF80082A529 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -286,8 +289,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04E17A1C21A337670082A529 /* grammars in Resources */,
-				04E17A1B21A337670082A529 /* samples in Resources */,
+				04CA0B4B247171DC0025451A /* samples in Resources */,
+				04CA0B4A247171DC0025451A /* grammars in Resources */,
+				04CA0B49247171DC0025451A /* doc in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,7 +372,6 @@
 				04E17A2621A35BF80082A529 /* ViewController.swift in Sources */,
 				04E17A2421A35BF80082A529 /* AppDelegate.swift in Sources */,
 				04015963243F506700C96B98 /* Extensions.RawRepresentable.swift in Sources */,
-				040330B7221F0EF3008E9C99 /* ExampleMatcher.swift in Sources */,
 				04015961243F504600C96B98 /* Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -378,9 +381,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				04015965243F52EE00C96B98 /* Extensions.RawRepresentable.swift in Sources */,
-				040330BC221F4F2A008E9C99 /* ExampleMatcher.swift in Sources */,
+				040330BC221F4F2A008E9C99 /* ExampleScanner.swift in Sources */,
 				04015964243F52EC00C96B98 /* Extensions.swift in Sources */,
-				607FACEC1AFB9204008FA782 /* Tests.swift in Sources */,
+				607FACEC1AFB9204008FA782 /* SampleTests.swift in Sources */,
+				04CA0B4D24718C970025451A /* GrammarTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

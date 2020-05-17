@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/// Grammatical matcher for matching token streams.
-open class Parser: BaseGrammaticalMatcher {
+/// Grammatical scanner for scanning token streams.
+open class Parser: BaseGrammaticalScanner {
     
     /// Parses a token stream.
     ///
@@ -60,16 +60,16 @@ open class Parser: BaseGrammaticalMatcher {
                 }
             }
             if matchChain.matches && !matchChain.has(option: .skip) {
-                delegate?.matcher(self, didGenerate: matchChain,
+                delegate?.scanner(self, didGenerate: matchChain,
                                   characterStream: characterStream,
                                   tokenStream: tokenStream)
             } else {
                 let token = tokenStream[streamRange.location]
-                delegate?.matcher(self, didSkip: token, characterStream: characterStream)
+                delegate?.scanner(self, didSkip: token, characterStream: characterStream)
             }
             streamRange.shiftLocation(by: matchChain.matches ? matchChain.tokenCount : 1)
         }
-        delegate?.matcher(self, didFinishMatching: characterStream, tokenStream: tokenStream)
+        delegate?.scanner(self, didFinishScanning: characterStream, tokenStream: tokenStream)
     }
     
     ///

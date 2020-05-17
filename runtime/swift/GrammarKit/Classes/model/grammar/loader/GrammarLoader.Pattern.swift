@@ -24,7 +24,7 @@
 
 import Foundation
 
-extension Grammar {
+extension GrammarLoader {
 
     /// Regular expression patterns used to parse grammar rules from string
     /// definitions.
@@ -32,7 +32,7 @@ extension Grammar {
 
         public static var patterns: [String: String] = {
             var patterns = [String: String]()
-            if let patternFile = Bundle.main.path(forResource: "strings/patterns", ofType: "strings"),
+            if let patternFile = Bundle(for: Grammar.self).path(forResource: "patterns", ofType: "txt"),
                 let contents = (try? String(contentsOfFile: patternFile))?.replacingOccurrences(of: "(//|#).*/\\*.*?\\*/", with: "", options: .regularExpression) {
                 "(\\w+)\\s*=\\s*(.*)\\r?\\n".enumerateMatches(in: contents) { (match, _, _) in
                     guard let match = match else { return }

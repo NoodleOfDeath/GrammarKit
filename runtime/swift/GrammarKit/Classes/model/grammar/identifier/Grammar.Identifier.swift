@@ -40,6 +40,9 @@ extension Grammar {
         }
 
         // MARK: - Instance Properties
+
+        /// Unique id of this identifier.
+        open var id: String?
         
         /// Type of this identifier
         open lazy var metadata: Metadata = Metadata()
@@ -47,8 +50,9 @@ extension Grammar {
         // MARK: - Constructor Methods
         
         /// Constructs a new identifer.
-        public convenience init(start: Int = -1, lineNumber: Int = -1, string: String, type: String? = nil, metadata: Metadata? = nil) {
+        public convenience init(id: String?, start: Int = -1, lineNumber: Int = -1, string: String, type: String? = nil, metadata: Metadata? = nil) {
             self.init(start: start, length: string.length, string: string)
+            self.id = id
             self.metadata = metadata ?? Metadata()
         }
         

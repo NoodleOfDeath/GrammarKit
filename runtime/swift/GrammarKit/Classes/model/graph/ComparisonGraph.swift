@@ -27,16 +27,16 @@ import Foundation
 extension ComparisonResult {
 
     ///
-    static var lessThan: ComparisonResult { return .orderedAscending }
+    public static var lessThan: ComparisonResult { return .orderedAscending }
 
     ///
-    static var equalTo: ComparisonResult { return .orderedSame }
+    public static var equalTo: ComparisonResult { return .orderedSame }
 
     ///
-    static var greaterThan: ComparisonResult { return .orderedDescending }
+    public static var greaterThan: ComparisonResult { return .orderedDescending }
 
     ///
-    var inverse: ComparisonResult {
+    public var inverse: ComparisonResult {
         switch self {
         case .lessThan: return .greaterThan
         case .greaterThan: return .lessThan
@@ -45,7 +45,7 @@ extension ComparisonResult {
     }
 
     ///
-    init(_ stringValue: String) {
+    public init(_ stringValue: String) {
         switch stringValue {
         case "<": self = .lessThan
         case ">": self = .greaterThan

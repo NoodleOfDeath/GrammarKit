@@ -33,6 +33,9 @@ open class Grammar: NSObject, Codable {
     
     open override var description: String {
         var strings = [String]()
+        strings.append("# ----------------------------------------")
+        strings.append(String(format: "# Grammar \(name)"))
+        strings.append("# ----------------------------------------")
         strings.append("")
         strings.append(String(format: "--- Lexer Rules (%d) ---", lexerRules.count))
         strings.append("")
@@ -42,8 +45,8 @@ open class Grammar: NSObject, Codable {
         strings.append("")
         parserRules.forEach { strings.append($0.description) }
         strings.append("")
-        strings.append(String(format: "--- Words (%d) ---", words.count))
-        words.forEach { strings.append($0.description) }
+        strings.append(String(format: "--- Identifiers (%d) ---", identifiers.count))
+        identifiers.forEach { strings.append("\($0.0): \($0.1.description)") }
         strings.append("")
         return strings.joined(separator: "\n")
     }
@@ -78,30 +81,22 @@ open class Grammar: NSObject, Codable {
    }
     
     /// Words of this grammar.
-    open var words = [Identifier]()
-
-    /// Identifiers of this grammar.
-    open var identifiers = [Identifier]()
+    open var identifiers = [String: Identifier]()
     
     // MARK: - Constructor Methods
-    
-    /// Constructs a new grammar with an initial map of rules and words.
-    ///
-    /// - Parameters:
-    ///     - rules: of the new grammar.
-    ///     - words: of the new grammar.
-    public required init(rules: [String: GrammarRule]? = nil, words: [Identifier]? = nil) {
+
+    public override required init() {
         super.init()
-        self.rules = rules ?? [:]
-        self.words = words ?? []
-        deriveRuleSets()
     }
     
-    public required convenience init(from decoder: Decoder) throws {
+    public required init(from decoder: Decoder) throws {
+        super.init()
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        let rules = try values.decode([String: GrammarRule].self, forKey: .rules)
-        let words = try values.decode([Identifier].self, forKey: .identifiers)
-        self.init(rules: rules, words: words)
+        packageName = try values.decode(String.self, forKey: .packageName)
+        name = try values.decode(String.self, forKey: .name)
+        rules = try values.decode([String: GrammarRule].self, forKey: .rules)
+        identifiers = try values.decode([String: Identifier].self, forKey: .identifiers)
+        deriveRuleSets()
     }
     
     // MARK: - Instance Methods
@@ -165,16 +160,8 @@ open class Grammar: NSObject, Codable {
     ///
     /// - Parameters:
     ///     - identifier: to add to this grammar.
-    open func add(word: Identifier) {
-        words.append(word)
-    }
-    
-    /// Adds a built-in identifier to this grammar.
-    ///
-    /// - Parameters:
-    ///     - identifier: to add to this grammar.
-    open func add(identifier: Identifier) {
-        identifiers.append(identifier)
+    open func add(identifier: Identifier, for key: String) {
+        identifiers[key] = identifier
     }
     
 }

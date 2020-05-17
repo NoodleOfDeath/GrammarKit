@@ -57,7 +57,7 @@ public struct Quantifier: Codable {
     public static let optionalLazy =
         Quantifier(string: "??", optional: true, greedy: false, lazy: true)
 
-    /// Regular expression for matching quantifier ranges.
+    /// Regular expression for scanning quantifier ranges.
     public static let rangeExpression = "\\{\\s*(\\d)?(?:\\s*(,)\\s*(\\d)?)?\\s*\\}(\\?)?"
 
     /// All preset quantifier values.

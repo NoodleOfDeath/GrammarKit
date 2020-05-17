@@ -67,7 +67,7 @@ Grammars are made up of grammar rules. These rules are defined as semi-regex/ANT
 | Attribute | Type | Description |
 |:-|:-|:-|
 | *`id`| `string`| Unique identifier of this grammar rule. If this value begins with a lowercase letter, it will be treated as a parser rule. If this value begins with an uppercase letter, it will be treated as a lexer rule.|
-| `order`| `number`| The order of magnitude with which to prioritize matching of this grammar rule before other grammar rules. The _lesser_ the magnitude, the higher the priority. Default value is max integer value. |
+| `order`| `number`| The order of magnitude with which to prioritize scanning of this grammar rule before other grammar rules. The _lesser_ the magnitude, the higher the priority. Default value is max integer value. |
 | `options`| `string` <br />(comma and/or whitespace separated list) | Options of this grammar rule. <br />Possible values are `"omit"`, `"skip"`, and/or `"multipass"`. <br />Default is `""`. |
 | *required |   |  |
 
@@ -98,7 +98,7 @@ The `order` attribute defines the priority of the rule. Rules with _lesser_ orde
 
 #### Options Attribute
 
-The `options` attribute of a rule tells the lexer/parser matcher how to handle events when this rule matches a sequence in an input stream. Multiple options can be listed in this attribute separated by at least a single whitespace character and/or a single comma. If the `skip` option is specified, matches to this rule will not fire a grammar event to pass on to listeners/delegates. A skipped match will still terminate matching of other rules of greater order as well as increment the current index of the input stream. An example of this would be to skip all whitespace character matches but continue to advance forward in the input stream. If the `omit` option is specified, the rule will not be added to the queue of matchable rules, however, it can be referenced by other rules by `id`. An example of using this would be when several rules reuse a rule expression, but the rule expression by itself should not generate a grammar event upon matching.
+The `options` attribute of a rule tells the lexer/parser scanner how to handle events when this rule matches a sequence in an input stream. Multiple options can be listed in this attribute separated by at least a single whitespace character and/or a single comma. If the `skip` option is specified, matches to this rule will not fire a grammar event to pass on to listeners/delegates. A skipped match will still terminate scanning of other rules of greater order as well as increment the current index of the input stream. An example of this would be to skip all whitespace character matches but continue to advance forward in the input stream. If the `omit` option is specified, the rule will not be added to the queue of matchable rules, however, it can be referenced by other rules by `id`. An example of using this would be when several rules reuse a rule expression, but the rule expression by itself should not generate a grammar event upon scanning.
 
 ### Grammar Rule Definition
 
@@ -137,7 +137,7 @@ Each component in a rule definition may also have a postfix quantifier operator 
 
 ## Grammar Events
 
-Grammar rules can additionally contain an `events` element containing a sequential list of `event` elements representing grammar events to be passed to the lexer/parser matcher that is implementing this grammar on an input stream. Grammar events must have a `trigger` attribute that contains a comma and/or whitespace separated list of triggers; alternatively, an event may have a child `triggers` array element containing a sequential list of `trigger` elements for each trigger, in the case where triggers for an event are more complex.
+Grammar rules can additionally contain an `events` element containing a sequential list of `event` elements representing grammar events to be passed to the lexer/parser scanner that is implementing this grammar on an input stream. Grammar events must have a `trigger` attribute that contains a comma and/or whitespace separated list of triggers; alternatively, an event may have a child `triggers` array element containing a sequential list of `trigger` elements for each trigger, in the case where triggers for an event are more complex.
 
 ```xml
 <rules>

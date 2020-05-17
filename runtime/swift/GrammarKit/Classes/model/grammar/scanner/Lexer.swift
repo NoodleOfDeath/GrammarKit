@@ -22,8 +22,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/// Grammar matcher used to tokenize character streams.
-open class Lexer: BaseGrammaticalMatcher {
+/// Grammar scanner used to tokenize character streams.
+open class Lexer: BaseGrammaticalScanner {
 
     ///
     ///
@@ -66,17 +66,17 @@ open class Lexer: BaseGrammaticalMatcher {
                 }
                 if !matchChain.has(option: .skip) {
                     tokenStream.add(token: token)
-                    delegate?.matcher(self, didGenerate: matchChain,
+                    delegate?.scanner(self, didGenerate: matchChain,
                                       characterStream: characterStream,
                                       tokenStream: tokenStream)
                 } else {
-                    delegate?.matcher(self, didSkip: token,
+                    delegate?.scanner(self, didSkip: token,
                     characterStream: characterStream)
                 }
             }
             streamRange.shiftLocation(by: (matchChain.matches ? matchChain.length : 1))
         }
-        delegate?.matcher(self, didFinishMatching: characterStream, tokenStream: tokenStream)
+        delegate?.scanner(self, didFinishScanning: characterStream, tokenStream: tokenStream)
     }
     
     ///

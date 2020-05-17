@@ -33,7 +33,7 @@ public protocol StringRangeProtocol: Comparable, Codable {
     /// End of this string range.
     var end: Int { get set }
     
-    /// String value contents of the tokens in this string range.
+    /// String value contents of this string range.
     var string: String { get set }
     
 }
@@ -47,6 +47,18 @@ extension StringRangeProtocol {
     
     /// Range of this string range determined from its location index and length.
     public var range: NSRange { return NSMakeRange(start, length) }
+
+    // MARK: - Comparable Methods
+
+    public static func < (lhs: Self, rhs: Self) -> Bool {
+        return lhs.start < rhs.start
+    }
+
+    // MARK: - Equatable Methods
+
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        return (lhs.start, lhs.end, lhs.string) == (rhs.start, rhs.end, rhs.string)
+    }
     
 }
 
@@ -85,18 +97,6 @@ open class StringRange: NSObject, StringRangeProtocol {
     ///     - string: value of the new string range.
     public convenience init(start: Int = 0, length: Int, string: String? = nil) {
         self.init(start: start, end: start + length, string: string)
-    }
-
-    // MARK: - Comparable Methods
-
-    public static func < (lhs: StringRange, rhs: StringRange) -> Bool {
-        return lhs.start < rhs.start
-    }
-
-    // MARK: - Equatable Methods
-
-    public static func == (lhs: StringRange, rhs: StringRange) -> Bool {
-        return (lhs.start, lhs.end, lhs.string) == (rhs.start, rhs.end, rhs.string)
     }
     
 }

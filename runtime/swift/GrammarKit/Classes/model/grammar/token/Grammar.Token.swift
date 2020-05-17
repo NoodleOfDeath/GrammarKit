@@ -26,7 +26,7 @@ import Foundation
 
 extension Grammar {
 
-    /// Simple data structure representing a token read by a lexer grammar matcher.
+    /// Simple data structure representing a token read by a lexer grammatical scanner.
     open class Token: IO.Token {
 
         enum CodingKeys: String, CodingKey {

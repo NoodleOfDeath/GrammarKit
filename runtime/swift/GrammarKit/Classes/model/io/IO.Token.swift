@@ -26,7 +26,7 @@ import Foundation
 
 extension IO {
 
-    /// Simple data structure representing a token read by a lexer grammar matcher.
+    /// Simple data structure representing a token read by a lexer grammatical scanner.
     open class Token: NSObject, Codable {
 
         // MARK: - Instance Properties
@@ -42,12 +42,11 @@ extension IO {
         /// Constructs a new token instance with an initial rule, value, and range.
         ///
         /// - Parameters:
-        ///     - rules: of the new token.
         ///     - value: of the new token.
         ///     - range: of the new token.
-        public init(value: String = "", range: NSRange = NSMakeRange(0, 0)) {
+        public init(value: String = "", range: NSRange? = nil) {
             self.value = value
-            self.range = range
+            self.range = range ?? .zero
         }
 
         /// Constructs a new token instance with an initial rul, value, start,

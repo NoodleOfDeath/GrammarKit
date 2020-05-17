@@ -32,29 +32,8 @@ class ExampleScanner: CompoundGrammaticalScanner {
 
     /// Nested ranges that will be recursively scanned byt the scanner.
     lazy var nestedRanges = [NSRange]()
-    
-    ///
-    /// - parameter characterStream:
-    /// - parameter offset:
-    /// - parameter verbose:
-    func scan(_ characterStream: CharacterStream?, from offset: Int, length: Int? = nil, rules: [GrammarRule]? = nil) {
-        if let length = length {
-            scan(characterStream, within: NSMakeRange(offset, length), rules: rules)
-        } else {
-            scan(characterStream, within: characterStream?.range.shiftingLocation(by: offset), rules: rules)
-        }
-    }
-    
-    ///
-    /// - parameter characterStream:
-    /// - parameter offset:
-    /// - parameter verbose:
-    func scan(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, rules: [GrammarRule]? = nil) {
-        print()
-        print("----- Tokenizing Character Stream (\(streamRange ?? .zero) -----")
-        print()
-        tokenize(characterStream, within: streamRange, rules: rules)
-    }
+
+    // MARK: - GrammaticalScannerDelegate Methods
     
     override func scanner(_ scanner: GrammaticalScanner, didGenerate matchChain: MatchChain, characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
         super.scanner(scanner, didGenerate: matchChain, characterStream: characterStream, tokenStream: tokenStream)
@@ -102,6 +81,35 @@ class ExampleScanner: CompoundGrammaticalScanner {
 
         }
         
+    }
+
+    // MARK: - Instance Methods
+
+    ///
+    /// - parameter characterStream:
+    /// - parameter offset:
+    /// - parameter verbose:
+    func scan(_ characterStream: CharacterStream?, from offset: Int = 0, length: Int? = nil, rules: [GrammarRule]? = nil) {
+        if let length = length {
+            scan(characterStream, within: NSMakeRange(offset, length), rules: rules)
+        } else {
+            scan(characterStream, within: characterStream?.range.shiftingLocation(by: offset), rules: rules)
+        }
+    }
+
+    func scan(_ characterStream: String?, from offset: Int = 0, length: Int? = nil, rules: [GrammarRule]? = nil) {
+        scan(IO.CharacterStream(characterStream), from: offset, length: length, rules: rules)
+    }
+
+    ///
+    /// - parameter characterStream:
+    /// - parameter offset:
+    /// - parameter verbose:
+    fileprivate func scan(_ characterStream: CharacterStream?, within streamRange: NSRange? = nil, rules: [GrammarRule]? = nil) {
+        print()
+        print("----- Tokenizing Character Stream (\(streamRange ?? .zero) -----")
+        print()
+        tokenize(characterStream, within: streamRange, rules: rules)
     }
     
 }

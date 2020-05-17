@@ -24,15 +24,15 @@
 
 import Foundation
 
-/// Grammar matcher wrapper class that acts as both a lexer and parser.
-open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher, GrammaticalMatcherDelegate {
+/// Grammar scanner wrapper class that acts as both a lexer and parser.
+open class CompoundGrammaticalScanner: BaseGrammaticalScanner, GrammaticalScannerDelegate {
     
     /// Lexer of this compound grammar endine.
     open var lexer: Lexer? {
         didSet { lexer?.delegate = self }
     }
     
-    /// Parser of this compound grammar matcher.
+    /// Parser of this compound grammatical scanner.
     open var parser: Parser? {
         didSet { parser?.delegate = self }
     }
@@ -83,16 +83,21 @@ open class CompoundGrammaticalMatcher: BaseGrammaticalMatcher, GrammaticalMatche
         parser?.parse(tokenStream, within: streamRange, rules: rules)
     }
 
-    open func matcher(_ matcher: GrammaticalMatcher, didSkip token: Token, characterStream: CharacterStream) {
-        delegate?.matcher(matcher, didSkip: token, characterStream: characterStream)
+    // MARK: - GrammaticalScannerDelegate Methods
+
+    open func scanner(_ scanner: GrammaticalScanner, didSkip token: Token, characterStream: CharacterStream) {
+        delegate?.scanner(scanner, didSkip: token, characterStream: characterStream)
+        handler?.didSkip?(scanner, token, characterStream)
     }
 
-    open func matcher(_ matcher: GrammaticalMatcher, didGenerate matchChain: MatchChain, characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
-        delegate?.matcher(matcher, didGenerate: matchChain, characterStream: characterStream, tokenStream: tokenStream)
+    open func scanner(_ scanner: GrammaticalScanner, didGenerate matchChain: MatchChain, characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
+        delegate?.scanner(scanner, didGenerate: matchChain, characterStream: characterStream, tokenStream: tokenStream)
+        handler?.didGenerate?(scanner, matchChain, characterStream, tokenStream)
     }
 
-    open func matcher(_ matcher: GrammaticalMatcher, didFinishMatching characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
-        delegate?.matcher(matcher, didFinishMatching: characterStream, tokenStream: tokenStream)
+    open func scanner(_ scanner: GrammaticalScanner, didFinishScanning characterStream: CharacterStream, tokenStream: TokenStream<Token>?) {
+        delegate?.scanner(scanner, didFinishScanning: characterStream, tokenStream: tokenStream)
+        handler?.didFinish?(scanner, characterStream, tokenStream)
     }
     
 }

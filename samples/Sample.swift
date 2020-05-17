@@ -22,20 +22,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/// Base abstract class for a grammar matching.
-public final class BaseGrammaticalMatcher: NSObject, GrammaticalMatcher {
+/// Base abstract class for a grammar scanning.
+public final class BaseGrammaticalScanner: NSObject, GrammaticalScanner {
 
-    /// Delegate of this grammar matcher.
-    open weak var delegate: GrammaticalMatcherDelegate?
+    /// Delegate of this grammatical scanner.
+    open weak var delegate: GrammaticalScannerDelegate?
     
-    /// Grammar of this matcher.
+    /// Grammar of this scanner.
     public let grammar: Grammar
     
-    /// Constructs a new grammar matcher with an initial grammar.
+    /// Constructs a new grammatical scanner with an initial grammar.
     ///
     /// - Parameters:
-    ///     - grammar: to initialize this matcher with.
-    public init(grammar: Grammar, opts: GrammaticalMatcherOption = []) {
+    ///     - grammar: to initialize this scanner with.
+    public init(grammar: Grammar, opts: GrammaticalScannerOption = []) {
         self.grammar = grammar
         self.options = options
     }

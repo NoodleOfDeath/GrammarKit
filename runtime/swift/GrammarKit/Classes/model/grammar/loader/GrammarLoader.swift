@@ -30,7 +30,6 @@ open class GrammarLoader: NSObject {
     
     public typealias This = GrammarLoader
 
-    public typealias Pattern = Grammar.Pattern
     public typealias Metadata = Grammar.Metadata
     public typealias MetadataOption = Grammar.MetadataOption
     public typealias Identifier = Grammar.Identifier
@@ -204,9 +203,9 @@ open class GrammarLoader: NSObject {
             if let dictionary = (try? JSONSerialization.jsonObject(with: data, options: [.allowFragments])) as? [[String: Any]] {
                 var words = [String]()
                 for dict in dictionary {
-                    guard let word = parseWord(from: dict) else { continue }
+                    guard let word = parseWord(from: dict), let id = word.id else { continue }
                     words.append(String(format: "'%@'", word.string))
-                    grammar.add(word: word)
+                    grammar.add(identifier: word, for: id)
                 }
                 definition = words.joined(separator: " | ")
             }
@@ -451,8 +450,8 @@ open class GrammarLoader: NSObject {
     ///     - dict: to parse an identifier from.
     /// - Returns: an identifier that represents a word.
     open func parseWord(from dict: [String: Any]) -> Identifier? {
-        guard let string = (dict[AttributeKey.definition] ?? dict[AttributeKey.id]) as? String else { return nil }
-        return Identifier(string: string, metadata: parseMetadata(for: dict))
+        guard let id = dict[AttributeKey.id] as? String else  { return nil }
+            return Identifier(id: id, string: (dict[AttributeKey.definition] as? String) ?? id, metadata: parseMetadata(for: dict))
     }
 
     ///
